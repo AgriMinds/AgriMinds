@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-drews"
+version = "0.2.0"
+description = "AI-DREWS: deep-learning drought early warning for the Choke Mountain Watershed (ENSO CNN-LSTM + SuperHybrid drought model + advisory rules)."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "AgriMinds / AI-DREWS team" }]
+dependencies = [
+  "numpy>=2.0",
+  "pandas>=2.2",
+  "scipy>=1.13",
+  "scikit-learn>=1.5",
+  "torch>=2.2",
+  "pydantic>=2.8",
+  "pydantic-settings>=2.4",
+  "typer>=0.12",
+]
+
+[project.optional-dependencies]
+plots = ["matplotlib>=3.9"]
+research = ["matplotlib>=3.9", "streamlit>=1.38"]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11", "matplotlib>=3.9"]
+
+[project.scripts]
+ai-drews = "ai_drews.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_drews"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "W", "SIM"]
+ignore = ["N806", "N803", "N802", "E741", "E501"]  # scientific naming; formatter owns line length
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

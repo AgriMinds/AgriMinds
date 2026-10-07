@@ -1,1 +1,16 @@
-{"c_sp": 5, "f_t": 7, "f_p": 17, "n_leads": 3, "thresholds": [0.2, 0.15000000000000002, 0.1]}
+{
+  "c_sp": 5,
+  "f_t": 7,
+  "f_p": 17,
+  "n_leads": 3,
+  "thresholds": [
+    0.2,
+    0.15000000000000002,
+    0.1
+  ],
+  "model_version": "superhybrid-0.1.0",
+  "trained_at": "2026-10-05T00:00:00+00:00",
+  "training_data_end": "2026-06-01",
+  "data_source": "synthetic",
+  "note": "Trained on synthetic stand-in data; for pipeline validation only."
+}
