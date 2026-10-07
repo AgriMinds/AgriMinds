@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import List, Tuple
-from pydantic_settings import BaseSettings
+try:
+    from pydantic_settings import BaseSettings
+except ImportError:
+    from pydantic import BaseModel as BaseSettings
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AgriMinds AI-DREWS API"

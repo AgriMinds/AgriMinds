@@ -14,6 +14,17 @@ async def get_drought_map(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate drought map: {str(e)}")
 
+@router.get("/cell", response_model=GridCellRisk)
+async def get_cell_risk_get(
+    lead_month: int = Query(1, ge=1, le=3),
+    row: int = Query(None, ge=0, le=7),
+    col: int = Query(None, ge=0, le=7),
+    latitude: float = Query(None),
+    longitude: float = Query(None)
+):
+    query = CellRiskQuery(lead_month=lead_month, row=row, col=col, latitude=latitude, longitude=longitude)
+    return await get_cell_risk(query)
+
 @router.post("/cell", response_model=GridCellRisk)
 async def get_cell_risk(query: CellRiskQuery):
     try:

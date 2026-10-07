@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   backend:
     build:
@@ -14,9 +12,10 @@ services:
       - PYTHONPATH=/app/backend:/app/ai_drews/src
       - PROJECT_NAME=AgriMinds AI-DREWS
     volumes:
-      - ./ai_drews/data:/app/ai_drews/data
-      - ./ai_drews/models:/app/ai_drews/models
-      - ./ai_drews/outputs:/app/ai_drews/outputs
+      - ./backend:/app/backend:z
+      - ./ai_drews/data:/app/ai_drews/data:z
+      - ./ai_drews/models:/app/ai_drews/models:z
+      - ./ai_drews/outputs:/app/ai_drews/outputs:z
     depends_on:
       redis:
         condition: service_healthy
