@@ -4,15 +4,17 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
 from ai_drews.config import DEFAULT_CONFIG
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="AGRIMINDS_", env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="AGRIMINDS_", env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
 
     project_name: str = "AgriMinds AI-DREWS API"
     env: Literal["development", "test", "production"] = "development"
@@ -35,8 +37,12 @@ class Settings(BaseSettings):
     cache_ttl_seconds: int = 6 * 60 * 60
 
     # Security
-    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000", "http://127.0.0.1:3000"])
-    api_keys: list[str] = Field(default_factory=list)  # empty -> auth disabled (local development only)
+    cors_origins: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["http://localhost:3000", "http://127.0.0.1:3000"]
+    )
+    api_keys: Annotated[list[str], NoDecode] = Field(
+        default_factory=list
+    )  # empty -> auth disabled (local development only)
     allow_precomputed_fallback: bool = True  # serve outputs/latest_risk.npz when weights are missing
 
     @field_validator("cors_origins", "api_keys", mode="before")

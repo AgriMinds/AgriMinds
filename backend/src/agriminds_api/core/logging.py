@@ -28,7 +28,9 @@ def configure_logging(level: str = "INFO", json_logs: bool = False) -> None:
     if json_logs:
         from pythonjsonlogger.json import JsonFormatter
 
-        fmt: logging.Formatter = JsonFormatter("%(asctime)s %(levelname)s %(name)s %(request_id)s %(message)s")
+        fmt: logging.Formatter = JsonFormatter(
+            "%(asctime)s %(levelname)s %(name)s %(request_id)s %(message)s"
+        )
     else:
         fmt = logging.Formatter("%(asctime)s %(levelname)-7s %(name)s [%(request_id)s] %(message)s")
     handler.setFormatter(fmt)

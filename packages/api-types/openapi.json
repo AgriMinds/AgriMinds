@@ -1,0 +1,1242 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AgriMinds AI-DREWS API",
+    "description": "AI-Enabled Drought Early Warning and Climate-Resilient Decision Support (AI-DREWS, Choke Mountain Watershed). Every forecast response carries `provenance` describing the model version, training data source and issue month.",
+    "version": "1.1.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Liveness: process is up (200 even when degraded)",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Readiness: 503 until forecasts can be served",
+        "operationId": "ready_api_v1_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/drought/map": {
+      "get": {
+        "tags": [
+          "Drought Early Warning"
+        ],
+        "summary": "Gridded drought probability for one lead",
+        "operationId": "drought_map_api_v1_drought_map_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lead_month",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3,
+              "minimum": 1,
+              "description": "Forecast lead time (1, 2 or 3 months)",
+              "default": 1,
+              "title": "Lead Month"
+            },
+            "description": "Forecast lead time (1, 2 or 3 months)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DroughtMapResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "503": {
+            "description": "Model unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/drought/cell": {
+      "get": {
+        "tags": [
+          "Drought Early Warning"
+        ],
+        "summary": "Risk for one cell by row/col or GPS",
+        "operationId": "cell_risk_api_v1_drought_cell_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lead_month",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3,
+              "minimum": 1,
+              "description": "Forecast lead time (1, 2 or 3 months)",
+              "default": 1,
+              "title": "Lead Month"
+            },
+            "description": "Forecast lead time (1, 2 or 3 months)"
+          },
+          {
+            "name": "row",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Row"
+            }
+          },
+          {
+            "name": "col",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Col"
+            }
+          },
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 90,
+                  "minimum": -90
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Latitude"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 180,
+                  "minimum": -180
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Longitude"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CellRiskResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "503": {
+            "description": "Model unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Drought Early Warning"
+        ],
+        "summary": "Risk for one cell (JSON body)",
+        "operationId": "cell_risk_post_api_v1_drought_cell_post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CellRiskQuery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CellRiskResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "503": {
+            "description": "Model unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/advisories/evaluate": {
+      "post": {
+        "tags": [
+          "Agro-Decision Support"
+        ],
+        "summary": "Crop advisory for a cell, lead and crop",
+        "operationId": "evaluate_api_v1_advisories_evaluate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdvisoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdvisoryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Model unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/api/v1/enso/outlook": {
+      "get": {
+        "tags": [
+          "Climate Engine"
+        ],
+        "summary": "Ni\u00f1o 3.4 history and CNN-LSTM forecast",
+        "operationId": "outlook_api_v1_enso_outlook_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnsoOutlookResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Model unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AdvisoryRequest": {
+        "properties": {
+          "crop": {
+            "type": "string",
+            "enum": [
+              "tef",
+              "wheat",
+              "maize"
+            ],
+            "title": "Crop",
+            "description": "Target staple crop",
+            "default": "tef"
+          },
+          "lead_month": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Lead Month",
+            "description": "Forecast lead time in months",
+            "default": 1
+          },
+          "row": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Row",
+            "description": "Watershed grid row index (north = 0)"
+          },
+          "col": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Col",
+            "description": "Watershed grid column index (west = 0)"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 90.0,
+                "minimum": -90.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude",
+            "description": "GPS latitude (alternative to row/col)"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180.0,
+                "minimum": -180.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude",
+            "description": "GPS longitude (alternative to row/col)"
+          },
+          "iek_agrees": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Iek Agrees",
+            "description": "Indigenous ecological knowledge: True = local indicators agree with a dry outlook"
+          }
+        },
+        "type": "object",
+        "title": "AdvisoryRequest"
+      },
+      "AdvisoryResponse": {
+        "properties": {
+          "crop": {
+            "type": "string",
+            "enum": [
+              "tef",
+              "wheat",
+              "maize"
+            ],
+            "title": "Crop"
+          },
+          "lead_month": {
+            "type": "integer",
+            "title": "Lead Month"
+          },
+          "row": {
+            "type": "integer",
+            "title": "Row"
+          },
+          "col": {
+            "type": "integer",
+            "title": "Col"
+          },
+          "target_date": {
+            "type": "string",
+            "title": "Target Date"
+          },
+          "raw_probability": {
+            "type": "number",
+            "title": "Raw Probability"
+          },
+          "adjusted_probability": {
+            "type": "number",
+            "title": "Adjusted Probability"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "Low",
+              "Moderate",
+              "High",
+              "Severe"
+            ],
+            "title": "Risk Level"
+          },
+          "season": {
+            "type": "string",
+            "title": "Season"
+          },
+          "enso_state": {
+            "type": "string",
+            "title": "Enso State"
+          },
+          "crop_note": {
+            "type": "string",
+            "title": "Crop Note"
+          },
+          "crop_recommendation": {
+            "type": "string",
+            "title": "Crop Recommendation"
+          },
+          "planting_window": {
+            "type": "string",
+            "title": "Planting Window"
+          },
+          "water_management": {
+            "type": "string",
+            "title": "Water Management"
+          },
+          "preparedness_action": {
+            "type": "string",
+            "title": "Preparedness Action"
+          },
+          "iek_assessment": {
+            "type": "string",
+            "title": "Iek Assessment"
+          },
+          "confidence_level": {
+            "type": "string",
+            "title": "Confidence Level"
+          },
+          "rules_version": {
+            "type": "string",
+            "title": "Rules Version",
+            "description": "Version of the advisory rule set (ai_drews.advisory.RULES_VERSION)"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ForecastProvenance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "crop",
+          "lead_month",
+          "row",
+          "col",
+          "target_date",
+          "raw_probability",
+          "adjusted_probability",
+          "risk_level",
+          "season",
+          "enso_state",
+          "crop_note",
+          "crop_recommendation",
+          "planting_window",
+          "water_management",
+          "preparedness_action",
+          "iek_assessment",
+          "confidence_level",
+          "rules_version",
+          "provenance"
+        ],
+        "title": "AdvisoryResponse"
+      },
+      "CacheStatus": {
+        "properties": {
+          "backend": {
+            "type": "string",
+            "title": "Backend"
+          },
+          "reachable": {
+            "type": "boolean",
+            "title": "Reachable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "backend",
+          "reachable"
+        ],
+        "title": "CacheStatus"
+      },
+      "CellRiskQuery": {
+        "properties": {
+          "lead_month": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Lead Month",
+            "default": 1
+          },
+          "row": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Row"
+          },
+          "col": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Col"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 90.0,
+                "minimum": -90.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180.0,
+                "minimum": -180.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          }
+        },
+        "type": "object",
+        "title": "CellRiskQuery",
+        "description": "Either (row, col) or (latitude, longitude). Neither -> watershed centre cell."
+      },
+      "CellRiskResponse": {
+        "properties": {
+          "row": {
+            "type": "integer",
+            "title": "Row"
+          },
+          "col": {
+            "type": "integer",
+            "title": "Col"
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          },
+          "probability": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Probability"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "Low",
+              "Moderate",
+              "High",
+              "Severe"
+            ],
+            "title": "Risk Level"
+          },
+          "lead_month": {
+            "type": "integer",
+            "title": "Lead Month"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ForecastProvenance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "row",
+          "col",
+          "latitude",
+          "longitude",
+          "probability",
+          "risk_level",
+          "lead_month",
+          "provenance"
+        ],
+        "title": "CellRiskResponse"
+      },
+      "DroughtMapResponse": {
+        "properties": {
+          "lead_month": {
+            "type": "integer",
+            "title": "Lead Month"
+          },
+          "target_date": {
+            "type": "string",
+            "title": "Target Date",
+            "description": "Target month, e.g. 'July 2026'"
+          },
+          "issued_date": {
+            "type": "string",
+            "title": "Issued Date",
+            "description": "Issue month, e.g. 'June 2026'"
+          },
+          "grid_shape": {
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Grid Shape"
+          },
+          "bbox": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Bbox",
+            "description": "lon_min, lat_min, lon_max, lat_max"
+          },
+          "mean_probability": {
+            "type": "number",
+            "title": "Mean Probability"
+          },
+          "min_probability": {
+            "type": "number",
+            "title": "Min Probability"
+          },
+          "max_probability": {
+            "type": "number",
+            "title": "Max Probability"
+          },
+          "probabilities": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Probabilities"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/GridCellRisk"
+            },
+            "type": "array",
+            "title": "Cells"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ForecastProvenance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lead_month",
+          "target_date",
+          "issued_date",
+          "grid_shape",
+          "bbox",
+          "mean_probability",
+          "min_probability",
+          "max_probability",
+          "probabilities",
+          "cells",
+          "provenance"
+        ],
+        "title": "DroughtMapResponse"
+      },
+      "EnsoOutlookResponse": {
+        "properties": {
+          "current_nino34": {
+            "type": "number",
+            "title": "Current Nino34"
+          },
+          "current_state": {
+            "type": "string",
+            "title": "Current State",
+            "description": "El Ni\u00f1o | La Ni\u00f1a | Neutral"
+          },
+          "forecast_horizon_months": {
+            "type": "integer",
+            "title": "Forecast Horizon Months"
+          },
+          "historical_series": {
+            "items": {
+              "$ref": "#/components/schemas/EnsoPoint"
+            },
+            "type": "array",
+            "title": "Historical Series"
+          },
+          "forecast_series": {
+            "items": {
+              "$ref": "#/components/schemas/EnsoPoint"
+            },
+            "type": "array",
+            "title": "Forecast Series",
+            "description": "Empty when the ENSO model has not been trained"
+          },
+          "teleconnection_summary": {
+            "type": "string",
+            "title": "Teleconnection Summary"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ForecastProvenance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current_nino34",
+          "current_state",
+          "forecast_horizon_months",
+          "historical_series",
+          "forecast_series",
+          "teleconnection_summary",
+          "provenance"
+        ],
+        "title": "EnsoOutlookResponse"
+      },
+      "EnsoPoint": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date",
+            "description": "YYYY-MM"
+          },
+          "nino34": {
+            "type": "number",
+            "title": "Nino34"
+          },
+          "is_forecast": {
+            "type": "boolean",
+            "title": "Is Forecast",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "nino34"
+        ],
+        "title": "EnsoPoint"
+      },
+      "ErrorBody": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorBody"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse"
+      },
+      "ForecastProvenance": {
+        "properties": {
+          "model_version": {
+            "type": "string",
+            "title": "Model Version",
+            "description": "Version string written by `ai-drews train drought`"
+          },
+          "data_source": {
+            "type": "string",
+            "title": "Data Source",
+            "description": "'real' or 'synthetic' training data, as recorded in drought_meta.json"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "model",
+              "precomputed"
+            ],
+            "title": "Source",
+            "description": "Live inference or last precomputed raster"
+          },
+          "issued_date": {
+            "type": "string",
+            "title": "Issued Date",
+            "description": "Last month of input data the forecast is issued from (YYYY-MM-DD)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_version",
+          "data_source",
+          "source",
+          "issued_date"
+        ],
+        "title": "ForecastProvenance",
+        "description": "Attached to every forecast-derived response so clients can show where the numbers come from."
+      },
+      "GridCellRisk": {
+        "properties": {
+          "row": {
+            "type": "integer",
+            "title": "Row"
+          },
+          "col": {
+            "type": "integer",
+            "title": "Col"
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          },
+          "probability": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Probability"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "Low",
+              "Moderate",
+              "High",
+              "Severe"
+            ],
+            "title": "Risk Level"
+          }
+        },
+        "type": "object",
+        "required": [
+          "row",
+          "col",
+          "latitude",
+          "longitude",
+          "probability",
+          "risk_level"
+        ],
+        "title": "GridCellRisk"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "healthy",
+              "degraded",
+              "unavailable"
+            ],
+            "title": "Status"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment"
+          },
+          "auth_enabled": {
+            "type": "boolean",
+            "title": "Auth Enabled"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelStatus"
+          },
+          "cache": {
+            "$ref": "#/components/schemas/CacheStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "service",
+          "version",
+          "environment",
+          "auth_enabled",
+          "model",
+          "cache"
+        ],
+        "title": "HealthResponse"
+      },
+      "ModelStatus": {
+        "properties": {
+          "loaded": {
+            "type": "boolean",
+            "title": "Loaded"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "model",
+              "precomputed",
+              "unavailable"
+            ],
+            "title": "Source"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "data_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Source"
+          },
+          "issued_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued Date"
+          },
+          "enso_forecast_available": {
+            "type": "boolean",
+            "title": "Enso Forecast Available",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "loaded",
+          "source"
+        ],
+        "title": "ModelStatus"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  }
+}

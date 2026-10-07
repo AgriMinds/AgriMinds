@@ -1,0 +1,25 @@
+[project]
+name = "agriminds-workspace"
+version = "0.0.0"
+description = "Workspace root (not a package). Members: ml (ai-drews), backend (agriminds-api)."
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["ml", "backend"]
+
+[tool.uv.sources]
+ai-drews = { workspace = true }
+agriminds-api = { workspace = true }
+torch = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[dependency-groups]
+dev = ["ai-drews[dev]", "agriminds-api[dev]"]

@@ -85,5 +85,7 @@ def build_cache(redis_url: str | None) -> Cache:
     if cache.ping():
         log.info("cache backend: redis")
     else:
-        log.warning("redis at %s not reachable at startup; requests will fall back to memory cache", redis_url)
+        log.warning(
+            "redis at %s not reachable at startup; requests will fall back to memory cache", redis_url
+        )
     return cache
