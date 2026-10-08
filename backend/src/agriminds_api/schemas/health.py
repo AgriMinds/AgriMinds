@@ -19,6 +19,11 @@ class CacheStatus(BaseModel):
     reachable: bool
 
 
+class DatabaseStatus(BaseModel):
+    configured: bool
+    reachable: bool
+
+
 class HealthResponse(BaseModel):
     status: Literal["healthy", "degraded", "unavailable"]
     service: str
@@ -27,3 +32,4 @@ class HealthResponse(BaseModel):
     auth_enabled: bool
     model: ModelStatus
     cache: CacheStatus
+    database: DatabaseStatus

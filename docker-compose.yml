@@ -11,6 +11,27 @@ x-common: &common
     options: { max-size: "10m", max-file: "3" }
 
 services:
+  postgres:
+    <<: *common
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agriminds}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-agriminds}
+      # Fail fast rather than silently accepting trust auth on an exposed port.
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agriminds} -d ${POSTGRES_DB:-agriminds}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
   redis:
     <<: *common
     image: redis:7-alpine
@@ -36,6 +57,8 @@ services:
       AGRIMINDS_DATA_DIR: /app/data
       AI_DREWS_DATA_DIR: /app/data
       AGRIMINDS_REDIS_URL: redis://redis:6379/0
+      AGRIMINDS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-agriminds}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-agriminds}
+      AGRIMINDS_JWT_SECRET: ${AGRIMINDS_JWT_SECRET:?set AGRIMINDS_JWT_SECRET in .env (openssl rand -hex 32)}
       AGRIMINDS_CORS_ORIGINS: ${AGRIMINDS_CORS_ORIGINS:-http://localhost:3000}
       AGRIMINDS_API_KEYS: ${AGRIMINDS_API_KEYS:-}
     volumes:
@@ -44,6 +67,8 @@ services:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/v1/health"]
@@ -91,6 +116,9 @@ services:
         condition: service_healthy
     stdin_open: true
     tty: true
+
+volumes:
+  postgres-data:
 
 networks:
   default:

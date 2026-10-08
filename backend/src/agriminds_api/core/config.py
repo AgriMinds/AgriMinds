@@ -7,8 +7,11 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 from ai_drews.config import DEFAULT_CONFIG
-from pydantic import Field, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+# Obvious placeholder: refused in production so a real deployment cannot run on a shared secret.
+DEV_JWT_SECRET = "dev-only-insecure-secret-change-me"
 
 
 class Settings(BaseSettings):
@@ -32,17 +35,33 @@ class Settings(BaseSettings):
     enso_leads: int = DEFAULT_CONFIG.enso_leads
     enso_history_months: int = 36
 
-    # Cache
+    # ---- database -------------------------------------------------------------------------
+    database_url: str = "postgresql+asyncpg://agriminds:agriminds@localhost:5432/agriminds"
+    db_echo: bool = False
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
+    db_pool_recycle_seconds: int = 1800
+
+    # ---- cache ----------------------------------------------------------------------------
     redis_url: str | None = None  # e.g. redis://redis:6379/0 ; None -> in-process memory cache
     cache_ttl_seconds: int = 6 * 60 * 60
 
-    # Security
+    # ---- security -------------------------------------------------------------------------
     cors_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["http://localhost:3000", "http://127.0.0.1:3000"]
     )
-    api_keys: Annotated[list[str], NoDecode] = Field(
-        default_factory=list
-    )  # empty -> auth disabled (local development only)
+    # Machine credentials for service-to-service calls (the Next.js proxy, the mobile app).
+    api_keys: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    jwt_secret: SecretStr = SecretStr(DEV_JWT_SECRET)
+    jwt_algorithm: Literal["HS256", "HS384", "HS512"] = "HS256"
+    jwt_issuer: str = "agriminds-api"
+    access_token_ttl_minutes: int = 15
+    refresh_token_ttl_days: int = 14
+    password_min_length: int = 10
+    # Failed logins per account before it is temporarily locked.
+    login_max_attempts: int = 8
+    login_lockout_minutes: int = 15
+
     allow_precomputed_fallback: bool = True  # serve outputs/latest_risk.npz when weights are missing
 
     @field_validator("cors_origins", "api_keys", mode="before")
@@ -59,13 +78,28 @@ class Settings(BaseSettings):
             raise ValueError("CORS wildcard '*' is not allowed; list explicit origins")
         return v
 
+    @model_validator(mode="after")
+    def _production_requires_real_secret(self) -> Settings:
+        if self.env == "production" and self.jwt_secret.get_secret_value() == DEV_JWT_SECRET:
+            raise ValueError(
+                "AGRIMINDS_JWT_SECRET must be set to a unique value in production "
+                "(generate one with: openssl rand -hex 32)"
+            )
+        return self
+
     @property
-    def auth_enabled(self) -> bool:
+    def service_auth_enabled(self) -> bool:
+        """True when machine clients must present X-API-Key."""
         return bool(self.api_keys)
 
     @property
     def is_production(self) -> bool:
         return self.env == "production"
+
+    @property
+    def sync_database_url(self) -> str:
+        """psycopg/asyncpg-free URL for Alembic's synchronous engine."""
+        return self.database_url.replace("+asyncpg", "").replace("+aiosqlite", "")
 
 
 @lru_cache
