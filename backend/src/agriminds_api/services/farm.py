@@ -89,7 +89,9 @@ class FarmService:
         await self._session.refresh(farm, ["woreda"])
         return self.to_out(farm, self._cube(), lead_month)
 
-    async def update(self, owner: User, farm_id: uuid.UUID, payload: FarmUpdate, lead_month: int = 1) -> FarmOut:
+    async def update(
+        self, owner: User, farm_id: uuid.UUID, payload: FarmUpdate, lead_month: int = 1
+    ) -> FarmOut:
         farm = await self.get_owned(owner, farm_id)
         data = payload.model_dump(exclude_unset=True)
         if "name" in data and data["name"]:

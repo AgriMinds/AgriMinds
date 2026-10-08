@@ -10,6 +10,7 @@ def test_health_healthy(client):
     assert body["model"]["source"] == "model"
     assert body["model"]["data_source"] == "synthetic"
     assert body["cache"]["backend"] == "memory"
+    assert body["database"] == {"configured": True, "reachable": True}
     assert "X-Request-ID" in r.headers
 
 
@@ -93,9 +94,11 @@ def test_api_key_required_when_configured(auth_client):
     assert auth_client.get("/api/v1/drought/map", headers={"X-API-Key": "secret-key"}).status_code == 200
 
 
-def test_unavailable_when_no_artifacts(empty_client):
+def test_degraded_when_no_artifacts(empty_client):
+    """The database is up but the model is missing: degraded, and readiness fails."""
     health = empty_client.get("/api/v1/health")
-    assert health.status_code == 200 and health.json()["status"] == "unavailable"
+    assert health.status_code == 200 and health.json()["status"] == "degraded"
+    assert health.json()["model"]["source"] == "unavailable"
     assert empty_client.get("/api/v1/health/ready").status_code == 503
     r = empty_client.get("/api/v1/drought/map")
     assert r.status_code == 503
@@ -110,3 +113,87 @@ def test_degraded_with_precomputed_raster(precomputed_client):
     assert body["provenance"]["source"] == "precomputed"
     enso = precomputed_client.get("/api/v1/enso/outlook").json()
     assert enso["forecast_series"] == []
+
+
+class TestTable2Classification:
+    """Table 2 of the study, surfaced through the API (Megbar & Tadesse 2016; Menberu & Addisu 2018)."""
+
+    def test_enso_outlook_carries_the_five_way_band(self, client):
+        body = client.get("/api/v1/enso/outlook").json()
+        assert body["current_category"] in {
+            "High El Niño",
+            "Moderate El Niño",
+            "Neutral",
+            "Moderate La Niña",
+            "High La Niña",
+        }
+        assert isinstance(body["is_extreme"], bool)
+        assert body["classification_version"]
+        assert "Megbar" in body["citation"] and "Menberu" in body["citation"]
+
+    def test_the_fine_band_never_contradicts_the_coarse_phase(self, client):
+        body = client.get("/api/v1/enso/outlook").json()
+        coarse = {
+            "High El Niño": "El Niño",
+            "Moderate El Niño": "El Niño",
+            "Neutral": "Neutral",
+            "Moderate La Niña": "La Niña",
+            "High La Niña": "La Niña",
+        }
+        assert coarse[body["current_category"]] == body["current_state"]
+
+    def test_every_series_point_is_classified(self, client):
+        body = client.get("/api/v1/enso/outlook").json()
+        points = body["historical_series"] + body["forecast_series"]
+        assert points, "the outlook should carry a series"
+        assert all(p["category"] for p in points)
+
+    def test_only_the_high_bands_are_flagged_extreme(self, client):
+        body = client.get("/api/v1/enso/outlook").json()
+        assert body["is_extreme"] == body["current_category"].startswith("High")
+
+    def test_drought_map_reports_observed_soil_dryness(self, client):
+        body = client.get("/api/v1/drought/map").json()
+        conditions = body["conditions"]
+        assert conditions is not None, "the test artifacts include mean temperature, so Sc-PDSI applies"
+        assert conditions["index"] == "scpdsi"
+        assert conditions["category"] in {
+            "Extremely wet",
+            "Very wet",
+            "Moderately wet",
+            "Normal",
+            "Moderately dry",
+            "Very dry",
+            "Extremely dry",
+        }
+        assert 0 <= conditions["cells_in_drought"] <= len(body["cells"])
+        assert "not the NCAR scPDSI" in conditions["method_note"]
+
+    def test_every_cell_carries_its_own_index_and_band(self, client):
+        cells = client.get("/api/v1/drought/map").json()["cells"]
+        assert all(c["pdsi"] is not None and c["pdsi_category"] for c in cells)
+        # The forecast probability and the observed index are different quantities and must not
+        # be conflated: one is a likelihood for next season, the other today's soil state.
+        assert any(c["pdsi"] != c["probability"] for c in cells)
+
+    def test_single_cell_query_matches_the_map(self, client):
+        cell = next(c for c in client.get("/api/v1/drought/map").json()["cells"] if c["row"] == 3)
+        one = client.get("/api/v1/drought/cell", params={"row": cell["row"], "col": cell["col"]}).json()
+        assert one["pdsi"] == cell["pdsi"]
+        assert one["pdsi_category"] == cell["pdsi_category"]
+
+    def test_advisory_reports_the_band_not_just_the_phase(self, client):
+        body = client.post("/api/v1/advisories/evaluate", json={"crop": "tef", "lead_month": 1}).json()
+        assert body["enso_category"] in {
+            "High El Niño",
+            "Moderate El Niño",
+            "Neutral",
+            "Moderate La Niña",
+            "High La Niña",
+        }
+
+    def test_without_the_model_there_are_no_observed_conditions(self, precomputed_client):
+        """A precomputed raster carries no climate record, so dryness must be reported as absent."""
+        body = precomputed_client.get("/api/v1/drought/map").json()
+        assert body["conditions"] is None
+        assert all(c["pdsi"] is None and c["pdsi_category"] is None for c in body["cells"])

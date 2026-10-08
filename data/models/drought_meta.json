@@ -8,9 +8,40 @@
     0.15000000000000002,
     0.1
   ],
-  "model_version": "superhybrid-0.1.0",
-  "trained_at": "2026-10-05T00:00:00+00:00",
+  "model_version": "superhybrid-0.2.0",
+  "trained_at": "2026-10-08T06:16:05+00:00",
   "training_data_end": "2026-06-01",
   "data_source": "synthetic",
-  "note": "Trained on synthetic stand-in data; for pipeline validation only."
+  "metrics": [
+    {
+      "lead": 1,
+      "AUC": 0.866,
+      "AUC_persistence": 0.737,
+      "Brier": 0.065,
+      "BSS_vs_climatology": 0.218,
+      "POD": 0.693,
+      "FAR": 0.721,
+      "threshold": 0.2
+    },
+    {
+      "lead": 2,
+      "AUC": 0.797,
+      "AUC_persistence": 0.624,
+      "Brier": 0.073,
+      "BSS_vs_climatology": 0.125,
+      "POD": 0.757,
+      "FAR": 0.821,
+      "threshold": 0.15
+    },
+    {
+      "lead": 3,
+      "AUC": 0.718,
+      "AUC_persistence": 0.567,
+      "Brier": 0.084,
+      "BSS_vs_climatology": -0.002,
+      "POD": 0.87,
+      "FAR": 0.879,
+      "threshold": 0.1
+    }
+  ]
 }

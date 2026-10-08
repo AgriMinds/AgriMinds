@@ -97,9 +97,13 @@ def register_exception_handlers(app: FastAPI) -> None:
         level = logging.WARNING if exc.status_code < 500 else logging.ERROR
         log.log(level, "%s: %s", exc.code, exc.message)
         headers = {"WWW-Authenticate": "Bearer"} if isinstance(exc, UnauthorizedError) else None
-        return JSONResponse(status_code=exc.status_code, content=_payload(exc.code, exc.message), headers=headers)
+        return JSONResponse(
+            status_code=exc.status_code, content=_payload(exc.code, exc.message), headers=headers
+        )
 
     @app.exception_handler(Exception)
     async def _unhandled(request: Request, exc: Exception) -> JSONResponse:
         log.exception("unhandled error on %s %s", request.method, request.url.path)
-        return JSONResponse(status_code=500, content=_payload("internal_error", "An internal error occurred."))
+        return JSONResponse(
+            status_code=500, content=_payload("internal_error", "An internal error occurred.")
+        )

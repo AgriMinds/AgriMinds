@@ -11,6 +11,9 @@ from scipy.signal import lfilter
 
 from ai_drews.config import DEFAULT_CONFIG, PipelineConfig
 
+#: Half of a typical highland diurnal temperature range (deg C).
+DIURNAL_HALF_RANGE_C = 6.5
+
 
 def _ema(x: np.ndarray, a: float) -> np.ndarray:
     return lfilter([a], [1, -(1 - a)], x, axis=0)
@@ -62,5 +65,16 @@ def make_synthetic(
         - 2 * gy / (H - 1)
         + rng.normal(0, 0.4, rain.shape)
     )
-    grids = dict(rain=rain, tmax=tmax, soilm=soilm, ndvi=ndvi, dates=idx.strftime("%Y-%m-%d").values)
+    # The Ethiopian highlands run a wide, fairly constant diurnal range; the stand-in data models
+    # it as fixed so that mean temperature stays consistent with the maxima above. Real inputs
+    # should supply `tmean` measured, not derived.
+    tmean = tmax - DIURNAL_HALF_RANGE_C
+    grids = dict(
+        rain=rain,
+        tmax=tmax,
+        tmean=tmean,
+        soilm=soilm,
+        ndvi=ndvi,
+        dates=idx.strftime("%Y-%m-%d").values,
+    )
     return ind, grids

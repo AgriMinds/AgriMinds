@@ -11,7 +11,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 import pandas as pd
-from sqlalchemy import Select, distinct, func, select
+from sqlalchemy import Select, distinct, func, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agriminds_api.core.exceptions import ModelUnavailableError
@@ -83,7 +83,9 @@ class DashboardService:
                     col=target.grid_col,
                 )
             )
-            await self.record_advisory(user, target.id, dashboard.advisory)
+            record = await self.record_advisory(user, target.id, dashboard.advisory)
+            dashboard.advisory_record_id = record.id
+            dashboard.advisory_acknowledged_at = record.acknowledged_at
 
         try:
             outlook = self._enso.outlook()
@@ -93,37 +95,41 @@ class DashboardService:
             pass
         return dashboard
 
-    async def record_advisory(self, user: User, farm_id: uuid.UUID, advisory) -> None:
-        """Log that this advisory was shown, once per plot, issue month, lead and crop."""
+    async def record_advisory(self, user: User, farm_id: uuid.UUID, advisory) -> AdvisoryRecord:
+        """Log that this advisory was shown, once per plot, issue month, lead and crop.
+
+        Returns the existing row on a repeat visit so the same advisory keeps one identity and
+        the delivery figures are not inflated by re-reading a dashboard.
+        """
         issued = pd.Timestamp(advisory.provenance.issued_date).date()
         target = pd.Timestamp(advisory.target_date).date()
-        exists = await self._session.scalar(
-            select(AdvisoryRecord.id).where(
+        existing = await self._session.scalar(
+            select(AdvisoryRecord).where(
                 AdvisoryRecord.farm_id == farm_id,
                 AdvisoryRecord.issued_date == issued,
                 AdvisoryRecord.lead_month == advisory.lead_month,
                 AdvisoryRecord.crop == Crop(advisory.crop),
             )
         )
-        if exists:
-            return
-        self._session.add(
-            AdvisoryRecord(
-                farm_id=farm_id,
-                user_id=user.id,
-                crop=Crop(advisory.crop),
-                lead_month=advisory.lead_month,
-                issued_date=issued,
-                target_month=target,
-                raw_probability=advisory.raw_probability,
-                adjusted_probability=advisory.adjusted_probability,
-                risk_level=RiskLevel(advisory.risk_level),
-                model_version=advisory.provenance.model_version,
-                rules_version=advisory.rules_version,
-                data_source=advisory.provenance.data_source,
-            )
+        if existing:
+            return existing
+        record = AdvisoryRecord(
+            farm_id=farm_id,
+            user_id=user.id,
+            crop=Crop(advisory.crop),
+            lead_month=advisory.lead_month,
+            issued_date=issued,
+            target_month=target,
+            raw_probability=advisory.raw_probability,
+            adjusted_probability=advisory.adjusted_probability,
+            risk_level=RiskLevel(advisory.risk_level),
+            model_version=advisory.provenance.model_version,
+            rules_version=advisory.rules_version,
+            data_source=advisory.provenance.data_source,
         )
+        self._session.add(record)
         await self._session.flush()
+        return record
 
     # ================================================================== ministry
     def _scoped(self, stmt: Select, woreda_id: uuid.UUID | None, column) -> Select:
@@ -173,9 +179,9 @@ class DashboardService:
         )
         active = await self._session.scalar(
             self._scoped(
-                select(func.count()).select_from(User).where(
-                    User.role == UserRole.FARMER, User.last_login_at >= since
-                ),
+                select(func.count())
+                .select_from(User)
+                .where(User.role == UserRole.FARMER, User.last_login_at >= since),
                 woreda_id,
                 User.woreda_id,
             )
@@ -275,9 +281,8 @@ class DashboardService:
     ) -> int:
         if not cells:
             return 0
-        pairs = [(r, c) for r, c in cells]
         stmt = select(func.count(distinct(Farm.owner_id))).where(
-            func.row(Farm.grid_row, Farm.grid_col).in_([func.row(r, c) for r, c in pairs])
+            tuple_(Farm.grid_row, Farm.grid_col).in_(cells)
         )
         return int(await self._session.scalar(self._scoped(stmt, woreda_id, Farm.woreda_id)) or 0)
 
@@ -302,8 +307,13 @@ class DashboardService:
                     .join(Farm, Farm.woreda_id == Woreda.id)
                     .join(Zone, Zone.id == Woreda.zone_id)
                     .group_by(
-                        Woreda.id, Woreda.name_en, Woreda.name_am, Woreda.name_om, Zone.name_en,
-                        Farm.grid_row, Farm.grid_col,
+                        Woreda.id,
+                        Woreda.name_en,
+                        Woreda.name_am,
+                        Woreda.name_om,
+                        Zone.name_en,
+                        Farm.grid_row,
+                        Farm.grid_col,
                     ),
                     woreda_id,
                     Farm.woreda_id,
@@ -311,22 +321,34 @@ class DashboardService:
             )
         ).all()
 
+        # Distinct owners must be counted per woreda, not summed or maxed over cell groups:
+        # one farmer holding plots in several cells is still one farmer.
+        owners_per_woreda = dict(
+            (
+                await self._session.execute(
+                    self._scoped(
+                        select(Farm.woreda_id, func.count(distinct(Farm.owner_id))).group_by(Farm.woreda_id),
+                        woreda_id,
+                        Farm.woreda_id,
+                    )
+                )
+            ).all()
+        )
+
         acc: dict[uuid.UUID, dict] = {}
-        for wid, en, am, om, zone, row, col, farms, hectares, owners in rows:
+        for wid, en, am, om, zone, row, col, farms, hectares, _owners in rows:
             entry = acc.setdefault(
                 wid,
                 {
                     "names": (en, am, om, zone),
                     "farms": 0,
                     "hectares": 0.0,
-                    "owners": 0,
                     "weighted": 0.0,
                     "worst": 0.0,
                 },
             )
             entry["farms"] += int(farms)
             entry["hectares"] += float(hectares)
-            entry["owners"] = max(entry["owners"], int(owners))
             if cube is not None:
                 p = float(cube.probs[lead_month - 1, int(row), int(col)])
                 entry["weighted"] += p * int(farms)
@@ -343,7 +365,7 @@ class DashboardService:
                     name_am=am,
                     name_om=om,
                     zone_name_en=zone,
-                    farmers=e["owners"],
+                    farmers=int(owners_per_woreda.get(wid, 0)),
                     farms=e["farms"],
                     hectares=round(e["hectares"], 2),
                     mean_probability=round(mean, 3),
@@ -378,7 +400,10 @@ class DashboardService:
             entry = acc.setdefault(key, {"farms": 0, "hectares": 0.0, "at_risk": 0})
             entry["farms"] += int(farms)
             entry["hectares"] += float(hectares)
-            if cube is not None and risk_level(float(cube.probs[lead_month - 1, int(row), int(col)])) in AT_RISK:
+            if (
+                cube is not None
+                and risk_level(float(cube.probs[lead_month - 1, int(row), int(col)])) in AT_RISK
+            ):
                 entry["at_risk"] += int(farms)
 
         return sorted(
@@ -403,9 +428,7 @@ class DashboardService:
         recent = int(await self._session.scalar(base.where(AdvisoryRecord.created_at >= since)) or 0)
         acked = int(
             await self._session.scalar(
-                base.where(
-                    AdvisoryRecord.created_at >= since, AdvisoryRecord.acknowledged_at.is_not(None)
-                )
+                base.where(AdvisoryRecord.created_at >= since, AdvisoryRecord.acknowledged_at.is_not(None))
             )
             or 0
         )

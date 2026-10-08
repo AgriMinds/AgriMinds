@@ -24,7 +24,7 @@ target_metadata = Base.metadata
 DATABASE_URL = get_settings().database_url
 
 
-def _configure(connection) -> None:
+def do_run_migrations(connection) -> None:
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
@@ -32,6 +32,8 @@ def _configure(connection) -> None:
         compare_server_default=True,
         render_as_batch=connection.dialect.name == "sqlite",
     )
+    with context.begin_transaction():
+        context.run_migrations()
 
 
 def run_migrations_offline() -> None:
@@ -51,7 +53,9 @@ async def run_migrations_online() -> None:
         {"sqlalchemy.url": DATABASE_URL}, prefix="sqlalchemy.", poolclass=NullPool, future=True
     )
     async with engine.connect() as connection:
-        await connection.run_sync(lambda sync_conn: _configure(sync_conn) or context.run_migrations())
+        await connection.run_sync(do_run_migrations)
+        # The async connection owns the transaction: without this the DDL is rolled back on close.
+        await connection.commit()
     await engine.dispose()
 
 

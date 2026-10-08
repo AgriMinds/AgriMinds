@@ -7,6 +7,20 @@ from pydantic import BaseModel, Field
 RiskLevelName = Literal["Low", "Moderate", "High", "Severe"]
 CropName = Literal["tef", "wheat", "maize"]
 
+#: Five-way Niño 3.4 bands, Table 2 of the study.
+EnsoCategoryName = Literal["High El Niño", "Moderate El Niño", "Neutral", "Moderate La Niña", "High La Niña"]
+
+#: Seven-way Sc-PDSI drought-intensity bands, Table 2 of the study.
+PdsiCategoryName = Literal[
+    "Extremely wet",
+    "Very wet",
+    "Moderately wet",
+    "Normal",
+    "Moderately dry",
+    "Very dry",
+    "Extremely dry",
+]
+
 
 class ForecastProvenance(BaseModel):
     """Attached to every forecast-derived response so clients can show where the numbers come from."""

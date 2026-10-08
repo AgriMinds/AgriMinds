@@ -31,6 +31,29 @@ describe('api client', () => {
     expect((err as ApiError).isUnavailable).toBe(true)
   })
 
+  it('acknowledges an advisory by record id with a POST and no body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(api.acknowledgeAdvisory('rec-42')).resolves.toBeUndefined()
+
+    const [url, init] = fetchMock.mock.calls[0] ?? []
+    expect(url).toBe('/api/v1/dashboard/farmer/advisories/rec-42/acknowledge')
+    expect(init).toMatchObject({ method: 'POST' })
+    expect(init?.body).toBeUndefined()
+  })
+
+  it('reads the per-plot advisory together with its record id', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse(200, { record_id: 'rec-7', acknowledged_at: null, crop: 'tef' }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const advisory = await api.farmAdvisory('farm-1', 2)
+    expect(advisory.record_id).toBe('rec-7')
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/v1/farms/farm-1/advisory?lead_month=2')
+  })
+
   it('handles FastAPI validation errors and non-JSON bodies', async () => {
     vi.stubGlobal(
       'fetch',

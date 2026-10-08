@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field, model_validator
 
-from agriminds_api.schemas.common import CropName, ForecastProvenance, RiskLevelName
+from agriminds_api.schemas.common import (
+    CropName,
+    EnsoCategoryName,
+    ForecastProvenance,
+    RiskLevelName,
+)
 
 
 class AdvisoryRequest(BaseModel):
@@ -38,6 +43,7 @@ class AdvisoryResponse(BaseModel):
     risk_level: RiskLevelName
     season: str
     enso_state: str
+    enso_category: EnsoCategoryName = Field(description="Five-way Niño 3.4 band (Table 2)")
     crop_note: str
     crop_recommendation: str
     planting_window: str

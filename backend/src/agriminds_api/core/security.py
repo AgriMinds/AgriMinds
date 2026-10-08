@@ -5,6 +5,7 @@ Nothing here touches the database or FastAPI; it is pure, synchronous and unit-t
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import hmac
 import re
@@ -47,14 +48,11 @@ def dummy_verify() -> None:
     Without this, a missing account answers measurably faster than a wrong password, which
     leaks which identifiers are registered.
     """
-    try:
+    with contextlib.suppress(Exception):  # the point is the work, not the result
         _hasher.verify(
-            "$argon2id$v=19$m=19456,t=2,p=1$c29tZXNhbHRzb21lc2E$"
-            "0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0",
+            "$argon2id$v=19$m=19456,t=2,p=1$c29tZXNhbHRzb21lc2E$0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0Z0",
             "not-the-password",
         )
-    except Exception:  # noqa: BLE001 - the point is the work, not the result
-        pass
 
 
 class PasswordPolicyError(ValueError):
@@ -72,8 +70,18 @@ def validate_password_strength(password: str, min_length: int) -> None:
 
 
 _COMMON_PASSWORDS = {
-    "password", "password1", "12345678", "123456789", "1234567890", "qwertyuiop",
-    "letmein123", "agriminds", "agriminds1", "changeme", "welcome1", "admin123",
+    "password",
+    "password1",
+    "12345678",
+    "123456789",
+    "1234567890",
+    "qwertyuiop",
+    "letmein123",
+    "agriminds",
+    "agriminds1",
+    "changeme",
+    "welcome1",
+    "admin123",
 }
 
 

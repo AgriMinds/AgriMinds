@@ -6,10 +6,10 @@ import uuid
 
 from fastapi import APIRouter, Query, Response, status
 
-from agriminds_api.api.deps import DashboardServiceDep, FarmServiceDep, FarmerUser
-from agriminds_api.schemas.advisory import AdvisoryRequest, AdvisoryResponse
+from agriminds_api.api.deps import DashboardServiceDep, FarmerUser, FarmServiceDep
+from agriminds_api.schemas.advisory import AdvisoryRequest
 from agriminds_api.schemas.common import ErrorResponse
-from agriminds_api.schemas.farm import FarmCreate, FarmOut, FarmUpdate
+from agriminds_api.schemas.farm import FarmAdvisoryOut, FarmCreate, FarmOut, FarmUpdate
 
 router = APIRouter(prefix="/farms", tags=["Farms"])
 
@@ -70,7 +70,7 @@ async def delete_farm(farm_id: uuid.UUID, user: FarmerUser, service: FarmService
 
 @router.get(
     "/{farm_id}/advisory",
-    response_model=AdvisoryResponse,
+    response_model=FarmAdvisoryOut,
     responses={404: {"model": ErrorResponse}, 503: {"model": ErrorResponse}},
     summary="Crop advisory for one plot (recorded for delivery reporting)",
 )
@@ -81,7 +81,7 @@ async def farm_advisory(
     dashboard: DashboardServiceDep,
     lead_month: int = LeadMonth,
     crop: str | None = Query(None, description="Defaults to the plot's primary crop"),
-) -> AdvisoryResponse:
+) -> FarmAdvisoryOut:
     farm = await farms.get_owned(user, farm_id)
     advisory = dashboard._advisory.evaluate(  # noqa: SLF001 - request-scoped composition
         AdvisoryRequest(
@@ -91,5 +91,7 @@ async def farm_advisory(
             col=farm.grid_col,
         )
     )
-    await dashboard.record_advisory(user, farm.id, advisory)
-    return advisory
+    record = await dashboard.record_advisory(user, farm.id, advisory)
+    return FarmAdvisoryOut(
+        **advisory.model_dump(), record_id=record.id, acknowledged_at=record.acknowledged_at
+    )

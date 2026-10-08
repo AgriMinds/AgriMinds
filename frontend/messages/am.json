@@ -32,7 +32,8 @@
       "issued": "የወጣበት",
       "real": "እውነተኛ ምልከታ",
       "synthetic": "ሰው ሰራሽ"
-    }
+    },
+    "conditionsSection": "የመሬት ሁኔታ"
   },
   "status": {
     "healthy": "AI ሞተር በመስመር ላይ",
@@ -59,7 +60,9 @@
     "unavailableBody": "የድርቅ ሞዴሉ በአገልጋዩ ላይ አይገኝም። የ AI-DREWS ሂደቱን አስኪደው API ን እንደገና ያስጀምሩ።",
     "lead": "የጊዜ ርዝመት",
     "months": "{count} ወር",
-    "monthShort": "{count} ወር"
+    "monthShort": "{count} ወር",
+    "close": "ዝጋ",
+    "cancel": "ተወው"
   },
   "summary": {
     "basinMeanRisk": "የተፋሰሱ አማካይ ድርቅ አደጋ",
@@ -98,7 +101,17 @@
     "nudge": "የተመረጠውን ቦታ አንቀሳቅስ",
     "lead1Short": "1 ወር",
     "lead2Short": "2 ወር",
-    "lead3Short": "3 ወር"
+    "lead3Short": "3 ወር",
+    "modeGroup": "ካርታው የሚያሳየው",
+    "modeRisk": "የትንበያ አደጋ",
+    "modeDryness": "የአሁኑ መሬት",
+    "drynessTitle": "የተፋሰሱ የመሬት ሁኔታ",
+    "drynessSubtitle": "በእያንዳንዱ 10 ኪ.ሜ ቦታ የተለካ Sc-PDSI — ዛሬ መሬቱ ምን ያህል ደረቅ ነው",
+    "drynessLegend": "Sc-PDSI፣ ከደረቅ እስከ እርጥብ",
+    "drynessUnavailable": "ለዚህ ትንበያ የመሬት ልኬቶች የሉም።",
+    "cellAriaDryness": "ረድፍ {row}፣ አምድ {col}፣ Sc-PDSI {value}፣ {band}",
+    "forecastLabel": "በሚቀጥለው ወቅት የድርቅ እድል",
+    "drynessLabel": "የአሁኑ መሬት"
   },
   "risk": {
     "Low": "ዝቅተኛ",
@@ -161,7 +174,11 @@
     "observed": "የተመዘገበ",
     "forecast": "ትንበያ",
     "chartAria": "የኒኞ 3.4 ልዩነት፣ ታሪክ እና ትንበያ",
-    "gaugeTitle": "የአሁኑ ደረጃ"
+    "gaugeTitle": "የአሁኑ ደረጃ",
+    "bandLabel": "ደረጃ",
+    "extremeFlag": "ከፍተኛ ደረጃ",
+    "sourceLabel": "መስፈርቶች",
+    "versionLabel": "ምደባ"
   },
   "reports": {
     "title": "ሪፖርቶች",
@@ -177,5 +194,159 @@
     "leadHorizon": "የትንበያ ርቀት",
     "target": "ኢላማ",
     "issued": "የወጣበት"
+  },
+  "nav": {
+    "section": "ዳሰሳ",
+    "farm": "የእኔ እርሻ",
+    "ministry": "ብሔራዊ እይታ",
+    "watershed": "የተፋሰስ ትንበያ"
+  },
+  "roles": {
+    "farmer": "አርሶ አደር",
+    "agent": "የልማት ሠራተኛ",
+    "minister": "ሚኒስቴር",
+    "admin": "አስተዳዳሪ"
+  },
+  "account": {
+    "menu": "የመለያ ዝርዝር",
+    "signOut": "ውጣ",
+    "signingOut": "በመውጣት ላይ…"
+  },
+  "auth": {
+    "title": "ይግቡ",
+    "subtitle": "ለጮቄ ተራራ ተፋሰስ የድርቅ ቅድመ ማስጠንቀቂያ",
+    "identifierLabel": "ኢሜይል ወይም ስልክ ቁጥር",
+    "identifierPlaceholder": "name@moa.gov.et ወይም 0912000001",
+    "identifierHint": "የሚኒስቴር ሠራተኞች ኢሜይል ይጠቀማሉ። አርሶ አደሮች ስልክ ቁጥራቸውን ይጠቀማሉ።",
+    "passwordLabel": "የይለፍ ቃል",
+    "showPassword": "የይለፍ ቃል አሳይ",
+    "hidePassword": "የይለፍ ቃል ደብቅ",
+    "signIn": "ይግቡ",
+    "signingIn": "በመግባት ላይ…",
+    "genericError": "መግባት አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
+    "languageLabel": "ቋንቋ",
+    "demoTitle": "የሙከራ መለያዎች",
+    "demoPassword": "የይለፍ ቃል",
+    "demoRole": {
+      "ministry": "ሚኒስቴር",
+      "agent": "የልማት ሠራተኛ",
+      "farmer": "አርሶ አደር"
+    }
+  },
+  "farmer": {
+    "eyebrow": "የእኔ እርሻ",
+    "greeting": "ሰላም {name}",
+    "greetingPlain": "የእርስዎ እርሻ",
+    "intro": "በመጪው ወቅት መሬትዎ ላይ የሚጠበቀው ነገር እና ምን ማድረግ እንዳለብዎ።",
+    "adviceTitle": "በዚህ ወቅት ምን ይደረግ",
+    "adviceForPlot": "ለ{plot} ምክር",
+    "chanceOfDrought": "ለ{crop} የድርቅ እድል",
+    "acknowledge": "አንብቤዋለሁ",
+    "acknowledged": "ተነቧል",
+    "myPlots": "የእኔ መሬቶች ({count})",
+    "plotsHint": "ለአንድ መሬት ምክሩን ለማየት ይንኩት።",
+    "addPlot": "መሬት ጨምር",
+    "editPlot": "መሬት አርትዕ",
+    "editPlotNamed": "{plot} አርትዕ",
+    "deletePlot": "ሰርዝ",
+    "confirmDelete": "ለመሰረዝ እንደገና ይንኩ",
+    "saveChanges": "ለውጦችን አስቀምጥ",
+    "plotName": "የመሬት ስም",
+    "latitude": "ኬክሮስ",
+    "longitude": "ኬንትሮስ",
+    "area": "ስፋት (ሄክታር)",
+    "hectaresShort": "ሄክታር",
+    "riskUnavailable": "አደጋው አልተገኘም",
+    "noPlotsTitle": "እስካሁን የተመዘገበ መሬት የለም",
+    "noPlotsBody": "የድርቅ ትንበያና ምክር ለማግኘት መሬትዎን ይጨምሩ።",
+    "ensoNow": "የፓሲፊክ ውቅያኖስ፡ {state}",
+    "errors": {
+      "nameRequired": "ለመሬቱ ስም ይስጡ።",
+      "latitude": "በ-90 እና 90 መካከል ኬክሮስ ያስገቡ።",
+      "longitude": "በ-180 እና 180 መካከል ኬንትሮስ ያስገቡ።",
+      "area": "ከዜሮ በላይ ስፋት ያስገቡ።",
+      "generic": "ማስቀመጥ አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
+    },
+    "landRisk": "የዚህ መሬት አደጋ",
+    "groundNow": "የአሁኑ መሬት፡ {band}",
+    "groundUnavailable": "የመሬት ንባብ የለም",
+    "ensoBandLine": "ፓሲፊክ ውቅያኖስ፣ {month}፡ {band}"
+  },
+  "ministry": {
+    "eyebrow": "ብሔራዊ እይታ",
+    "title": "የድርቅ ተጋላጭነትና ሽፋን",
+    "intro": "በተፋሰሱ ውስጥ የተመዘገቡ አርሶ አደሮችና መሬት፣ እና መጪው ወቅት እንዴት እንደሚነካቸው።",
+    "generatedAt": "የተዘመነው {time}",
+    "coverageTitle": "ሽፋን",
+    "registeredFarmers": "የተመዘገቡ አርሶ አደሮች",
+    "activeLast30": "{count} በ30 ቀናት ውስጥ ገብተዋል",
+    "registeredPlots": "የተመዘገቡ መሬቶች",
+    "hectaresTotal": "በጠቅላላ {hectares} ሄክታር",
+    "woredasCovered": "መሬት ያላቸው ወረዳዎች",
+    "woredasDetail": "በተፋሰሱ ውስጥ ካሉት ወረዳዎች",
+    "plotsAtRisk": "ከፍተኛ ወይም ከባድ አደጋ ያለባቸው መሬቶች",
+    "atRiskDetail": "{farmers} አርሶ አደሮች · {hectares} ሄክታር",
+    "exposureUnavailable": "የትንበያ ሞዴሉ ስለሌለ ተጋላጭነቱ ሊሰላ አይችልም።",
+    "sourceNote": "እያንዳንዱ አኃዝ ከተመዘገቡ መለያዎችና መሬቶች የተቆጠረ ነው። አደጋው ከቀጥታ የትንበያ ሞዴል ይመጣል።",
+    "exposureCardTitle": "የአደጋ ተጋላጭነት",
+    "exposureCardSubtitle": "የተመዘገቡ መሬቶች በአደጋ ደረጃ",
+    "exposureTitle": "መሬቶች በአደጋ ደረጃ",
+    "forTarget": "ለ{target}",
+    "noPlots": "እስካሁን የተመዘገበ መሬት የለም።",
+    "level": "ደረጃ",
+    "plots": "መሬቶች",
+    "farmers": "አርሶ አደሮች",
+    "hectares": "ሄክታር",
+    "hectaresShort": "ሄክታር",
+    "byWoredaTitle": "በወረዳ",
+    "byWoredaSubtitle": "የተመዘገበ መሬት በአደጋ ካርታው ላይ ያለበት ቦታ",
+    "woreda": "ወረዳ",
+    "meanRisk": "አማካይ አደጋ",
+    "worstLevel": "ከፍተኛው",
+    "noWoredas": "እስካሁን በየትኛውም ወረዳ የተመዘገበ መሬት የለም።",
+    "cropMixTitle": "የሰብል ስብጥር",
+    "cropMixSubtitle": "የተመዘገበ ሄክታር በዋና ሰብል",
+    "cropAtRisk": "{count} መሬቶች አደጋ ባለበት ቦታ",
+    "deliveryTitle": "የምክር ስርጭት",
+    "deliverySubtitle": "መድረኩ ካወጣቸው ምክሮች የተቆጠረ",
+    "issuedTotal": "በጠቅላላ የወጣ",
+    "issued30d": "በ30 ቀናት የወጣ",
+    "acknowledged30d": "በ30 ቀናት የተነበበ",
+    "acknowledgementRate": "የንባብ መጠን",
+    "noDelivery": "ባለፉት 30 ቀናት ምንም ምክር አልወጣም፤ ስለዚህ የንባብ መጠን የለም።",
+    "watershedLinkTitle": "የተፋሰሱን ትንበያ ክፈት",
+    "watershedLinkBody": "ከእነዚህ አኃዞች ጀርባ ያለው የድርቅ ካርታ፣ የሰብል ምክር መሣሪያና የኢንሶ ትንበያ።"
+  },
+  "pdsi": {
+    "extremelyDry": "እጅግ ደረቅ",
+    "veryDry": "በጣም ደረቅ",
+    "moderatelyDry": "መጠነኛ ደረቅ",
+    "normal": "መደበኛ",
+    "moderatelyWet": "መጠነኛ እርጥበት",
+    "veryWet": "በጣም እርጥብ",
+    "extremelyWet": "እጅግ እርጥብ",
+    "scaleName": "Sc-PDSI",
+    "scaleAria": "የ Sc-PDSI መለኪያ፣ ከእጅግ ደረቅ እስከ እጅግ እርጥብ",
+    "dryEnd": "ደረቅ",
+    "wetEnd": "እርጥብ"
+  },
+  "ensoBand": {
+    "highElNino": "ከፍተኛ ኤል ኒኞ",
+    "moderateElNino": "መጠነኛ ኤል ኒኞ",
+    "neutral": "መካከለኛ",
+    "moderateLaNina": "መጠነኛ ላ ኒኛ",
+    "highLaNina": "ከፍተኛ ላ ኒኛ"
+  },
+  "conditions": {
+    "title": "የአሁኑ የመሬት ሁኔታ",
+    "subtitle": "ዛሬ የተለካ የአፈር ደረቅነት — ይህ ትንበያ አይደለም",
+    "basinMean": "የተፋሰሱ አማካይ",
+    "driest": "እጅግ ደረቅ ቦታ",
+    "inDrought": "በድርቅ ውስጥ ያሉ ቦታዎች",
+    "ofCells": "ከ{total} ቦታዎች",
+    "asOf": "ለ{month} የተለካ",
+    "explain": "ከላይ ያለው ትንበያ በሚቀጥለው ወቅት ድርቅ የመከሰት እድልን ያሳያል። ይህ ደግሞ አሁን አፈሩ ምን ያህል ደረቅ እንደሆነ በፓልመር መለኪያ ያሳያል።",
+    "methodLabel": "ዘዴ",
+    "sourceLabel": "መስፈርቶች"
   }
 }

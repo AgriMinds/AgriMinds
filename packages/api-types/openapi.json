@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "AgriMinds AI-DREWS API",
-    "description": "AI-Enabled Drought Early Warning and Climate-Resilient Decision Support (AI-DREWS, Choke Mountain Watershed). Every forecast response carries `provenance` describing the model version, training data source and issue month.",
+    "description": "AI-Enabled Drought Early Warning and Climate-Resilient Decision Support (AI-DREWS, Choke Mountain Watershed).\n\nSign in at `POST /api/v1/auth/login` and send the access token as `Authorization: Bearer <token>`. Every forecast response carries a `provenance` block describing the model version, training data source and issue month.",
     "version": "1.1.0"
   },
   "paths": {
@@ -48,6 +48,251 @@
         }
       }
     },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Sign in with an email address or mobile number",
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenPair"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Wrong credentials, or the account is locked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Exchange a refresh token for a new pair (the old one is revoked)",
+        "operationId": "refresh_api_v1_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessTokenOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Wrong credentials, or the account is locked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "End the presented session",
+        "operationId": "logout_api_v1_auth_logout_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "The signed-in person",
+        "operationId": "me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Update your own name or interface language",
+        "operationId": "update_me_api_v1_auth_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/me/password": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Change your password (signs out every other device)",
+        "operationId": "change_password_api_v1_auth_me_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/drought/map": {
       "get": {
         "tags": [
@@ -58,6 +303,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -130,6 +378,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -270,6 +521,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
           }
         ],
         "requestBody": {
@@ -388,6 +642,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
           }
         ]
       }
@@ -434,13 +691,833 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
           }
         ]
+      }
+    },
+    "/api/v1/farms": {
+      "get": {
+        "tags": [
+          "Farms"
+        ],
+        "summary": "List your plots with their current risk",
+        "operationId": "list_farms_api_v1_farms_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lead_month",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3,
+              "minimum": 1,
+              "description": "Forecast lead time used for the attached risk",
+              "default": 1,
+              "title": "Lead Month"
+            },
+            "description": "Forecast lead time used for the attached risk"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FarmOut"
+                  },
+                  "title": "Response List Farms Api V1 Farms Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Farms"
+        ],
+        "summary": "Register a plot",
+        "operationId": "create_farm_api_v1_farms_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lead_month",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3,
+              "minimum": 1,
+              "description": "Forecast lead time used for the attached risk",
+              "default": 1,
+              "title": "Lead Month"
+            },
+            "description": "Forecast lead time used for the attached risk"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FarmCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/farms/{farm_id}": {
+      "get": {
+        "tags": [
+          "Farms"
+        ],
+        "summary": "One of your plots",
+        "operationId": "get_farm_api_v1_farms__farm_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "farm_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Farm Id"
+            }
+          },
+          {
+            "name": "lead_month",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3,
+              "minimum": 1,
+              "description": "Forecast lead time used for the attached risk",
+              "default": 1,
+              "title": "Lead Month"
+            },
+            "description": "Forecast lead time used for the attached risk"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Farms"
+        ],
+        "summary": "Update a plot",
+        "operationId": "update_farm_api_v1_farms__farm_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "farm_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Farm Id"
+            }
+          },
+          {
+            "name": "lead_month",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3,
+              "minimum": 1,
+              "description": "Forecast lead time used for the attached risk",
+              "default": 1,
+              "title": "Lead Month"
+            },
+            "description": "Forecast lead time used for the attached risk"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FarmUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Farms"
+        ],
+        "summary": "Remove a plot",
+        "operationId": "delete_farm_api_v1_farms__farm_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "farm_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Farm Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/farms/{farm_id}/advisory": {
+      "get": {
+        "tags": [
+          "Farms"
+        ],
+        "summary": "Crop advisory for one plot (recorded for delivery reporting)",
+        "operationId": "farm_advisory_api_v1_farms__farm_id__advisory_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "farm_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Farm Id"
+            }
+          },
+          {
+            "name": "lead_month",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3,
+              "minimum": 1,
+              "description": "Forecast lead time used for the attached risk",
+              "default": 1,
+              "title": "Lead Month"
+            },
+            "description": "Forecast lead time used for the attached risk"
+          },
+          {
+            "name": "crop",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Defaults to the plot's primary crop",
+              "title": "Crop"
+            },
+            "description": "Defaults to the plot's primary crop"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmAdvisoryOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/farmer": {
+      "get": {
+        "tags": [
+          "Dashboards"
+        ],
+        "summary": "Your plots, their risk and the advisory that needs attention first",
+        "operationId": "farmer_dashboard_api_v1_dashboard_farmer_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lead_month",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3,
+              "minimum": 1,
+              "description": "Forecast lead time in months",
+              "default": 1,
+              "title": "Lead Month"
+            },
+            "description": "Forecast lead time in months"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmerDashboard"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/ministry": {
+      "get": {
+        "tags": [
+          "Dashboards"
+        ],
+        "summary": "Coverage, risk exposure and advisory delivery across the watershed",
+        "description": "Every count comes from registered rows. A development agent sees only the woreda they are posted to; ministers and administrators see the whole watershed.",
+        "operationId": "ministry_dashboard_api_v1_dashboard_ministry_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lead_month",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3,
+              "minimum": 1,
+              "description": "Forecast lead time in months",
+              "default": 1,
+              "title": "Lead Month"
+            },
+            "description": "Forecast lead time in months"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MinistryDashboard"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/farmer/advisories/{advisory_id}/acknowledge": {
+      "post": {
+        "tags": [
+          "Dashboards"
+        ],
+        "summary": "Confirm you have read an advisory (feeds the delivery figures)",
+        "operationId": "acknowledge_api_v1_dashboard_farmer_advisories__advisory_id__acknowledge_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "advisory_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Advisory Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
   "components": {
     "schemas": {
+      "AccessTokenOut": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          },
+          "token_type": {
+            "type": "string",
+            "const": "bearer",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token",
+          "expires_in"
+        ],
+        "title": "AccessTokenOut"
+      },
+      "AdvisoryDelivery": {
+        "properties": {
+          "issued_total": {
+            "type": "integer",
+            "title": "Issued Total"
+          },
+          "issued_30d": {
+            "type": "integer",
+            "title": "Issued 30D"
+          },
+          "acknowledged_30d": {
+            "type": "integer",
+            "title": "Acknowledged 30D"
+          },
+          "acknowledgement_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledgement Rate",
+            "description": "null until at least one advisory has been issued in the window"
+          }
+        },
+        "type": "object",
+        "required": [
+          "issued_total",
+          "issued_30d",
+          "acknowledged_30d"
+        ],
+        "title": "AdvisoryDelivery"
+      },
       "AdvisoryRequest": {
         "properties": {
           "crop": {
@@ -585,6 +1662,18 @@
             "type": "string",
             "title": "Enso State"
           },
+          "enso_category": {
+            "type": "string",
+            "enum": [
+              "High El Ni\u00f1o",
+              "Moderate El Ni\u00f1o",
+              "Neutral",
+              "Moderate La Ni\u00f1a",
+              "High La Ni\u00f1a"
+            ],
+            "title": "Enso Category",
+            "description": "Five-way Ni\u00f1o 3.4 band (Table 2)"
+          },
           "crop_note": {
             "type": "string",
             "title": "Crop Note"
@@ -634,6 +1723,7 @@
           "risk_level",
           "season",
           "enso_state",
+          "enso_category",
           "crop_note",
           "crop_recommendation",
           "planting_window",
@@ -762,6 +1852,39 @@
             ],
             "title": "Risk Level"
           },
+          "pdsi": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdsi",
+            "description": "Observed self-calibrated Palmer index for the issue month"
+          },
+          "pdsi_category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "Extremely wet",
+                  "Very wet",
+                  "Moderately wet",
+                  "Normal",
+                  "Moderately dry",
+                  "Very dry",
+                  "Extremely dry"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdsi Category",
+            "description": "Drought intensity band for `pdsi` (Table 2)"
+          },
           "lead_month": {
             "type": "integer",
             "title": "Lead Month"
@@ -782,6 +1905,123 @@
           "provenance"
         ],
         "title": "CellRiskResponse"
+      },
+      "ChangePasswordRequest": {
+        "properties": {
+          "current_password": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Current Password"
+          },
+          "new_password": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "title": "ChangePasswordRequest"
+      },
+      "CoverageStats": {
+        "properties": {
+          "farmers": {
+            "type": "integer",
+            "title": "Farmers"
+          },
+          "agents": {
+            "type": "integer",
+            "title": "Agents"
+          },
+          "active_farmers_30d": {
+            "type": "integer",
+            "title": "Active Farmers 30D",
+            "description": "Farmers who signed in within the last 30 days"
+          },
+          "farms": {
+            "type": "integer",
+            "title": "Farms"
+          },
+          "hectares": {
+            "type": "number",
+            "title": "Hectares"
+          },
+          "woredas_covered": {
+            "type": "integer",
+            "title": "Woredas Covered"
+          },
+          "woredas_total": {
+            "type": "integer",
+            "title": "Woredas Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "farmers",
+          "agents",
+          "active_farmers_30d",
+          "farms",
+          "hectares",
+          "woredas_covered",
+          "woredas_total"
+        ],
+        "title": "CoverageStats"
+      },
+      "CropMixEntry": {
+        "properties": {
+          "crop": {
+            "type": "string",
+            "enum": [
+              "tef",
+              "wheat",
+              "maize"
+            ],
+            "title": "Crop"
+          },
+          "farms": {
+            "type": "integer",
+            "title": "Farms"
+          },
+          "hectares": {
+            "type": "number",
+            "title": "Hectares"
+          },
+          "farms_at_risk": {
+            "type": "integer",
+            "title": "Farms At Risk"
+          }
+        },
+        "type": "object",
+        "required": [
+          "crop",
+          "farms",
+          "hectares",
+          "farms_at_risk"
+        ],
+        "title": "CropMixEntry"
+      },
+      "DatabaseStatus": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "reachable": {
+            "type": "boolean",
+            "title": "Reachable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured",
+          "reachable"
+        ],
+        "title": "DatabaseStatus"
       },
       "DroughtMapResponse": {
         "properties": {
@@ -863,6 +2103,17 @@
             "type": "array",
             "title": "Cells"
           },
+          "conditions": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ObservedConditions"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Observed Sc-PDSI; null when the record carries no mean temperature"
+          },
           "provenance": {
             "$ref": "#/components/schemas/ForecastProvenance"
           }
@@ -892,7 +2143,32 @@
           "current_state": {
             "type": "string",
             "title": "Current State",
-            "description": "El Ni\u00f1o | La Ni\u00f1a | Neutral"
+            "description": "Coarse phase: El Ni\u00f1o | La Ni\u00f1a | Neutral"
+          },
+          "current_category": {
+            "type": "string",
+            "enum": [
+              "High El Ni\u00f1o",
+              "Moderate El Ni\u00f1o",
+              "Neutral",
+              "Moderate La Ni\u00f1a",
+              "High La Ni\u00f1a"
+            ],
+            "title": "Current Category",
+            "description": "Five-way band from Table 2; 'High' bands warrant a changed recommendation"
+          },
+          "is_extreme": {
+            "type": "boolean",
+            "title": "Is Extreme",
+            "description": "True for High El Ni\u00f1o or High La Ni\u00f1a"
+          },
+          "classification_version": {
+            "type": "string",
+            "title": "Classification Version"
+          },
+          "citation": {
+            "type": "string",
+            "title": "Citation"
           },
           "forecast_horizon_months": {
             "type": "integer",
@@ -925,6 +2201,10 @@
         "required": [
           "current_nino34",
           "current_state",
+          "current_category",
+          "is_extreme",
+          "classification_version",
+          "citation",
           "forecast_horizon_months",
           "historical_series",
           "forecast_series",
@@ -948,6 +2228,25 @@
             "type": "boolean",
             "title": "Is Forecast",
             "default": false
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "High El Ni\u00f1o",
+                  "Moderate El Ni\u00f1o",
+                  "Neutral",
+                  "Moderate La Ni\u00f1a",
+                  "High La Ni\u00f1a"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "Five-way band (Table 2)"
           }
         },
         "type": "object",
@@ -986,6 +2285,509 @@
           "error"
         ],
         "title": "ErrorResponse"
+      },
+      "FarmAdvisoryOut": {
+        "properties": {
+          "crop": {
+            "type": "string",
+            "enum": [
+              "tef",
+              "wheat",
+              "maize"
+            ],
+            "title": "Crop"
+          },
+          "lead_month": {
+            "type": "integer",
+            "title": "Lead Month"
+          },
+          "row": {
+            "type": "integer",
+            "title": "Row"
+          },
+          "col": {
+            "type": "integer",
+            "title": "Col"
+          },
+          "target_date": {
+            "type": "string",
+            "title": "Target Date"
+          },
+          "raw_probability": {
+            "type": "number",
+            "title": "Raw Probability"
+          },
+          "adjusted_probability": {
+            "type": "number",
+            "title": "Adjusted Probability"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "Low",
+              "Moderate",
+              "High",
+              "Severe"
+            ],
+            "title": "Risk Level"
+          },
+          "season": {
+            "type": "string",
+            "title": "Season"
+          },
+          "enso_state": {
+            "type": "string",
+            "title": "Enso State"
+          },
+          "enso_category": {
+            "type": "string",
+            "enum": [
+              "High El Ni\u00f1o",
+              "Moderate El Ni\u00f1o",
+              "Neutral",
+              "Moderate La Ni\u00f1a",
+              "High La Ni\u00f1a"
+            ],
+            "title": "Enso Category",
+            "description": "Five-way Ni\u00f1o 3.4 band (Table 2)"
+          },
+          "crop_note": {
+            "type": "string",
+            "title": "Crop Note"
+          },
+          "crop_recommendation": {
+            "type": "string",
+            "title": "Crop Recommendation"
+          },
+          "planting_window": {
+            "type": "string",
+            "title": "Planting Window"
+          },
+          "water_management": {
+            "type": "string",
+            "title": "Water Management"
+          },
+          "preparedness_action": {
+            "type": "string",
+            "title": "Preparedness Action"
+          },
+          "iek_assessment": {
+            "type": "string",
+            "title": "Iek Assessment"
+          },
+          "confidence_level": {
+            "type": "string",
+            "title": "Confidence Level"
+          },
+          "rules_version": {
+            "type": "string",
+            "title": "Rules Version",
+            "description": "Version of the advisory rule set (ai_drews.advisory.RULES_VERSION)"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ForecastProvenance"
+          },
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "acknowledged_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "crop",
+          "lead_month",
+          "row",
+          "col",
+          "target_date",
+          "raw_probability",
+          "adjusted_probability",
+          "risk_level",
+          "season",
+          "enso_state",
+          "enso_category",
+          "crop_note",
+          "crop_recommendation",
+          "planting_window",
+          "water_management",
+          "preparedness_action",
+          "iek_assessment",
+          "confidence_level",
+          "rules_version",
+          "provenance",
+          "record_id"
+        ],
+        "title": "FarmAdvisoryOut",
+        "description": "An advisory plus the delivery record it was logged against, so the farmer can acknowledge it."
+      },
+      "FarmCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Longitude"
+          },
+          "area_hectares": {
+            "type": "number",
+            "maximum": 10000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Area Hectares"
+          },
+          "primary_crop": {
+            "type": "string",
+            "enum": [
+              "tef",
+              "wheat",
+              "maize"
+            ],
+            "title": "Primary Crop",
+            "default": "tef"
+          },
+          "woreda_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Woreda Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "latitude",
+          "longitude",
+          "area_hectares"
+        ],
+        "title": "FarmCreate"
+      },
+      "FarmOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          },
+          "grid_row": {
+            "type": "integer",
+            "title": "Grid Row"
+          },
+          "grid_col": {
+            "type": "integer",
+            "title": "Grid Col"
+          },
+          "area_hectares": {
+            "type": "number",
+            "title": "Area Hectares"
+          },
+          "primary_crop": {
+            "type": "string",
+            "enum": [
+              "tef",
+              "wheat",
+              "maize"
+            ],
+            "title": "Primary Crop"
+          },
+          "woreda": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WoredaOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "risk": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FarmRisk"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Current risk for this plot; null when the model is down"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "latitude",
+          "longitude",
+          "grid_row",
+          "grid_col",
+          "area_hectares",
+          "primary_crop",
+          "created_at"
+        ],
+        "title": "FarmOut"
+      },
+      "FarmRisk": {
+        "properties": {
+          "lead_month": {
+            "type": "integer",
+            "title": "Lead Month"
+          },
+          "probability": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Probability"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "Low",
+              "Moderate",
+              "High",
+              "Severe"
+            ],
+            "title": "Risk Level"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lead_month",
+          "probability",
+          "risk_level"
+        ],
+        "title": "FarmRisk"
+      },
+      "FarmUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 90.0,
+                "minimum": -90.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180.0,
+                "minimum": -180.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "area_hectares": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10000.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area Hectares"
+          },
+          "primary_crop": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "tef",
+                  "wheat",
+                  "maize"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Primary Crop"
+          },
+          "woreda_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Woreda Id"
+          }
+        },
+        "type": "object",
+        "title": "FarmUpdate"
+      },
+      "FarmerDashboard": {
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserOut"
+          },
+          "farms": {
+            "items": {
+              "$ref": "#/components/schemas/FarmOut"
+            },
+            "type": "array",
+            "title": "Farms"
+          },
+          "advisory": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdvisoryResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Advisory for the highest-risk plot"
+          },
+          "advisory_farm_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Advisory Farm Id"
+          },
+          "advisory_record_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Advisory Record Id",
+            "description": "Delivery record for this advisory; POST it to .../acknowledge"
+          },
+          "advisory_acknowledged_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Advisory Acknowledged At",
+            "description": "When the farmer confirmed they had read this advisory"
+          },
+          "enso_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enso State"
+          },
+          "enso_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enso Summary"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastProvenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "user",
+          "farms"
+        ],
+        "title": "FarmerDashboard"
       },
       "ForecastProvenance": {
         "properties": {
@@ -1057,6 +2859,39 @@
               "Severe"
             ],
             "title": "Risk Level"
+          },
+          "pdsi": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdsi",
+            "description": "Observed self-calibrated Palmer index for the issue month"
+          },
+          "pdsi_category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "Extremely wet",
+                  "Very wet",
+                  "Moderately wet",
+                  "Normal",
+                  "Moderately dry",
+                  "Very dry",
+                  "Extremely dry"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdsi Category",
+            "description": "Drought intensity band for `pdsi` (Table 2)"
           }
         },
         "type": "object",
@@ -1115,6 +2950,9 @@
           },
           "cache": {
             "$ref": "#/components/schemas/CacheStatus"
+          },
+          "database": {
+            "$ref": "#/components/schemas/DatabaseStatus"
           }
         },
         "type": "object",
@@ -1125,9 +2963,103 @@
           "environment",
           "auth_enabled",
           "model",
-          "cache"
+          "cache",
+          "database"
         ],
         "title": "HealthResponse"
+      },
+      "LoginRequest": {
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 3,
+            "title": "Identifier",
+            "description": "Email address or Ethiopian mobile number (09\u2026, 2519\u2026 or +2519\u2026)",
+            "examples": [
+              "minister@moa.gov.et",
+              "0912000001"
+            ]
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "identifier",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "description": "Ministry staff sign in with email, farmers with their mobile number."
+      },
+      "MinistryDashboard": {
+        "properties": {
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "description": "Whole watershed, or the woreda an agent is assigned to"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/CoverageStats"
+          },
+          "exposure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RiskExposure"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null when the forecast model is unavailable"
+          },
+          "by_woreda": {
+            "items": {
+              "$ref": "#/components/schemas/WoredaRisk"
+            },
+            "type": "array",
+            "title": "By Woreda"
+          },
+          "crop_mix": {
+            "items": {
+              "$ref": "#/components/schemas/CropMixEntry"
+            },
+            "type": "array",
+            "title": "Crop Mix"
+          },
+          "advisories": {
+            "$ref": "#/components/schemas/AdvisoryDelivery"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastProvenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "generated_at",
+          "scope",
+          "coverage",
+          "by_woreda",
+          "crop_mix",
+          "advisories"
+        ],
+        "title": "MinistryDashboard"
       },
       "ModelStatus": {
         "properties": {
@@ -1190,6 +3122,335 @@
         ],
         "title": "ModelStatus"
       },
+      "ObservedConditions": {
+        "properties": {
+          "index": {
+            "type": "string",
+            "title": "Index",
+            "description": "Self-calibrated Palmer Drought Severity Index",
+            "default": "scpdsi"
+          },
+          "as_of": {
+            "type": "string",
+            "title": "As Of",
+            "description": "Month the observation refers to, e.g. 'June 2026'"
+          },
+          "mean": {
+            "type": "number",
+            "title": "Mean"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "Extremely wet",
+              "Very wet",
+              "Moderately wet",
+              "Normal",
+              "Moderately dry",
+              "Very dry",
+              "Extremely dry"
+            ],
+            "title": "Category",
+            "description": "Band for the basin mean"
+          },
+          "driest_category": {
+            "type": "string",
+            "enum": [
+              "Extremely wet",
+              "Very wet",
+              "Moderately wet",
+              "Normal",
+              "Moderately dry",
+              "Very dry",
+              "Extremely dry"
+            ],
+            "title": "Driest Category",
+            "description": "Worst band present anywhere in the basin"
+          },
+          "cells_in_drought": {
+            "type": "integer",
+            "title": "Cells In Drought",
+            "description": "Cells in any of the three dry bands"
+          },
+          "classification_version": {
+            "type": "string",
+            "title": "Classification Version"
+          },
+          "citation": {
+            "type": "string",
+            "title": "Citation"
+          },
+          "method_note": {
+            "type": "string",
+            "title": "Method Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "as_of",
+          "mean",
+          "category",
+          "driest_category",
+          "cells_in_drought",
+          "classification_version",
+          "citation",
+          "method_note"
+        ],
+        "title": "ObservedConditions",
+        "description": "How dry the ground already is, as opposed to how likely drought is next season."
+      },
+      "RefreshRequest": {
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 16,
+            "title": "Refresh Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshRequest"
+      },
+      "RiskBucket": {
+        "properties": {
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "Low",
+              "Moderate",
+              "High",
+              "Severe"
+            ],
+            "title": "Risk Level"
+          },
+          "farms": {
+            "type": "integer",
+            "title": "Farms"
+          },
+          "farmers": {
+            "type": "integer",
+            "title": "Farmers"
+          },
+          "hectares": {
+            "type": "number",
+            "title": "Hectares"
+          }
+        },
+        "type": "object",
+        "required": [
+          "risk_level",
+          "farms",
+          "farmers",
+          "hectares"
+        ],
+        "title": "RiskBucket"
+      },
+      "RiskExposure": {
+        "properties": {
+          "lead_month": {
+            "type": "integer",
+            "title": "Lead Month"
+          },
+          "target_date": {
+            "type": "string",
+            "title": "Target Date"
+          },
+          "buckets": {
+            "items": {
+              "$ref": "#/components/schemas/RiskBucket"
+            },
+            "type": "array",
+            "title": "Buckets"
+          },
+          "farms_at_risk": {
+            "type": "integer",
+            "title": "Farms At Risk",
+            "description": "Plots in a High or Severe cell"
+          },
+          "farmers_at_risk": {
+            "type": "integer",
+            "title": "Farmers At Risk"
+          },
+          "hectares_at_risk": {
+            "type": "number",
+            "title": "Hectares At Risk"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lead_month",
+          "target_date",
+          "buckets",
+          "farms_at_risk",
+          "farmers_at_risk",
+          "hectares_at_risk"
+        ],
+        "title": "RiskExposure"
+      },
+      "TokenPair": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          },
+          "token_type": {
+            "type": "string",
+            "const": "bearer",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In",
+            "description": "Access-token lifetime in seconds"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token",
+          "expires_in",
+          "user"
+        ],
+        "title": "TokenPair"
+      },
+      "UpdateProfileRequest": {
+        "properties": {
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "am",
+                  "or"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
+          }
+        },
+        "type": "object",
+        "title": "UpdateProfileRequest"
+      },
+      "UserOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "farmer",
+              "agent",
+              "minister",
+              "admin"
+            ],
+            "title": "Role"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "am",
+              "or"
+            ],
+            "title": "Locale"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "last_login_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Login At"
+          },
+          "woreda": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WoredaOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "phone",
+          "full_name",
+          "role",
+          "locale",
+          "is_active",
+          "last_login_at"
+        ],
+        "title": "UserOut"
+      },
       "ValidationError": {
         "properties": {
           "loc": {
@@ -1229,9 +3490,145 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WoredaOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name_en": {
+            "type": "string",
+            "title": "Name En"
+          },
+          "name_am": {
+            "type": "string",
+            "title": "Name Am"
+          },
+          "name_om": {
+            "type": "string",
+            "title": "Name Om"
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          },
+          "zone_name_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone Name En"
+          },
+          "region_name_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region Name En"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name_en",
+          "name_am",
+          "name_om",
+          "latitude",
+          "longitude"
+        ],
+        "title": "WoredaOut"
+      },
+      "WoredaRisk": {
+        "properties": {
+          "woreda_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Woreda Id"
+          },
+          "name_en": {
+            "type": "string",
+            "title": "Name En"
+          },
+          "name_am": {
+            "type": "string",
+            "title": "Name Am"
+          },
+          "name_om": {
+            "type": "string",
+            "title": "Name Om"
+          },
+          "zone_name_en": {
+            "type": "string",
+            "title": "Zone Name En"
+          },
+          "farmers": {
+            "type": "integer",
+            "title": "Farmers"
+          },
+          "farms": {
+            "type": "integer",
+            "title": "Farms"
+          },
+          "hectares": {
+            "type": "number",
+            "title": "Hectares"
+          },
+          "mean_probability": {
+            "type": "number",
+            "title": "Mean Probability"
+          },
+          "worst_risk_level": {
+            "type": "string",
+            "enum": [
+              "Low",
+              "Moderate",
+              "High",
+              "Severe"
+            ],
+            "title": "Worst Risk Level"
+          }
+        },
+        "type": "object",
+        "required": [
+          "woreda_id",
+          "name_en",
+          "name_am",
+          "name_om",
+          "zone_name_en",
+          "farmers",
+          "farms",
+          "hectares",
+          "mean_probability",
+          "worst_risk_level"
+        ],
+        "title": "WoredaRisk"
       }
     },
     "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "description": "JWT access token from POST /auth/login",
+        "scheme": "bearer"
+      },
       "APIKeyHeader": {
         "type": "apiKey",
         "in": "header",

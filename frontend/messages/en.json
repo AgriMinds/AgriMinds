@@ -32,7 +32,8 @@
       "issued": "Issued",
       "real": "real observations",
       "synthetic": "synthetic"
-    }
+    },
+    "conditionsSection": "Ground conditions"
   },
   "status": {
     "healthy": "ML engine online",
@@ -59,7 +60,9 @@
     "unavailableBody": "The drought model is not available on the server. Run the AI-DREWS pipeline and restart the API.",
     "lead": "Lead",
     "months": "{count, plural, one {# month} other {# months}}",
-    "monthShort": "{count} mo"
+    "monthShort": "{count} mo",
+    "close": "Close",
+    "cancel": "Cancel"
   },
   "summary": {
     "basinMeanRisk": "Basin mean drought risk",
@@ -98,7 +101,17 @@
     "nudge": "Move selected cell",
     "lead1Short": "1 mo",
     "lead2Short": "2 mo",
-    "lead3Short": "3 mo"
+    "lead3Short": "3 mo",
+    "modeGroup": "What the grid shows",
+    "modeRisk": "Forecast risk",
+    "modeDryness": "Ground now",
+    "drynessTitle": "Watershed ground conditions",
+    "drynessSubtitle": "Sc-PDSI measured for each 10 km cell — how dry the ground is today",
+    "drynessLegend": "Sc-PDSI, dry to wet",
+    "drynessUnavailable": "Ground measurements are not available for this forecast.",
+    "cellAriaDryness": "Row {row}, column {col}, Sc-PDSI {value}, {band}",
+    "forecastLabel": "Chance of drought next season",
+    "drynessLabel": "Ground now"
   },
   "risk": {
     "Low": "Low",
@@ -161,7 +174,11 @@
     "observed": "Observed",
     "forecast": "Forecast",
     "chartAria": "Niño 3.4 anomaly, observed history and forecast",
-    "gaugeTitle": "Current phase"
+    "gaugeTitle": "Current phase",
+    "bandLabel": "Band",
+    "extremeFlag": "Extreme phase",
+    "sourceLabel": "Thresholds",
+    "versionLabel": "Classification"
   },
   "reports": {
     "title": "Reports & briefings",
@@ -177,5 +194,159 @@
     "leadHorizon": "Lead horizon",
     "target": "Target",
     "issued": "Issued"
+  },
+  "nav": {
+    "section": "Navigation",
+    "farm": "My farm",
+    "ministry": "National overview",
+    "watershed": "Watershed forecast"
+  },
+  "roles": {
+    "farmer": "Farmer",
+    "agent": "Development agent",
+    "minister": "Ministry",
+    "admin": "Administrator"
+  },
+  "account": {
+    "menu": "Account menu",
+    "signOut": "Sign out",
+    "signingOut": "Signing out…"
+  },
+  "auth": {
+    "title": "Sign in",
+    "subtitle": "Drought early warning for the Choke Mountain watershed",
+    "identifierLabel": "Email or mobile number",
+    "identifierPlaceholder": "name@moa.gov.et or 0912000001",
+    "identifierHint": "Ministry staff use their email address. Farmers use their mobile number.",
+    "passwordLabel": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "genericError": "Could not sign in. Please try again.",
+    "languageLabel": "Language",
+    "demoTitle": "Demonstration accounts",
+    "demoPassword": "Password",
+    "demoRole": {
+      "ministry": "Ministry",
+      "agent": "Development agent",
+      "farmer": "Farmer"
+    }
+  },
+  "farmer": {
+    "eyebrow": "My farm",
+    "greeting": "Selam, {name}",
+    "greetingPlain": "Your farm",
+    "intro": "What the season ahead looks like for your land, and what to do about it.",
+    "adviceTitle": "What to do this season",
+    "adviceForPlot": "Advice for {plot}",
+    "chanceOfDrought": "Chance of drought for {crop}",
+    "acknowledge": "I have read this",
+    "acknowledged": "Read",
+    "myPlots": "My plots ({count})",
+    "plotsHint": "Tap a plot to see the advice for that land.",
+    "addPlot": "Add plot",
+    "editPlot": "Edit plot",
+    "editPlotNamed": "Edit {plot}",
+    "deletePlot": "Delete",
+    "confirmDelete": "Tap again to delete",
+    "saveChanges": "Save changes",
+    "plotName": "Plot name",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "area": "Area (hectares)",
+    "hectaresShort": "ha",
+    "riskUnavailable": "Risk not available",
+    "noPlotsTitle": "No plots registered yet",
+    "noPlotsBody": "Add your land to see the drought outlook and advice for it.",
+    "ensoNow": "Pacific Ocean: {state}",
+    "errors": {
+      "nameRequired": "Give the plot a name.",
+      "latitude": "Enter a latitude between -90 and 90.",
+      "longitude": "Enter a longitude between -180 and 180.",
+      "area": "Enter an area greater than zero.",
+      "generic": "Could not save. Please try again."
+    },
+    "landRisk": "Risk for this land",
+    "groundNow": "Ground now: {band}",
+    "groundUnavailable": "Ground reading not available",
+    "ensoBandLine": "Pacific Ocean, {month}: {band}"
+  },
+  "ministry": {
+    "eyebrow": "National overview",
+    "title": "Drought exposure and coverage",
+    "intro": "Registered farmers and land across the watershed, and how the coming season affects them.",
+    "generatedAt": "Updated {time}",
+    "coverageTitle": "Coverage",
+    "registeredFarmers": "Registered farmers",
+    "activeLast30": "{count} signed in within 30 days",
+    "registeredPlots": "Registered plots",
+    "hectaresTotal": "{hectares} hectares in total",
+    "woredasCovered": "Woredas with plots",
+    "woredasDetail": "Of the woredas in the watershed",
+    "plotsAtRisk": "Plots at high or severe risk",
+    "atRiskDetail": "{farmers} farmers · {hectares} hectares",
+    "exposureUnavailable": "The forecast model is unavailable, so exposure cannot be calculated.",
+    "sourceNote": "Every figure is counted from registered accounts and plots. Risk comes from the live forecast model.",
+    "exposureCardTitle": "Risk exposure",
+    "exposureCardSubtitle": "Registered plots by risk level",
+    "exposureTitle": "Plots by risk level",
+    "forTarget": "For {target}",
+    "noPlots": "No plots registered yet.",
+    "level": "Level",
+    "plots": "Plots",
+    "farmers": "Farmers",
+    "hectares": "Hectares",
+    "hectaresShort": "ha",
+    "byWoredaTitle": "By woreda",
+    "byWoredaSubtitle": "Where registered land sits on the risk map",
+    "woreda": "Woreda",
+    "meanRisk": "Mean risk",
+    "worstLevel": "Worst",
+    "noWoredas": "No plots have been registered in any woreda yet.",
+    "cropMixTitle": "Crop mix",
+    "cropMixSubtitle": "Registered hectares by staple crop",
+    "cropAtRisk": "{count} plots in an at-risk cell",
+    "deliveryTitle": "Advisory delivery",
+    "deliverySubtitle": "Counted from advisories the platform issued",
+    "issuedTotal": "Issued, all time",
+    "issued30d": "Issued, 30 days",
+    "acknowledged30d": "Read, 30 days",
+    "acknowledgementRate": "Read rate",
+    "noDelivery": "No advisories have been issued in the last 30 days, so there is no read rate to report.",
+    "watershedLinkTitle": "Open the watershed forecast",
+    "watershedLinkBody": "The drought grid, crop advisory tool and ENSO outlook behind these figures."
+  },
+  "pdsi": {
+    "extremelyDry": "Extremely dry",
+    "veryDry": "Very dry",
+    "moderatelyDry": "Moderately dry",
+    "normal": "Normal",
+    "moderatelyWet": "Moderately wet",
+    "veryWet": "Very wet",
+    "extremelyWet": "Extremely wet",
+    "scaleName": "Sc-PDSI",
+    "scaleAria": "Sc-PDSI scale, extremely dry to extremely wet",
+    "dryEnd": "Dry",
+    "wetEnd": "Wet"
+  },
+  "ensoBand": {
+    "highElNino": "High El Niño",
+    "moderateElNino": "Moderate El Niño",
+    "neutral": "Neutral",
+    "moderateLaNina": "Moderate La Niña",
+    "highLaNina": "High La Niña"
+  },
+  "conditions": {
+    "title": "Ground conditions now",
+    "subtitle": "Measured soil dryness today — this is not a forecast",
+    "basinMean": "Watershed average",
+    "driest": "Driest cell",
+    "inDrought": "Cells in drought",
+    "ofCells": "of {total} cells",
+    "asOf": "Measured for {month}",
+    "explain": "The forecast above answers how likely drought is next season. This answers how dry the ground already is, from the Palmer index.",
+    "methodLabel": "Method",
+    "sourceLabel": "Thresholds"
   }
 }

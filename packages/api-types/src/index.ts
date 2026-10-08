@@ -11,6 +11,39 @@ type Schemas = components['schemas']
 
 export type Crop = Schemas['AdvisoryRequest']['crop']
 export type RiskLevel = Schemas['GridCellRisk']['risk_level']
+
+/** Five-way Niño 3.4 band and seven-way Sc-PDSI drought intensity, Table 2 of the AI-DREWS study
+ *  (Megbar & Tadesse 2016; Menberu & Addisu 2018). */
+export type EnsoCategory = Schemas['EnsoOutlookResponse']['current_category']
+export type PdsiCategory = NonNullable<Schemas['GridCellRisk']['pdsi_category']>
+export type ObservedConditions = Schemas['ObservedConditions']
+
+export const ENSO_CATEGORIES = [
+  'High La Niña',
+  'Moderate La Niña',
+  'Neutral',
+  'Moderate El Niño',
+  'High El Niño',
+] as const satisfies readonly EnsoCategory[]
+
+/** Driest to wettest, so a scale can be rendered in order. */
+export const PDSI_CATEGORIES = [
+  'Extremely dry',
+  'Very dry',
+  'Moderately dry',
+  'Normal',
+  'Moderately wet',
+  'Very wet',
+  'Extremely wet',
+] as const satisfies readonly PdsiCategory[]
+
+export const PDSI_DRY_CATEGORIES = ['Moderately dry', 'Very dry', 'Extremely dry'] as const
+export function isPdsiDrought(category: PdsiCategory): boolean {
+  return (PDSI_DRY_CATEGORIES as readonly PdsiCategory[]).includes(category)
+}
+export function isEnsoExtreme(category: EnsoCategory): boolean {
+  return category === 'High El Niño' || category === 'High La Niña'
+}
 export type ForecastProvenance = Schemas['ForecastProvenance']
 
 export type GridCellRisk = Schemas['GridCellRisk']
@@ -43,6 +76,40 @@ export const RISK_THRESHOLDS: ReadonlyArray<{ below: number; level: RiskLevel }>
 
 export function riskLevelFor(probability: number): RiskLevel {
   return RISK_THRESHOLDS.find((t) => probability < t.below)?.level ?? 'Severe'
+}
+
+// ---- accounts, farms and dashboards -------------------------------------------------
+export type Role = Schemas['UserOut']['role']
+export type User = Schemas['UserOut']
+export type LoginRequest = Schemas['LoginRequest']
+export type TokenPair = Schemas['TokenPair']
+export type AccessTokenOut = Schemas['AccessTokenOut']
+export type Woreda = Schemas['WoredaOut']
+
+export type Farm = Schemas['FarmOut']
+export type FarmCreate = Schemas['FarmCreate']
+export type FarmUpdate = Schemas['FarmUpdate']
+export type FarmRisk = Schemas['FarmRisk']
+export type FarmAdvisory = Schemas['FarmAdvisoryOut']
+
+export type FarmerDashboard = Schemas['FarmerDashboard']
+export type MinistryDashboard = Schemas['MinistryDashboard']
+export type CoverageStats = Schemas['CoverageStats']
+export type RiskExposure = Schemas['RiskExposure']
+export type RiskBucket = Schemas['RiskBucket']
+export type WoredaRisk = Schemas['WoredaRisk']
+export type CropMixEntry = Schemas['CropMixEntry']
+export type AdvisoryDelivery = Schemas['AdvisoryDelivery']
+
+export const ROLES = ['farmer', 'agent', 'minister', 'admin'] as const satisfies readonly Role[]
+/** Roles that reach the ministry dashboard; `farmer` gets the farm dashboard instead. */
+export const STAFF_ROLES = ['agent', 'minister', 'admin'] as const satisfies readonly Role[]
+export function isStaff(role: Role): boolean {
+  return (STAFF_ROLES as readonly Role[]).includes(role)
+}
+/** Where a signed-in person lands. */
+export function homePathFor(role: Role): '/farm' | '/ministry' {
+  return role === 'farmer' ? '/farm' : '/ministry'
 }
 
 export const API_V1_PREFIX = '/api/v1'

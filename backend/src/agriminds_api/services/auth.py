@@ -50,7 +50,9 @@ class AuthService:
         return await self._session.scalar(stmt.options(selectinload(User.woreda)))
 
     # ------------------------------------------------------------------ sign in
-    async def authenticate(self, identifier: str, password: str, user_agent: str | None) -> tuple[User, str, str, int]:
+    async def authenticate(
+        self, identifier: str, password: str, user_agent: str | None
+    ) -> tuple[User, str, str, int]:
         now = datetime.now(UTC)
         user = await self._get_by_identifier(identifier)
 
@@ -60,9 +62,7 @@ class AuthService:
             raise InvalidCredentialsError()
 
         if user.locked_until and user.locked_until > now:
-            raise AccountLockedError(
-                "Too many failed sign-in attempts. Try again in a few minutes."
-            )
+            raise AccountLockedError("Too many failed sign-in attempts. Try again in a few minutes.")
 
         ok, new_hash = security.verify_password(password, user.hashed_password)
         if not ok:
@@ -79,7 +79,9 @@ class AuthService:
         user.locked_until = None
         user.last_login_at = now
 
-        access, refresh, expires_in = await self._issue_pair(user, user_agent, family_id=uuid.uuid4(), now=now)
+        access, refresh, expires_in = await self._issue_pair(
+            user, user_agent, family_id=uuid.uuid4(), now=now
+        )
         log.info("sign-in ok user=%s role=%s", user.id, user.role)
         return user, access, refresh, expires_in
 
@@ -89,7 +91,9 @@ class AuthService:
             user.locked_until = now + timedelta(minutes=self._settings.login_lockout_minutes)
             user.failed_login_count = 0
             log.warning("account locked after repeated failures user=%s", user.id)
-        await self._session.flush()
+        # Commit before the caller raises 401: the request-scoped session rolls back on error,
+        # and a counter that disappears with the rejection is no protection at all.
+        await self._session.commit()
 
     async def _issue_pair(
         self, user: User, user_agent: str | None, family_id: uuid.UUID, now: datetime
@@ -129,7 +133,10 @@ class AuthService:
 
         if stored.revoked_at is not None:
             # A rotated token came back: assume it was stolen and end every session in the family.
+            # Commit before raising, because the request-scoped session rolls back on error and
+            # the revocation must survive the 401 it is about to produce.
             await self._revoke_family(stored.family_id, now)
+            await self._session.commit()
             log.warning("refresh token reuse detected; family revoked user=%s", stored.user_id)
             raise UnauthorizedError("Your session has expired. Please sign in again.")
 

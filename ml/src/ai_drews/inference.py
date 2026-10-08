@@ -49,6 +49,21 @@ class Artifacts:
     def nino_history(self) -> np.ndarray:
         return np.asarray(self.fields["nino"], dtype="float64")
 
+    @property
+    def has_pdsi(self) -> bool:
+        """Sc-PDSI is only present when the raw record carried mean temperature."""
+        return "pdsi" in self.fields
+
+    def latest_pdsi(self) -> np.ndarray | None:
+        """Observed Sc-PDSI for the issue month, shaped (rows, cols).
+
+        This is a measured condition, not a forecast: it says how dry the ground is now,
+        while the model output says how likely drought is next season.
+        """
+        if not self.has_pdsi:
+            return None
+        return np.asarray(self.fields["pdsi"][-1], dtype="float64")
+
     def latest_enso_forecast(self) -> np.ndarray | None:
         """Nino3.4 forecast for the leads following the issue month, or None if ENSO was not trained."""
         if self.enso_fc.size == 0 or not self.enso_fc.any():

@@ -24,6 +24,12 @@ class FarmerDashboard(BaseModel):
     farms: list[FarmOut]
     advisory: AdvisoryResponse | None = Field(None, description="Advisory for the highest-risk plot")
     advisory_farm_id: uuid.UUID | None = None
+    advisory_record_id: uuid.UUID | None = Field(
+        None, description="Delivery record for this advisory; POST it to .../acknowledge"
+    )
+    advisory_acknowledged_at: datetime | None = Field(
+        None, description="When the farmer confirmed they had read this advisory"
+    )
     enso_state: str | None = None
     enso_summary: str | None = None
     provenance: ForecastProvenance | None = None

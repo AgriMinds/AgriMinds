@@ -48,4 +48,4 @@ class AdvisoryRecord(UUIDPrimaryKey, Timestamps, Base):
     data_source: Mapped[str] = mapped_column(String(32))  # 'real' | 'synthetic' | 'unknown'
     acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    farm: Mapped["Farm"] = relationship()  # noqa: F821
+    farm: Mapped[Farm] = relationship()  # noqa: F821

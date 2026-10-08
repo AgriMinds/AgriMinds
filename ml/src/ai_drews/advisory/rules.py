@@ -13,6 +13,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Literal
 
+from ai_drews.advisory.classification import ENSO_PHASE, enso_category
+
 RULES_VERSION = "2026.10-draft"
 
 Crop = Literal["tef", "wheat", "maize"]
@@ -29,6 +31,10 @@ RISK_LEVELS: tuple[tuple[float, RiskLevel], ...] = (
     (1.01, "Severe"),
 )
 
+#: Retained for reference. The authoritative bands now live in ``classification.ENSO_BANDS``,
+#: which follows Table 2 of the study. The two differ only at exactly +/-0.50 degC, which
+#: Table 2 assigns to Neutral and NOAA's ONI convention assigns to a phase; the study's table
+#: wins here so that the coarse phase and the five-way category can never disagree.
 EL_NINO_THRESHOLD = 0.5  # degC Nino3.4 anomaly
 LA_NINA_THRESHOLD = -0.5
 
@@ -71,11 +77,8 @@ def risk_level(p: float) -> RiskLevel:
 
 
 def enso_state(nino34: float) -> str:
-    if nino34 >= EL_NINO_THRESHOLD:
-        return "El Niño"
-    if nino34 <= LA_NINA_THRESHOLD:
-        return "La Niña"
-    return "Neutral"
+    """Coarse three-way phase, derived from the five-way bands so the two always agree."""
+    return ENSO_PHASE[enso_category(nino34)]
 
 
 def season_name(month: int) -> str:
@@ -95,6 +98,7 @@ class Advisory:
     risk_level: RiskLevel
     season: str
     enso_state: str
+    enso_category: str
     crop_note: str
     crop_recommendation: str
     planting_window: str
@@ -177,6 +181,7 @@ def advise(
         risk_level=level,
         season=season_name(target_month),
         enso_state=enso_state(nino34),
+        enso_category=enso_category(nino34),
         crop_note=profile.note,
         crop_recommendation=actions["crop"],
         planting_window=actions["planting"],

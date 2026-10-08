@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from pathlib import Path
 from typing import Annotated
@@ -89,6 +90,44 @@ def run_all(data_dir: DataDir = None, no_plot: bool = False) -> None:
     _drought(paths, data_source=summary["source"])
     render_risk_maps(paths, plot=not no_plot)
     typer.echo("pipeline complete")
+
+
+@app.command()
+def scenario(
+    netcdf: Annotated[Path, typer.Argument(help="CMIP6 monthly NetCDF (ScenarioMIP, e.g. ssp585)")],
+    data_dir: DataDir = None,
+    lon_min: float = 35.5,
+    lat_min: float = 8.5,
+    lon_max: float = 40.5,
+    lat_max: float = 13.5,
+    latitude: Annotated[float, typer.Option(help="Representative latitude for daylight correction")] = 10.8,
+) -> None:
+    """Long-horizon drought outlook from a climate projection.
+
+    This is NOT the operational forecast. It reads a scenario run and reports how drought
+    intensity drifts over decades, writing the monthly series to outputs/ for plotting.
+    """
+    from ai_drews.analysis.scenario import scenario_outlook
+    from ai_drews.data.cmip6 import load_projection
+
+    paths = _paths(data_dir)
+    projection = load_projection(netcdf, (lon_min, lat_min, lon_max, lat_max))
+    outlook, frame = scenario_outlook(projection, latitude_deg=latitude)
+
+    stem = f"{projection.source_id}_{projection.experiment_id}".replace("/", "-")
+    frame.to_csv(paths.outputs / f"scenario_{stem}.csv", index=False)
+    (paths.outputs / f"scenario_{stem}.json").write_text(json.dumps(outlook.to_dict(), indent=2))
+
+    typer.echo(outlook.summary())
+    typer.echo(f"\nwarming     {outlook.warming_c_per_decade:+.2f} C per decade")
+    typer.echo(
+        f"rainfall    {outlook.annual_precip_mm_baseline:.0f} -> "
+        f"{outlook.annual_precip_mm_final_decade:.0f} mm/yr"
+    )
+    if outlook.footprint_warning:
+        typer.secho(f"\n{outlook.footprint_warning}", fg=typer.colors.YELLOW)
+    typer.secho(f"\n{outlook.caveat}", fg=typer.colors.YELLOW)
+    typer.echo(f"\nwrote outputs/scenario_{stem}.csv and .json")
 
 
 @app.command("version")

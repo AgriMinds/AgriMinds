@@ -132,6 +132,12 @@ class InferenceService:
             source=RiskSource.MODEL,
         )
 
+    def observed_pdsi(self) -> np.ndarray | None:
+        """Observed Sc-PDSI for the issue month, or None when the record lacks mean temperature."""
+        if self._artifacts is None:
+            return None
+        return self._artifacts.latest_pdsi()
+
     def nino_for_lead(self, lead_month: int) -> float:
         """Nino3.4 expected at the target month: ENSO forecast if available, else last observed value."""
         if self._artifacts is None:

@@ -4,6 +4,7 @@ import { useState, type CSSProperties } from 'react'
 import { useTranslations } from 'next-intl'
 import type { Crop, LeadMonth } from '@agriminds/api-types'
 import { CropDecisionPanel } from '@/features/advisory/CropDecisionPanel'
+import { ObservedConditions } from '@/features/conditions/ObservedConditions'
 import { useAdvisory } from '@/features/advisory/useAdvisory'
 import { ForecastControls } from '@/features/dashboard/ForecastControls'
 import { WatershedGridMap, type Cell } from '@/features/drought/WatershedGridMap'
@@ -87,11 +88,18 @@ export function Dashboard() {
           </section>
         </div>
 
-        <section id="enso" aria-label={tn('enso')} className="reveal scroll-mt-20" style={delay(340)}>
+        {/* Measured ground state. Hidden entirely when the server has no climate record. */}
+        {map.data?.conditions && (
+          <section id="conditions" aria-label={t('conditionsSection')} className="reveal scroll-mt-20" style={delay(320)}>
+            <ObservedConditions conditions={map.data.conditions} />
+          </section>
+        )}
+
+        <section id="enso" aria-label={tn('enso')} className="reveal scroll-mt-20" style={delay(360)}>
           <EnsoMonitor data={enso.data} isLoading={enso.isPending} isFetching={enso.isFetching} error={enso.error} onRetry={() => void enso.refetch()} />
         </section>
 
-        <section id="reports" aria-label={tn('reports')} className="reveal scroll-mt-20" style={delay(400)}>
+        <section id="reports" aria-label={tn('reports')} className="reveal scroll-mt-20" style={delay(420)}>
           <ReportsPlaceholder />
         </section>
       </div>

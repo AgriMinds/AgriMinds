@@ -5,7 +5,17 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from ai_drews.advisory import enso_state, risk_level, season_name
+from ai_drews.advisory import (
+    CITATION,
+    CLASSIFICATION_VERSION,
+    ENSO_IS_EXTREME,
+    enso_category,
+    enso_state,
+    pdsi_category,
+    pdsi_is_drought,
+    risk_level,
+    season_name,
+)
 
 
 class RiskSource(StrEnum):
@@ -15,4 +25,15 @@ class RiskSource(StrEnum):
     PRECOMPUTED = "precomputed"  # outputs/latest_risk.npz written by the last `ai-drews maps` run
 
 
-__all__ = ["RiskSource", "enso_state", "risk_level", "season_name"]
+__all__ = [
+    "CITATION",
+    "CLASSIFICATION_VERSION",
+    "ENSO_IS_EXTREME",
+    "RiskSource",
+    "enso_category",
+    "enso_state",
+    "pdsi_category",
+    "pdsi_is_drought",
+    "risk_level",
+    "season_name",
+]

@@ -9,10 +9,26 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Test-only values. Real deployments set these as secrets.
+  AGRIMINDS_JWT_SECRET: ci-only-secret-not-used-for-anything-real
+  AGRIMINDS_DATABASE_URL: postgresql+asyncpg://agriminds:agriminds@localhost:5432/agriminds
+
 jobs:
   python:
     name: Python (ml + api)
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: agriminds
+          POSTGRES_PASSWORD: agriminds
+          POSTGRES_DB: agriminds
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U agriminds"
+          --health-interval 10s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
@@ -25,7 +41,17 @@ jobs:
       - run: uv run ruff check ml backend
       - run: uv run ruff format --check ml backend
       - run: cd backend && uv run mypy
-      - run: uv run pytest ml/tests backend/tests
+      - name: Migrations apply and match the models
+        working-directory: backend
+        run: |
+          uv run alembic upgrade head
+          uv run alembic check          # fails if a model change has no migration
+          uv run alembic downgrade base # the migration must be reversible
+          uv run alembic upgrade head
+      # Each package is run from its own root so its pytest configuration applies
+      # (asyncio mode and testpaths live in each package's pyproject.toml).
+      - run: cd ml && uv run pytest
+      - run: cd backend && uv run pytest
       - name: OpenAPI schema is up to date
         run: |
           AGRIMINDS_DATA_DIR=./data uv run python -c "import json; from agriminds_api.main import create_app; from agriminds_api.core.config import Settings; json.dump(create_app(Settings(_env_file=None, data_dir='data')).openapi(), open('packages/api-types/openapi.json','w'), indent=2)"
@@ -49,21 +75,34 @@ jobs:
       - run: pnpm --filter @agriminds/web build
 
   docker:
-    name: Docker Compose build
+    name: Docker Compose stack
     runs-on: ubuntu-latest
     needs: [python, node]
+    env:
+      POSTGRES_PASSWORD: ci-only-database-password
+      AGRIMINDS_JWT_SECRET: ci-only-secret-not-used-for-anything-real
+      AGRIMINDS_ENV: development
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
       - run: docker compose build backend web
-      - name: Smoke test the stack
+      - name: Start, migrate, seed and smoke test
         run: |
           docker compose up -d
-          for i in $(seq 1 30); do
-            if curl -fsS http://localhost:8000/api/v1/health >/dev/null; then break; fi; sleep 3; done
-          curl -fsS http://localhost:8000/api/v1/health
-          curl -fsS http://localhost:8000/api/v1/drought/map?lead_month=1 | head -c 300; echo
-          for i in $(seq 1 30); do
-            if curl -fsS http://localhost:3000/ >/dev/null; then break; fi; sleep 3; done
-          curl -fsS -o /dev/null -w "web %{http_code}\n" http://localhost:3000/
-          docker compose down -v
+          for i in $(seq 1 40); do curl -fsS http://localhost:8000/api/v1/health >/dev/null && break; sleep 3; done
+          docker compose run --rm backend alembic upgrade head
+          docker compose run --rm backend agriminds seed --demo
+          curl -fsS http://localhost:8000/api/v1/health | tee /dev/stderr | grep -q '"reachable":true'
+          TOKEN=$(curl -fsS -X POST http://localhost:8000/api/v1/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"identifier":"minister@moa.gov.et","password":"AgriMinds#2026"}' \
+            | python3 -c 'import sys,json; print(json.load(sys.stdin)["access_token"])')
+          curl -fsS -H "Authorization: Bearer $TOKEN" http://localhost:8000/api/v1/dashboard/ministry | head -c 400; echo
+          curl -fsS -o /dev/null -w 'ministry dashboard needs auth: %{http_code}\n' \
+            http://localhost:8000/api/v1/dashboard/ministry || true
+          for i in $(seq 1 40); do curl -fsS http://localhost:3000/ >/dev/null && break; sleep 3; done
+          curl -fsS -o /dev/null -w 'web: %{http_code}\n' http://localhost:3000/login
+      - if: always()
+        run: docker compose logs --tail=50 backend
+      - if: always()
+        run: docker compose down -v

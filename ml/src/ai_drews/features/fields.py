@@ -10,6 +10,7 @@ import pandas as pd
 from ai_drews.config import DEFAULT_CONFIG, DataPaths, PipelineConfig
 from ai_drews.data.io import load_raw
 from ai_drews.features.indices import spi, vci, zanom
+from ai_drews.features.pdsi import row_latitudes, scpdsi
 
 log = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ def compute_fields(ind: pd.DataFrame, g: dict, cfg: PipelineConfig = DEFAULT_CON
                 1,
             )
         )  # (T,7)
-    return dict(
+    fields = dict(
         dates=dates.strftime("%Y-%m-%d").values,
         months=mo,
         spi=sp,
@@ -52,6 +53,23 @@ def compute_fields(ind: pd.DataFrame, g: dict, cfg: PipelineConfig = DEFAULT_CON
         nino=nino,
         nino_all=ind[["nino34", "nino12", "nino4", "soi"]].to_numpy().astype("float32"),
     )
+
+    # Sc-PDSI needs evapotranspiration, which needs mean temperature. Deriving it from the
+    # maxima would bias every downstream classification, so the index is simply absent when
+    # the input is: callers check for the key rather than receiving a guess.
+    if "tmean" in g:
+        rows = g["rain"].shape[1]
+        fields["pdsi"] = scpdsi(
+            g["rain"],
+            g["tmean"],
+            dates,
+            row_latitudes(cfg.bbox, rows),
+            awc_mm=cfg.awc_mm,
+            calibration_end=cfg.train_end,
+        ).astype("float32")
+    else:
+        log.warning("raw data has no `tmean`: Sc-PDSI not computed")
+    return fields
 
 
 def save_fields(paths: DataPaths, F: Fields) -> None:
@@ -78,7 +96,8 @@ def load_enso_fc(paths: DataPaths, T: int, leads: int = 3) -> np.ndarray:
 
 
 def build_features(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG) -> dict:
-    """Step 2: compute SPI-3, VCI, anomalies; save fields.npz; return split sizes and base rates."""
+    """Step 2: compute SPI-3, VCI, anomalies and Sc-PDSI; save fields.npz; report the splits."""
+    from ai_drews.analysis.teleconnection import enso_drought_correlation
     from ai_drews.features.windows import make_labels, split_idx
 
     ind, g = load_raw(paths)
@@ -94,5 +113,21 @@ def build_features(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG) -> di
         base_rate_by_lead=[round(float(y[:, lead].mean()), 3) for lead in range(cfg.drought_leads)],
         corr_nino_spi=round(float(np.corrcoef(F["nino"][2:], F["TF"][2:, 4])[0, 1]), 2),
     )
+
+    # Fig. 5 of the study: how closely ENSO tracks drought here, and at what lead time.
+    has_pdsi = "pdsi" in F
+    teleconnection = enso_drought_correlation(
+        F["nino"],
+        F["pdsi"] if has_pdsi else F["spi"],
+        index_name="scpdsi" if has_pdsi else "spi",
+    )
+    teleconnection.to_frame().to_csv(paths.outputs / "enso_drought_correlation.csv", index=False)
+    summary["scpdsi"] = "computed" if has_pdsi else "unavailable (no tmean in raw data)"
+    summary["teleconnection"] = {
+        "index": teleconnection.index,
+        "r_at_lag_0": teleconnection.correlation_at_lag_0,
+        "best_lag_months": teleconnection.best_lag_months,
+        "r_at_best_lag": teleconnection.best_correlation,
+    }
     log.info("features built: %s", summary)
     return summary

@@ -4,7 +4,9 @@ import { Leaf, MapPin, Menu } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
+import { UserMenu } from '@/components/layout/UserMenu'
 import { Button } from '@/components/ui/button'
+import type { Role } from '@agriminds/api-types'
 import { useHealth, type ConnectionStatus } from '@/features/health/useHealth'
 import { cn } from '@/lib/utils'
 
@@ -39,7 +41,9 @@ export function HealthChip() {
   )
 }
 
-export function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
+type TopBarProps = { onOpenNav: () => void; user: { name: string; role: Role } }
+
+export function TopBar({ onOpenNav, user }: TopBarProps) {
   const t = useTranslations('app')
   return (
     <header className="sticky top-0 z-30 w-full border-b border-border bg-surface/85 backdrop-blur-md supports-[backdrop-filter]:bg-surface/70">
@@ -56,9 +60,14 @@ export function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <HealthChip />
+          <span className="hidden sm:inline-flex">
+            <HealthChip />
+          </span>
           <ThemeToggle />
-          <LanguageSwitcher />
+          <span className="hidden md:inline-flex">
+            <LanguageSwitcher />
+          </span>
+          <UserMenu name={user.name} role={user.role} />
         </div>
       </div>
     </header>

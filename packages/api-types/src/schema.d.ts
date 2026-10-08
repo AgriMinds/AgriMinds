@@ -21,6 +21,146 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign in with an email address or mobile number */
+        post: operations["login_api_v1_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End the presented session */
+        post: operations["logout_api_v1_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in person */
+        get: operations["me_api_v1_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update your own name or interface language */
+        patch: operations["update_me_api_v1_auth_me_patch"];
+        trace?: never;
+    };
+    "/api/v1/auth/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change your password (signs out every other device) */
+        post: operations["change_password_api_v1_auth_me_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exchange a refresh token for a new pair (the old one is revoked) */
+        post: operations["refresh_api_v1_auth_refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/farmer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Your plots, their risk and the advisory that needs attention first */
+        get: operations["farmer_dashboard_api_v1_dashboard_farmer_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/farmer/advisories/{advisory_id}/acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm you have read an advisory (feeds the delivery figures) */
+        post: operations["acknowledge_api_v1_dashboard_farmer_advisories__advisory_id__acknowledge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/ministry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Coverage, risk exposure and advisory delivery across the watershed
+         * @description Every count comes from registered rows. A development agent sees only the woreda they are posted to; ministers and administrators see the whole watershed.
+         */
+        get: operations["ministry_dashboard_api_v1_dashboard_ministry_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/drought/cell": {
         parameters: {
             query?: never;
@@ -73,6 +213,60 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/farms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List your plots with their current risk */
+        get: operations["list_farms_api_v1_farms_get"];
+        put?: never;
+        /** Register a plot */
+        post: operations["create_farm_api_v1_farms_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/farms/{farm_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One of your plots */
+        get: operations["get_farm_api_v1_farms__farm_id__get"];
+        put?: never;
+        post?: never;
+        /** Remove a plot */
+        delete: operations["delete_farm_api_v1_farms__farm_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update a plot */
+        patch: operations["update_farm_api_v1_farms__farm_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/farms/{farm_id}/advisory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Crop advisory for one plot (recorded for delivery reporting) */
+        get: operations["farm_advisory_api_v1_farms__farm_id__advisory_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -111,6 +305,35 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        /** AccessTokenOut */
+        AccessTokenOut: {
+            /** Access Token */
+            access_token: string;
+            /** Expires In */
+            expires_in: number;
+            /** Refresh Token */
+            refresh_token: string;
+            /**
+             * Token Type
+             * @default bearer
+             * @constant
+             */
+            token_type: "bearer";
+        };
+        /** AdvisoryDelivery */
+        AdvisoryDelivery: {
+            /** Acknowledged 30D */
+            acknowledged_30d: number;
+            /**
+             * Acknowledgement Rate
+             * @description null until at least one advisory has been issued in the window
+             */
+            acknowledgement_rate?: number | null;
+            /** Issued 30D */
+            issued_30d: number;
+            /** Issued Total */
+            issued_total: number;
+        };
         /** AdvisoryRequest */
         AdvisoryRequest: {
             /**
@@ -169,6 +392,12 @@ export type components = {
             crop_note: string;
             /** Crop Recommendation */
             crop_recommendation: string;
+            /**
+             * Enso Category
+             * @description Five-way Niño 3.4 band (Table 2)
+             * @enum {string}
+             */
+            enso_category: "High El Niño" | "Moderate El Niño" | "Neutral" | "Moderate La Niña" | "High La Niña";
             /** Enso State */
             enso_state: string;
             /** Iek Assessment */
@@ -237,6 +466,16 @@ export type components = {
             lead_month: number;
             /** Longitude */
             longitude: number;
+            /**
+             * Pdsi
+             * @description Observed self-calibrated Palmer index for the issue month
+             */
+            pdsi?: number | null;
+            /**
+             * Pdsi Category
+             * @description Drought intensity band for `pdsi` (Table 2)
+             */
+            pdsi_category?: ("Extremely wet" | "Very wet" | "Moderately wet" | "Normal" | "Moderately dry" | "Very dry" | "Extremely dry") | null;
             /** Probability */
             probability: number;
             provenance: components["schemas"]["ForecastProvenance"];
@@ -247,6 +486,54 @@ export type components = {
             risk_level: "Low" | "Moderate" | "High" | "Severe";
             /** Row */
             row: number;
+        };
+        /** ChangePasswordRequest */
+        ChangePasswordRequest: {
+            /** Current Password */
+            current_password: string;
+            /** New Password */
+            new_password: string;
+        };
+        /** CoverageStats */
+        CoverageStats: {
+            /**
+             * Active Farmers 30D
+             * @description Farmers who signed in within the last 30 days
+             */
+            active_farmers_30d: number;
+            /** Agents */
+            agents: number;
+            /** Farmers */
+            farmers: number;
+            /** Farms */
+            farms: number;
+            /** Hectares */
+            hectares: number;
+            /** Woredas Covered */
+            woredas_covered: number;
+            /** Woredas Total */
+            woredas_total: number;
+        };
+        /** CropMixEntry */
+        CropMixEntry: {
+            /**
+             * Crop
+             * @enum {string}
+             */
+            crop: "tef" | "wheat" | "maize";
+            /** Farms */
+            farms: number;
+            /** Farms At Risk */
+            farms_at_risk: number;
+            /** Hectares */
+            hectares: number;
+        };
+        /** DatabaseStatus */
+        DatabaseStatus: {
+            /** Configured */
+            configured: boolean;
+            /** Reachable */
+            reachable: boolean;
         };
         /** DroughtMapResponse */
         DroughtMapResponse: {
@@ -262,6 +549,8 @@ export type components = {
             ];
             /** Cells */
             cells: components["schemas"]["GridCellRisk"][];
+            /** @description Observed Sc-PDSI; null when the record carries no mean temperature */
+            conditions?: components["schemas"]["ObservedConditions"] | null;
             /** Grid Shape */
             grid_shape: [
                 number,
@@ -291,11 +580,21 @@ export type components = {
         };
         /** EnsoOutlookResponse */
         EnsoOutlookResponse: {
+            /** Citation */
+            citation: string;
+            /** Classification Version */
+            classification_version: string;
+            /**
+             * Current Category
+             * @description Five-way band from Table 2; 'High' bands warrant a changed recommendation
+             * @enum {string}
+             */
+            current_category: "High El Niño" | "Moderate El Niño" | "Neutral" | "Moderate La Niña" | "High La Niña";
             /** Current Nino34 */
             current_nino34: number;
             /**
              * Current State
-             * @description El Niño | La Niña | Neutral
+             * @description Coarse phase: El Niño | La Niña | Neutral
              */
             current_state: string;
             /** Forecast Horizon Months */
@@ -307,12 +606,22 @@ export type components = {
             forecast_series: components["schemas"]["EnsoPoint"][];
             /** Historical Series */
             historical_series: components["schemas"]["EnsoPoint"][];
+            /**
+             * Is Extreme
+             * @description True for High El Niño or High La Niña
+             */
+            is_extreme: boolean;
             provenance: components["schemas"]["ForecastProvenance"];
             /** Teleconnection Summary */
             teleconnection_summary: string;
         };
         /** EnsoPoint */
         EnsoPoint: {
+            /**
+             * Category
+             * @description Five-way band (Table 2)
+             */
+            category?: ("High El Niño" | "Moderate El Niño" | "Neutral" | "Moderate La Niña" | "High La Niña") | null;
             /**
              * Date
              * @description YYYY-MM
@@ -336,6 +645,175 @@ export type components = {
         /** ErrorResponse */
         ErrorResponse: {
             error: components["schemas"]["ErrorBody"];
+        };
+        /**
+         * FarmAdvisoryOut
+         * @description An advisory plus the delivery record it was logged against, so the farmer can acknowledge it.
+         */
+        FarmAdvisoryOut: {
+            /** Acknowledged At */
+            acknowledged_at?: string | null;
+            /** Adjusted Probability */
+            adjusted_probability: number;
+            /** Col */
+            col: number;
+            /** Confidence Level */
+            confidence_level: string;
+            /**
+             * Crop
+             * @enum {string}
+             */
+            crop: "tef" | "wheat" | "maize";
+            /** Crop Note */
+            crop_note: string;
+            /** Crop Recommendation */
+            crop_recommendation: string;
+            /**
+             * Enso Category
+             * @description Five-way Niño 3.4 band (Table 2)
+             * @enum {string}
+             */
+            enso_category: "High El Niño" | "Moderate El Niño" | "Neutral" | "Moderate La Niña" | "High La Niña";
+            /** Enso State */
+            enso_state: string;
+            /** Iek Assessment */
+            iek_assessment: string;
+            /** Lead Month */
+            lead_month: number;
+            /** Planting Window */
+            planting_window: string;
+            /** Preparedness Action */
+            preparedness_action: string;
+            provenance: components["schemas"]["ForecastProvenance"];
+            /** Raw Probability */
+            raw_probability: number;
+            /**
+             * Record Id
+             * Format: uuid
+             */
+            record_id: string;
+            /**
+             * Risk Level
+             * @enum {string}
+             */
+            risk_level: "Low" | "Moderate" | "High" | "Severe";
+            /** Row */
+            row: number;
+            /**
+             * Rules Version
+             * @description Version of the advisory rule set (ai_drews.advisory.RULES_VERSION)
+             */
+            rules_version: string;
+            /** Season */
+            season: string;
+            /** Target Date */
+            target_date: string;
+            /** Water Management */
+            water_management: string;
+        };
+        /** FarmCreate */
+        FarmCreate: {
+            /** Area Hectares */
+            area_hectares: number;
+            /** Latitude */
+            latitude: number;
+            /** Longitude */
+            longitude: number;
+            /** Name */
+            name: string;
+            /**
+             * Primary Crop
+             * @default tef
+             * @enum {string}
+             */
+            primary_crop: "tef" | "wheat" | "maize";
+            /** Woreda Id */
+            woreda_id?: string | null;
+        };
+        /** FarmerDashboard */
+        FarmerDashboard: {
+            /** @description Advisory for the highest-risk plot */
+            advisory?: components["schemas"]["AdvisoryResponse"] | null;
+            /**
+             * Advisory Acknowledged At
+             * @description When the farmer confirmed they had read this advisory
+             */
+            advisory_acknowledged_at?: string | null;
+            /** Advisory Farm Id */
+            advisory_farm_id?: string | null;
+            /**
+             * Advisory Record Id
+             * @description Delivery record for this advisory; POST it to .../acknowledge
+             */
+            advisory_record_id?: string | null;
+            /** Enso State */
+            enso_state?: string | null;
+            /** Enso Summary */
+            enso_summary?: string | null;
+            /** Farms */
+            farms: components["schemas"]["FarmOut"][];
+            provenance?: components["schemas"]["ForecastProvenance"] | null;
+            user: components["schemas"]["UserOut"];
+        };
+        /** FarmOut */
+        FarmOut: {
+            /** Area Hectares */
+            area_hectares: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Grid Col */
+            grid_col: number;
+            /** Grid Row */
+            grid_row: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Latitude */
+            latitude: number;
+            /** Longitude */
+            longitude: number;
+            /** Name */
+            name: string;
+            /**
+             * Primary Crop
+             * @enum {string}
+             */
+            primary_crop: "tef" | "wheat" | "maize";
+            /** @description Current risk for this plot; null when the model is down */
+            risk?: components["schemas"]["FarmRisk"] | null;
+            woreda?: components["schemas"]["WoredaOut"] | null;
+        };
+        /** FarmRisk */
+        FarmRisk: {
+            /** Lead Month */
+            lead_month: number;
+            /** Probability */
+            probability: number;
+            /**
+             * Risk Level
+             * @enum {string}
+             */
+            risk_level: "Low" | "Moderate" | "High" | "Severe";
+        };
+        /** FarmUpdate */
+        FarmUpdate: {
+            /** Area Hectares */
+            area_hectares?: number | null;
+            /** Latitude */
+            latitude?: number | null;
+            /** Longitude */
+            longitude?: number | null;
+            /** Name */
+            name?: string | null;
+            /** Primary Crop */
+            primary_crop?: ("tef" | "wheat" | "maize") | null;
+            /** Woreda Id */
+            woreda_id?: string | null;
         };
         /**
          * ForecastProvenance
@@ -372,6 +850,16 @@ export type components = {
             latitude: number;
             /** Longitude */
             longitude: number;
+            /**
+             * Pdsi
+             * @description Observed self-calibrated Palmer index for the issue month
+             */
+            pdsi?: number | null;
+            /**
+             * Pdsi Category
+             * @description Drought intensity band for `pdsi` (Table 2)
+             */
+            pdsi_category?: ("Extremely wet" | "Very wet" | "Moderately wet" | "Normal" | "Moderately dry" | "Very dry" | "Extremely dry") | null;
             /** Probability */
             probability: number;
             /**
@@ -387,6 +875,7 @@ export type components = {
             /** Auth Enabled */
             auth_enabled: boolean;
             cache: components["schemas"]["CacheStatus"];
+            database: components["schemas"]["DatabaseStatus"];
             /** Environment */
             environment: string;
             model: components["schemas"]["ModelStatus"];
@@ -404,6 +893,43 @@ export type components = {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * LoginRequest
+         * @description Ministry staff sign in with email, farmers with their mobile number.
+         */
+        LoginRequest: {
+            /**
+             * Identifier
+             * @description Email address or Ethiopian mobile number (09…, 2519… or +2519…)
+             * @example minister@moa.gov.et
+             * @example 0912000001
+             */
+            identifier: string;
+            /** Password */
+            password: string;
+        };
+        /** MinistryDashboard */
+        MinistryDashboard: {
+            advisories: components["schemas"]["AdvisoryDelivery"];
+            /** By Woreda */
+            by_woreda: components["schemas"]["WoredaRisk"][];
+            coverage: components["schemas"]["CoverageStats"];
+            /** Crop Mix */
+            crop_mix: components["schemas"]["CropMixEntry"][];
+            /** @description null when the forecast model is unavailable */
+            exposure?: components["schemas"]["RiskExposure"] | null;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            provenance?: components["schemas"]["ForecastProvenance"] | null;
+            /**
+             * Scope
+             * @description Whole watershed, or the woreda an agent is assigned to
+             */
+            scope: string;
         };
         /** ModelStatus */
         ModelStatus: {
@@ -426,6 +952,140 @@ export type components = {
              */
             source: "model" | "precomputed" | "unavailable";
         };
+        /**
+         * ObservedConditions
+         * @description How dry the ground already is, as opposed to how likely drought is next season.
+         */
+        ObservedConditions: {
+            /**
+             * As Of
+             * @description Month the observation refers to, e.g. 'June 2026'
+             */
+            as_of: string;
+            /**
+             * Category
+             * @description Band for the basin mean
+             * @enum {string}
+             */
+            category: "Extremely wet" | "Very wet" | "Moderately wet" | "Normal" | "Moderately dry" | "Very dry" | "Extremely dry";
+            /**
+             * Cells In Drought
+             * @description Cells in any of the three dry bands
+             */
+            cells_in_drought: number;
+            /** Citation */
+            citation: string;
+            /** Classification Version */
+            classification_version: string;
+            /**
+             * Driest Category
+             * @description Worst band present anywhere in the basin
+             * @enum {string}
+             */
+            driest_category: "Extremely wet" | "Very wet" | "Moderately wet" | "Normal" | "Moderately dry" | "Very dry" | "Extremely dry";
+            /**
+             * Index
+             * @description Self-calibrated Palmer Drought Severity Index
+             * @default scpdsi
+             */
+            index: string;
+            /** Mean */
+            mean: number;
+            /** Method Note */
+            method_note: string;
+        };
+        /** RefreshRequest */
+        RefreshRequest: {
+            /** Refresh Token */
+            refresh_token: string;
+        };
+        /** RiskBucket */
+        RiskBucket: {
+            /** Farmers */
+            farmers: number;
+            /** Farms */
+            farms: number;
+            /** Hectares */
+            hectares: number;
+            /**
+             * Risk Level
+             * @enum {string}
+             */
+            risk_level: "Low" | "Moderate" | "High" | "Severe";
+        };
+        /** RiskExposure */
+        RiskExposure: {
+            /** Buckets */
+            buckets: components["schemas"]["RiskBucket"][];
+            /** Farmers At Risk */
+            farmers_at_risk: number;
+            /**
+             * Farms At Risk
+             * @description Plots in a High or Severe cell
+             */
+            farms_at_risk: number;
+            /** Hectares At Risk */
+            hectares_at_risk: number;
+            /** Lead Month */
+            lead_month: number;
+            /** Target Date */
+            target_date: string;
+        };
+        /** TokenPair */
+        TokenPair: {
+            /** Access Token */
+            access_token: string;
+            /**
+             * Expires In
+             * @description Access-token lifetime in seconds
+             */
+            expires_in: number;
+            /** Refresh Token */
+            refresh_token: string;
+            /**
+             * Token Type
+             * @default bearer
+             * @constant
+             */
+            token_type: "bearer";
+            user: components["schemas"]["UserOut"];
+        };
+        /** UpdateProfileRequest */
+        UpdateProfileRequest: {
+            /** Full Name */
+            full_name?: string | null;
+            /** Locale */
+            locale?: ("en" | "am" | "or") | null;
+        };
+        /** UserOut */
+        UserOut: {
+            /** Email */
+            email: string | null;
+            /** Full Name */
+            full_name: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Last Login At */
+            last_login_at: string | null;
+            /**
+             * Locale
+             * @enum {string}
+             */
+            locale: "en" | "am" | "or";
+            /** Phone */
+            phone: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "farmer" | "agent" | "minister" | "admin";
+            woreda?: components["schemas"]["WoredaOut"] | null;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -438,6 +1098,59 @@ export type components = {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** WoredaOut */
+        WoredaOut: {
+            /** Code */
+            code: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Latitude */
+            latitude: number;
+            /** Longitude */
+            longitude: number;
+            /** Name Am */
+            name_am: string;
+            /** Name En */
+            name_en: string;
+            /** Name Om */
+            name_om: string;
+            /** Region Name En */
+            region_name_en?: string | null;
+            /** Zone Name En */
+            zone_name_en?: string | null;
+        };
+        /** WoredaRisk */
+        WoredaRisk: {
+            /** Farmers */
+            farmers: number;
+            /** Farms */
+            farms: number;
+            /** Hectares */
+            hectares: number;
+            /** Mean Probability */
+            mean_probability: number;
+            /** Name Am */
+            name_am: string;
+            /** Name En */
+            name_en: string;
+            /** Name Om */
+            name_om: string;
+            /**
+             * Woreda Id
+             * Format: uuid
+             */
+            woreda_id: string;
+            /**
+             * Worst Risk Level
+             * @enum {string}
+             */
+            worst_risk_level: "Low" | "Moderate" | "High" | "Severe";
+            /** Zone Name En */
+            zone_name_en: string;
         };
     };
     responses: never;
@@ -495,6 +1208,361 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    login_api_v1_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenPair"];
+                };
+            };
+            /** @description Wrong credentials, or the account is locked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    logout_api_v1_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    me_api_v1_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+        };
+    };
+    update_me_api_v1_auth_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_password_api_v1_auth_me_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refresh_api_v1_auth_refresh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessTokenOut"];
+                };
+            };
+            /** @description Wrong credentials, or the account is locked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    farmer_dashboard_api_v1_dashboard_farmer_get: {
+        parameters: {
+            query?: {
+                /** @description Forecast lead time in months */
+                lead_month?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FarmerDashboard"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    acknowledge_api_v1_dashboard_farmer_advisories__advisory_id__acknowledge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                advisory_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ministry_dashboard_api_v1_dashboard_ministry_get: {
+        parameters: {
+            query?: {
+                /** @description Forecast lead time in months */
+                lead_month?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MinistryDashboard"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -682,6 +1750,364 @@ export interface operations {
                 };
             };
             /** @description Model unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_farms_api_v1_farms_get: {
+        parameters: {
+            query?: {
+                /** @description Forecast lead time used for the attached risk */
+                lead_month?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FarmOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_farm_api_v1_farms_post: {
+        parameters: {
+            query?: {
+                /** @description Forecast lead time used for the attached risk */
+                lead_month?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FarmCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FarmOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_farm_api_v1_farms__farm_id__get: {
+        parameters: {
+            query?: {
+                /** @description Forecast lead time used for the attached risk */
+                lead_month?: number;
+            };
+            header?: never;
+            path: {
+                farm_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FarmOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_farm_api_v1_farms__farm_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                farm_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_farm_api_v1_farms__farm_id__patch: {
+        parameters: {
+            query?: {
+                /** @description Forecast lead time used for the attached risk */
+                lead_month?: number;
+            };
+            header?: never;
+            path: {
+                farm_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FarmUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FarmOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    farm_advisory_api_v1_farms__farm_id__advisory_get: {
+        parameters: {
+            query?: {
+                /** @description Defaults to the plot's primary crop */
+                crop?: string | null;
+                /** @description Forecast lead time used for the attached risk */
+                lead_month?: number;
+            };
+            header?: never;
+            path: {
+                farm_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FarmAdvisoryOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Service Unavailable */
             503: {
                 headers: {
                     [name: string]: unknown;

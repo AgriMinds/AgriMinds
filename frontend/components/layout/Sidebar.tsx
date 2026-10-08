@@ -1,23 +1,25 @@
 'use client'
 
-import { Activity, FileText, LayoutDashboard, Leaf, Map, Sprout, X } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Leaf, Map, Sprout, X, type LucideIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import type { Role } from '@agriminds/api-types'
+import { isStaff } from '@agriminds/api-types'
 import { Button } from '@/components/ui/button'
 import { useHealth } from '@/features/health/useHealth'
 import { cn } from '@/lib/utils'
 
-export const SECTION_IDS = ['overview', 'drought', 'advisories', 'enso', 'reports'] as const
-export type SectionId = (typeof SECTION_IDS)[number]
+type NavItem = { href: string; key: string; icon: LucideIcon }
 
-const NAV: { id: SectionId; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: 'overview', icon: LayoutDashboard },
-  { id: 'drought', icon: Map },
-  { id: 'advisories', icon: Sprout },
-  { id: 'enso', icon: Activity },
-  { id: 'reports', icon: FileText },
-]
-
-type Props = { open: boolean; onClose: () => void; active: SectionId }
+/** Navigation is driven by role: a farmer never sees the watershed science view. */
+export function navForRole(role: Role): NavItem[] {
+  if (role === 'farmer') return [{ href: '/farm', key: 'farm', icon: Sprout }]
+  return [
+    { href: '/ministry', key: 'ministry', icon: Leaf },
+    { href: '/watershed', key: 'watershed', icon: Map },
+  ]
+}
 
 function ModelCard() {
   const t = useTranslations('app.model')
@@ -52,8 +54,14 @@ function ModelCard() {
   )
 }
 
-export function Sidebar({ open, onClose, active }: Props) {
+type Props = { open: boolean; onClose: () => void; role: Role }
+
+export function Sidebar({ open, onClose, role }: Props) {
   const t = useTranslations('app')
+  const tn = useTranslations('nav')
+  const pathname = usePathname()
+  const items = navForRole(role)
+
   return (
     <>
       {open && (
@@ -65,14 +73,18 @@ export function Sidebar({ open, onClose, active }: Props) {
         />
       )}
       <aside
-        aria-label={t('nav.section')}
+        aria-label={tn('section')}
         className={cn(
           'fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col bg-surface-inverse text-white shadow-lg transition-transform duration-300 lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
         <div className="flex items-center justify-between px-5 pt-5 pb-4">
-          <a href="#main" className="flex items-center gap-3 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-lime">
+          <Link
+            href={items[0]?.href ?? '/'}
+            onClick={onClose}
+            className="flex items-center gap-3 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-lime"
+          >
             <span className="flex size-10 items-center justify-center rounded-xl bg-brand-lime text-brand-forest-deep shadow-md shadow-black/20">
               <Leaf className="size-5" />
             </span>
@@ -82,7 +94,7 @@ export function Sidebar({ open, onClose, active }: Props) {
                 {t('product')}
               </span>
             </span>
-          </a>
+          </Link>
           <Button
             variant="ghost"
             size="icon-sm"
@@ -96,32 +108,32 @@ export function Sidebar({ open, onClose, active }: Props) {
 
         <nav className="flex-1 px-3 py-2">
           <p className="px-3 pb-2 text-[10px] font-semibold tracking-[0.18em] text-white/40 uppercase">
-            {t('nav.section')}
+            {tn('section')}
           </p>
           <ul className="flex flex-col gap-0.5">
-            {NAV.map(({ id, icon: Icon }) => {
-              const isActive = active === id
+            {items.map(({ href, key, icon: Icon }) => {
+              const active = pathname === href || pathname.startsWith(`${href}/`)
               return (
-                <li key={id}>
-                  <a
-                    href={`#${id}`}
-                    aria-current={isActive ? 'location' : undefined}
+                <li key={href}>
+                  <Link
+                    href={href}
+                    aria-current={active ? 'page' : undefined}
                     onClick={onClose}
                     className={cn(
                       'relative flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-brand-lime',
-                      isActive ? 'bg-white/10 text-white' : 'text-white/65 hover:bg-white/[0.06] hover:text-white',
+                      active ? 'bg-white/10 text-white' : 'text-white/65 hover:bg-white/[0.06] hover:text-white',
                     )}
                   >
                     <span
                       className={cn(
                         'absolute top-1/2 left-0 h-5 w-0.75 -translate-y-1/2 rounded-full bg-brand-lime transition-opacity',
-                        isActive ? 'opacity-100' : 'opacity-0',
+                        active ? 'opacity-100' : 'opacity-0',
                       )}
                       aria-hidden
                     />
-                    <Icon className={cn('size-[18px]', isActive ? 'text-brand-lime' : 'text-white/50')} />
-                    {t(`nav.${id}`)}
-                  </a>
+                    <Icon className={cn('size-[18px]', active ? 'text-brand-lime' : 'text-white/50')} />
+                    {tn(key)}
+                  </Link>
                 </li>
               )
             })}
@@ -129,7 +141,7 @@ export function Sidebar({ open, onClose, active }: Props) {
         </nav>
 
         <div className="flex flex-col gap-3 px-4 pb-5">
-          <ModelCard />
+          {isStaff(role) && <ModelCard />}
           <p className="px-1 text-[11px] leading-relaxed text-white/45">{t('workspaceSub')}</p>
         </div>
       </aside>

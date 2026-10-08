@@ -46,5 +46,5 @@ class Farm(UUIDPrimaryKey, Timestamps, Base):
     area_hectares: Mapped[float] = mapped_column(Float)
     primary_crop: Mapped[Crop] = mapped_column(crop_enum, default=Crop.TEF, index=True)
 
-    owner: Mapped["User"] = relationship(back_populates="farms")  # noqa: F821
-    woreda: Mapped["Woreda | None"] = relationship(lazy="joined")  # noqa: F821
+    owner: Mapped[User] = relationship(back_populates="farms")  # noqa: F821
+    woreda: Mapped[Woreda | None] = relationship(lazy="joined")  # noqa: F821

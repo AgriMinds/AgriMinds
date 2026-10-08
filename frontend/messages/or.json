@@ -32,7 +32,8 @@
       "issued": "Ba'e",
       "real": "daawwannaa dhugaa",
       "synthetic": "kan uumame"
-    }
+    },
+    "conditionsSection": "Haala lafaa"
   },
   "status": {
     "healthy": "Mootora AI toora irra jira",
@@ -59,7 +60,9 @@
     "unavailableBody": "Moodeelli hongee tajaajilaa irratti hin argamu. Adeemsa AI-DREWS kaasii API irra deebi'ii jalqabsiisi.",
     "lead": "Yeroo",
     "months": "ji'a {count}",
-    "monthShort": "ji'a {count}"
+    "monthShort": "ji'a {count}",
+    "close": "Cufi",
+    "cancel": "Dhiisi"
   },
   "summary": {
     "basinMeanRisk": "Giddu-galeessa sodaa hongee lolaa",
@@ -98,7 +101,17 @@
     "nudge": "Kutaa filatame socho'si",
     "lead1Short": "ji'a 1",
     "lead2Short": "ji'a 2",
-    "lead3Short": "ji'a 3"
+    "lead3Short": "ji'a 3",
+    "modeGroup": "Kaartaan waan agarsiisu",
+    "modeRisk": "Balaa tilmaamaa",
+    "modeDryness": "Lafa ammaa",
+    "drynessTitle": "Haala lafa sululaa",
+    "drynessSubtitle": "Sc-PDSI kutaa km 10 hundaaf safarame — har'a lafti hammam goggoge",
+    "drynessLegend": "Sc-PDSI, goggogaa hanga jiidhaa",
+    "drynessUnavailable": "Safarri lafaa tilmaama kanaaf hin jiru.",
+    "cellAriaDryness": "Tarree {row}, tarjaa {col}, Sc-PDSI {value}, {band}",
+    "forecastLabel": "Carraa hongee waqtii dhufuu",
+    "drynessLabel": "Lafa ammaa"
   },
   "risk": {
     "Low": "Gadi-aanaa",
@@ -161,7 +174,11 @@
     "observed": "Mul'ate",
     "forecast": "Raaga",
     "chartAria": "Garaagarummaa Niño 3.4, seenaa fi raaga",
-    "gaugeTitle": "Sadarkaa ammaa"
+    "gaugeTitle": "Sadarkaa ammaa",
+    "bandLabel": "Sadarkaa",
+    "extremeFlag": "Sadarkaa cimaa",
+    "sourceLabel": "Ulaagaalee",
+    "versionLabel": "Ramaddii"
   },
   "reports": {
     "title": "Gabaasota",
@@ -177,5 +194,159 @@
     "leadHorizon": "Fageenya tilmaamaa",
     "target": "Galma",
     "issued": "Ba'e"
+  },
+  "nav": {
+    "section": "Qajeelcha",
+    "farm": "Qonnaa koo",
+    "ministry": "Ilaalcha biyyoolessaa",
+    "watershed": "Tilmaama sululaa"
+  },
+  "roles": {
+    "farmer": "Qonnaan bulaa",
+    "agent": "Hojjetaa misoomaa",
+    "minister": "Ministeera",
+    "admin": "Bulchaa"
+  },
+  "account": {
+    "menu": "Baafata herregaa",
+    "signOut": "Ba'i",
+    "signingOut": "Ba'aa jira…"
+  },
+  "auth": {
+    "title": "Seeni",
+    "subtitle": "Akeekkachiisa duraa hongee sulula Tulluu Chooqee",
+    "identifierLabel": "Imeelii ykn lakkoofsa bilbilaa",
+    "identifierPlaceholder": "name@moa.gov.et ykn 0912000001",
+    "identifierHint": "Hojjettoonni ministeeraa imeelii fayyadamu. Qonnaan bultoonni lakkoofsa bilbilaa fayyadamu.",
+    "passwordLabel": "Jecha darbii",
+    "showPassword": "Jecha darbii agarsiisi",
+    "hidePassword": "Jecha darbii dhoksi",
+    "signIn": "Seeni",
+    "signingIn": "Seenaa jira…",
+    "genericError": "Seenuun hin danda'amne. Maaloo irra deebi'i yaali.",
+    "languageLabel": "Afaan",
+    "demoTitle": "Herrega agarsiisaa",
+    "demoPassword": "Jecha darbii",
+    "demoRole": {
+      "ministry": "Ministeera",
+      "agent": "Hojjetaa misoomaa",
+      "farmer": "Qonnaan bulaa"
+    }
+  },
+  "farmer": {
+    "eyebrow": "Qonnaa koo",
+    "greeting": "Akkam, {name}",
+    "greetingPlain": "Qonnaa kee",
+    "intro": "Waqtiin dhufu lafa kee irratti maal akka fakkaatu, fi maal gochuu akka qabdu.",
+    "adviceTitle": "Waqtii kana maal gochuu qabna",
+    "adviceForPlot": "Gorsa {plot}f",
+    "chanceOfDrought": "Carraa hongee {crop}f",
+    "acknowledge": "Dubbiseera",
+    "acknowledged": "Dubbifame",
+    "myPlots": "Lafa koo ({count})",
+    "plotsHint": "Gorsa lafa tokkoo ilaaluuf tuqi.",
+    "addPlot": "Lafa dabali",
+    "editPlot": "Lafa gulaali",
+    "editPlotNamed": "{plot} gulaali",
+    "deletePlot": "Haqi",
+    "confirmDelete": "Haquuf irra deebi'i tuqi",
+    "saveChanges": "Jijjiirama olkaa'i",
+    "plotName": "Maqaa lafaa",
+    "latitude": "Laatitiyuudii",
+    "longitude": "Loonjitiyuudii",
+    "area": "Bal'ina (hektaara)",
+    "hectaresShort": "hek",
+    "riskUnavailable": "Balaan hin argamne",
+    "noPlotsTitle": "Hanga ammaatti lafti galmaa'e hin jiru",
+    "noPlotsBody": "Tilmaamaa fi gorsa argachuuf lafa kee dabali.",
+    "ensoNow": "Garba Paasifik: {state}",
+    "errors": {
+      "nameRequired": "Lafaaf maqaa kenni.",
+      "latitude": "Laatitiyuudii -90 fi 90 gidduu galchi.",
+      "longitude": "Loonjitiyuudii -180 fi 180 gidduu galchi.",
+      "area": "Bal'ina zeeroo ol galchi.",
+      "generic": "Olkaa'uun hin danda'amne. Maaloo irra deebi'i yaali."
+    },
+    "landRisk": "Balaa lafa kanaa",
+    "groundNow": "Lafa ammaa: {band}",
+    "groundUnavailable": "Dubbisni lafaa hin jiru",
+    "ensoBandLine": "Garba Paasifiik, {month}: {band}"
+  },
+  "ministry": {
+    "eyebrow": "Ilaalcha biyyoolessaa",
+    "title": "Saaxilamummaa hongee fi haguuggii",
+    "intro": "Qonnaan bultootaa fi lafa sulula keessatti galmaa'e, akkasumas waqtiin dhufu akkamitti akka isaan tuqu.",
+    "generatedAt": "Haaromfame {time}",
+    "coverageTitle": "Haguuggii",
+    "registeredFarmers": "Qonnaan bultoota galmaa'an",
+    "activeLast30": "{count} guyyaa 30 keessatti seenan",
+    "registeredPlots": "Lafa galmaa'e",
+    "hectaresTotal": "Waliigalatti hektaara {hectares}",
+    "woredasCovered": "Aanaalee lafa qaban",
+    "woredasDetail": "Aanaalee sulula keessaa",
+    "plotsAtRisk": "Lafa balaa ol'aanaa ykn hamaa qabu",
+    "atRiskDetail": "Qonnaan bultoota {farmers} · hektaara {hectares}",
+    "exposureUnavailable": "Moodeelli tilmaamaa waan hin jirreef saaxilamummaan herregamuu hin danda'u.",
+    "sourceNote": "Lakkoofsi hundi herrega fi lafa galmaa'e irraa lakkaa'ame. Balaan moodeela tilmaamaa kallattii irraa dhufa.",
+    "exposureCardTitle": "Saaxilamummaa balaa",
+    "exposureCardSubtitle": "Lafa galmaa'e sadarkaa balaatiin",
+    "exposureTitle": "Lafa sadarkaa balaatiin",
+    "forTarget": "{target}f",
+    "noPlots": "Hanga ammaatti lafti galmaa'e hin jiru.",
+    "level": "Sadarkaa",
+    "plots": "Lafa",
+    "farmers": "Qonnaan bultoota",
+    "hectares": "Hektaara",
+    "hectaresShort": "hek",
+    "byWoredaTitle": "Aanaadhaan",
+    "byWoredaSubtitle": "Lafti galmaa'e kaartaa balaa irratti bakka qabu",
+    "woreda": "Aanaa",
+    "meanRisk": "Balaa giddugaleessaa",
+    "worstLevel": "Hamaan",
+    "noWoredas": "Hanga ammaatti aanaa kamiyyuu keessatti lafti galmaa'e hin jiru.",
+    "cropMixTitle": "Makaa midhaanii",
+    "cropMixSubtitle": "Hektaara galmaa'e midhaan bu'uuraatiin",
+    "cropAtRisk": "Lafa {count} kutaa balaa qabu keessa",
+    "deliveryTitle": "Raabsa gorsaa",
+    "deliverySubtitle": "Gorsa pilaatformiin baase irraa lakkaa'ame",
+    "issuedTotal": "Waliigala baʼe",
+    "issued30d": "Guyyaa 30 keessa baʼe",
+    "acknowledged30d": "Guyyaa 30 keessa dubbifame",
+    "acknowledgementRate": "Sadarkaa dubbisaa",
+    "noDelivery": "Guyyaa 30 darban keessatti gorsi hin baane, kanaafuu sadarkaan dubbisaa hin jiru.",
+    "watershedLinkTitle": "Tilmaama sululaa bani",
+    "watershedLinkBody": "Kaartaa hongee, meeshaa gorsa midhaanii fi tilmaama ENSO lakkoofsota kanneen duuba jiru."
+  },
+  "pdsi": {
+    "extremelyDry": "Baay'ee goggogaa",
+    "veryDry": "Goggogaa cimaa",
+    "moderatelyDry": "Goggogaa giddugaleessaa",
+    "normal": "Idilee",
+    "moderatelyWet": "Jiidha giddugaleessaa",
+    "veryWet": "Jiidha cimaa",
+    "extremelyWet": "Baay'ee jiidhaa",
+    "scaleName": "Sc-PDSI",
+    "scaleAria": "Safartuu Sc-PDSI, baay'ee goggogaa hanga baay'ee jiidhaa",
+    "dryEnd": "Goggogaa",
+    "wetEnd": "Jiidhaa"
+  },
+  "ensoBand": {
+    "highElNino": "El Niño cimaa",
+    "moderateElNino": "El Niño giddugaleessaa",
+    "neutral": "Giddugaleessa",
+    "moderateLaNina": "La Niña giddugaleessaa",
+    "highLaNina": "La Niña cimaa"
+  },
+  "conditions": {
+    "title": "Haala lafaa ammaa",
+    "subtitle": "Goggiinsa biyyee har'a safarame — kun tilmaama miti",
+    "basinMean": "Giddugaleessa sululaa",
+    "driest": "Kutaa baay'ee goggogaa",
+    "inDrought": "Kutaalee hongee keessa jiran",
+    "ofCells": "kutaalee {total} keessaa",
+    "asOf": "{month} tiif safarame",
+    "explain": "Tilmaamni olii carraa hongeen waqtii dhufu uumamuu ibsa. Kun immoo safartuu Palmer irraa, biyyeen amma hammam akka goggoge ibsa.",
+    "methodLabel": "Mala",
+    "sourceLabel": "Ulaagaalee"
   }
 }

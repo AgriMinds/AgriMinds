@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field, model_validator
 
-from agriminds_api.schemas.common import ForecastProvenance, RiskLevelName
+from agriminds_api.schemas.common import ForecastProvenance, PdsiCategoryName, RiskLevelName
 
 
 class GridCellRisk(BaseModel):
@@ -12,6 +12,24 @@ class GridCellRisk(BaseModel):
     longitude: float
     probability: float = Field(ge=0, le=1)
     risk_level: RiskLevelName
+    pdsi: float | None = Field(None, description="Observed self-calibrated Palmer index for the issue month")
+    pdsi_category: PdsiCategoryName | None = Field(
+        None, description="Drought intensity band for `pdsi` (Table 2)"
+    )
+
+
+class ObservedConditions(BaseModel):
+    """How dry the ground already is, as opposed to how likely drought is next season."""
+
+    index: str = Field("scpdsi", description="Self-calibrated Palmer Drought Severity Index")
+    as_of: str = Field(description="Month the observation refers to, e.g. 'June 2026'")
+    mean: float
+    category: PdsiCategoryName = Field(description="Band for the basin mean")
+    driest_category: PdsiCategoryName = Field(description="Worst band present anywhere in the basin")
+    cells_in_drought: int = Field(description="Cells in any of the three dry bands")
+    classification_version: str
+    citation: str
+    method_note: str
 
 
 class DroughtMapResponse(BaseModel):
@@ -25,6 +43,9 @@ class DroughtMapResponse(BaseModel):
     max_probability: float
     probabilities: list[list[float]]
     cells: list[GridCellRisk]
+    conditions: ObservedConditions | None = Field(
+        None, description="Observed Sc-PDSI; null when the record carries no mean temperature"
+    )
     provenance: ForecastProvenance
 
 

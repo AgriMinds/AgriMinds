@@ -64,8 +64,8 @@ class User(UUIDPrimaryKey, Timestamps, Base):
     locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    woreda: Mapped["Woreda | None"] = relationship(lazy="joined")  # noqa: F821
-    farms: Mapped[list["Farm"]] = relationship(  # noqa: F821
+    woreda: Mapped[Woreda | None] = relationship(lazy="joined")  # noqa: F821
+    farms: Mapped[list[Farm]] = relationship(  # noqa: F821
         back_populates="owner", cascade="all, delete-orphan"
     )
     refresh_tokens: Mapped[list[RefreshToken]] = relationship(

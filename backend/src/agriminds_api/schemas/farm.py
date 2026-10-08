@@ -5,6 +5,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from agriminds_api.schemas.advisory import AdvisoryResponse
 from agriminds_api.schemas.auth import WoredaOut
 from agriminds_api.schemas.common import CropName, RiskLevelName
 
@@ -47,3 +48,10 @@ class FarmUpdate(BaseModel):
     area_hectares: float | None = Field(None, gt=0, le=10000)
     primary_crop: CropName | None = None
     woreda_id: uuid.UUID | None = None
+
+
+class FarmAdvisoryOut(AdvisoryResponse):
+    """An advisory plus the delivery record it was logged against, so the farmer can acknowledge it."""
+
+    record_id: uuid.UUID
+    acknowledged_at: datetime | None = None

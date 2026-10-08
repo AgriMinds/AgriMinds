@@ -22,7 +22,9 @@ async def _db_status(request: Request) -> DatabaseStatus:
         return DatabaseStatus(configured=True, reachable=False)
 
 
-def _health(request: Request, inference: InferenceService, settings: Settings, database: DatabaseStatus) -> HealthResponse:
+def _health(
+    request: Request, inference: InferenceService, settings: Settings, database: DatabaseStatus
+) -> HealthResponse:
     art = inference.artifacts
     cache = request.app.state.cache
     model = ModelStatus(
@@ -44,7 +46,7 @@ def _health(request: Request, inference: InferenceService, settings: Settings, d
         service=settings.project_name,
         version=__version__,
         environment=settings.env,
-        auth_enabled=settings.auth_enabled,
+        auth_enabled=settings.service_auth_enabled,
         model=model,
         cache=CacheStatus(backend=cache.backend, reachable=cache.ping()),
         database=database,

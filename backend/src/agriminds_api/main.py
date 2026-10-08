@@ -60,7 +60,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
         if settings.is_production and not settings.service_auth_enabled:
             log.warning("AGRIMINDS_API_KEYS is empty in production: machine clients are unauthenticated")
-        log.info("%s %s ready (env=%s, model=%s)", settings.project_name, __version__, settings.env, inference.source)
+        log.info(
+            "%s %s ready (env=%s, model=%s)",
+            settings.project_name,
+            __version__,
+            settings.env,
+            inference.source,
+        )
         try:
             yield
         finally:

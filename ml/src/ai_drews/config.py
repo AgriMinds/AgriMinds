@@ -26,6 +26,9 @@ class PipelineConfig:
     drought_leads: int = 3  # Objective 2: drought probability horizon (months)
     spi_scale: int = 3  # SPI-3 (seasonal drought)
     spi_drought: float = -1.0  # SPI <= -1 -> drought event
+    # Available water capacity of the soil profile, used by the Palmer water balance (mm).
+    # 100 mm is a mixed-agricultural default; replace it with survey values per woreda.
+    awc_mm: float = 100.0
 
     train_end: str = "2013-12-01"  # chronological split (test = after val_end)
     val_end: str = "2018-12-01"

@@ -12,6 +12,10 @@ export default defineConfig({
     exclude: ['node_modules', '.next'],
   },
   resolve: {
-    alias: { '@': fileURLToPath(new URL('.', import.meta.url)) },
+    alias: {
+      '@': fileURLToPath(new URL('.', import.meta.url)),
+      // `server-only` throws outside a Server Component build; harmless in unit tests.
+      'server-only': fileURLToPath(new URL('./test/server-only-stub.ts', import.meta.url)),
+    },
   },
 })

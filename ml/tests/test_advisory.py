@@ -20,7 +20,20 @@ def test_risk_level_boundaries(p, level):
 
 
 @pytest.mark.parametrize(
-    ("nino", "state"), [(0.5, "El Niño"), (-0.5, "La Niña"), (0.0, "Neutral"), (0.49, "Neutral")]
+    ("nino", "state"),
+    [
+        (0.6, "El Niño"),
+        (1.5, "El Niño"),
+        (-0.6, "La Niña"),
+        (-1.5, "La Niña"),
+        (0.0, "Neutral"),
+        (0.49, "Neutral"),
+        # Table 2 of the study puts exactly +/-0.50 in the Neutral band. NOAA's ONI convention
+        # would call these a phase. The table governs here so that the coarse phase and the
+        # five-way category can never disagree; see advisory/classification.py.
+        (0.5, "Neutral"),
+        (-0.5, "Neutral"),
+    ],
 )
 def test_enso_state(nino, state):
     assert enso_state(nino) == state

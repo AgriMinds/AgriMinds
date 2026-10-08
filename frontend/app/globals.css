@@ -55,6 +55,27 @@
   --risk-high-soft: oklch(0.955 0.045 50);
   --risk-severe-soft: oklch(0.955 0.035 18);
 
+
+  /* --------------------------------------------------------------------------
+     Sc-PDSI drought-intensity scale (Table 2: Megbar & Tadesse 2016;
+     Menberu & Addisu 2018). DIVERGING, and deliberately unlike the risk ramp:
+     the risk ramp is a saturated green→amber→orange→red sequence with no grey,
+     this is earth-brown ↔ neutral grey ↔ water-blue with the midpoint lightest.
+     Closest pair between the two scales measures ΔE 15.1 (light) / 15.5 (dark)
+     in OKLab×100, above the 15 floor at which neighbours stop being tellable
+     apart, so a cell can never be mistaken for the other scale's colour.
+     -------------------------------------------------------------------------- */
+  --pdsi-extremely-dry: oklch(0.34 0.095 69);
+  --pdsi-very-dry: oklch(0.47 0.09 72);
+  --pdsi-moderately-dry: oklch(0.62 0.07 75);
+  --pdsi-normal: oklch(0.76 0.006 100);
+  --pdsi-moderately-wet: oklch(0.69 0.072 235);
+  --pdsi-very-wet: oklch(0.555 0.115 243);
+  --pdsi-extremely-wet: oklch(0.43 0.13 250);
+  /* Text on the fills above: each pairing clears 4.5:1. */
+  --pdsi-ink: oklch(0.2 0.025 170);
+  --pdsi-paper: oklch(0.99 0 0);
+
   /* ENSO */
   --enso-warm: oklch(0.6 0.2 25);
   --enso-cool: oklch(0.58 0.16 250);
@@ -94,6 +115,16 @@
   --status-ok: oklch(0.76 0.17 152);
   --status-warn: oklch(0.82 0.16 80);
   --status-bad: oklch(0.68 0.2 22);
+
+  --pdsi-extremely-dry: oklch(0.415 0.105 66);
+  --pdsi-very-dry: oklch(0.525 0.105 69);
+  --pdsi-moderately-dry: oklch(0.615 0.07 78);
+  --pdsi-normal: oklch(0.745 0.008 100);
+  --pdsi-moderately-wet: oklch(0.665 0.09 235);
+  --pdsi-very-wet: oklch(0.555 0.118 243);
+  --pdsi-extremely-wet: oklch(0.455 0.135 250);
+  --pdsi-ink: oklch(0.16 0.012 165);
+  --pdsi-paper: oklch(0.99 0 0);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -122,6 +153,16 @@
     --status-ok: oklch(0.76 0.17 152);
     --status-warn: oklch(0.82 0.16 80);
     --status-bad: oklch(0.68 0.2 22);
+
+    --pdsi-extremely-dry: oklch(0.415 0.105 66);
+    --pdsi-very-dry: oklch(0.525 0.105 69);
+    --pdsi-moderately-dry: oklch(0.615 0.07 78);
+    --pdsi-normal: oklch(0.745 0.008 100);
+    --pdsi-moderately-wet: oklch(0.665 0.09 235);
+    --pdsi-very-wet: oklch(0.555 0.118 243);
+    --pdsi-extremely-wet: oklch(0.455 0.135 250);
+    --pdsi-ink: oklch(0.16 0.012 165);
+    --pdsi-paper: oklch(0.99 0 0);
   }
 }
 
@@ -167,6 +208,16 @@
   --color-risk-moderate-soft: var(--risk-moderate-soft);
   --color-risk-high-soft: var(--risk-high-soft);
   --color-risk-severe-soft: var(--risk-severe-soft);
+
+  --color-pdsi-extremely-dry: var(--pdsi-extremely-dry);
+  --color-pdsi-very-dry: var(--pdsi-very-dry);
+  --color-pdsi-moderately-dry: var(--pdsi-moderately-dry);
+  --color-pdsi-normal: var(--pdsi-normal);
+  --color-pdsi-moderately-wet: var(--pdsi-moderately-wet);
+  --color-pdsi-very-wet: var(--pdsi-very-wet);
+  --color-pdsi-extremely-wet: var(--pdsi-extremely-wet);
+  --color-pdsi-ink: var(--pdsi-ink);
+  --color-pdsi-paper: var(--pdsi-paper);
 
   --color-enso-warm: var(--enso-warm);
   --color-enso-cool: var(--enso-cool);

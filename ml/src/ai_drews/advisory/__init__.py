@@ -1,3 +1,17 @@
+from ai_drews.advisory.classification import (
+    CITATION,
+    CLASSIFICATION_VERSION,
+    ENSO_BANDS,
+    ENSO_IS_EXTREME,
+    ENSO_PHASE,
+    PDSI_BANDS,
+    PDSI_DRY_CATEGORIES,
+    EnsoCategory,
+    PdsiCategory,
+    enso_category,
+    pdsi_category,
+    pdsi_is_drought,
+)
 from ai_drews.advisory.rules import (
     CROPS,
     RISK_LEVELS,
@@ -13,7 +27,19 @@ from ai_drews.advisory.rules import (
 )
 
 __all__ = [
+    "CITATION",
+    "CLASSIFICATION_VERSION",
     "CROPS",
+    "ENSO_BANDS",
+    "ENSO_IS_EXTREME",
+    "ENSO_PHASE",
+    "PDSI_BANDS",
+    "PDSI_DRY_CATEGORIES",
+    "EnsoCategory",
+    "PdsiCategory",
+    "enso_category",
+    "pdsi_category",
+    "pdsi_is_drought",
     "RISK_LEVELS",
     "RULES_VERSION",
     "Advisory",

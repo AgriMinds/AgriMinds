@@ -1,0 +1,49 @@
+{
+  "scenario": "CanESM5-CanOE ssp585 (r1i1p2f1)",
+  "period": "2015-01 to 2070-12",
+  "baseline_period": "2015 to 2042",
+  "months": 672,
+  "baseline_mean_pdsi": 0.72,
+  "final_decade_mean_pdsi": 3.84,
+  "final_decade_category": "Extremely wet",
+  "change_per_decade": 0.74,
+  "trend_p_value": 6.741417710683803e-08,
+  "trend_is_significant": true,
+  "baseline_months_in_drought_pct": 18.5,
+  "final_decade_months_in_drought_pct": 0.0,
+  "annual_precip_mm_baseline": 1343.7,
+  "annual_precip_mm_final_decade": 1851.4,
+  "warming_c_per_decade": 0.605,
+  "footprint_warning": null,
+  "provenance": {
+    "source_id": "CanESM5-CanOE",
+    "experiment_id": "ssp585",
+    "variant_label": "r1i1p2f1",
+    "pressure_level_pa": 70000.0,
+    "is_projection": true,
+    "months": 672,
+    "period": "2015-01 to 2070-12",
+    "footprint": {
+      "requested_bbox": [
+        35.5,
+        8.5,
+        40.5,
+        13.5
+      ],
+      "cell_count": 4,
+      "cell_size_deg": [
+        2.8125,
+        2.7906110565755875
+      ],
+      "covered_bbox": [
+        35.15625,
+        8.37267325,
+        40.78125,
+        13.95446797
+      ],
+      "centres_inside_request": 4,
+      "nearest_centre_offset_deg": 1.8467688193737688
+    }
+  },
+  "caveat": "This is one model under one emissions pathway, not a forecast and not an observation. It describes the region the model grid resolves, which is coarser than the watershed. The index is calibrated on the baseline period, so later values are stated relative to that earlier climate and saturate near the ends of the scale once the climate shifts beyond it. Treat it as a direction of travel, not a prediction of any particular season."
+}
