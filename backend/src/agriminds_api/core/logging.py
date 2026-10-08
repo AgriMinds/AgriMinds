@@ -36,7 +36,7 @@ def configure_logging(level: str = "INFO", json_logs: bool = False) -> None:
     handler.setFormatter(fmt)
     root.addHandler(handler)
     root.setLevel(level.upper())
-    for noisy in ("uvicorn.access",):
+    for noisy in ("uvicorn.access", "httpx", "httpx2", "httpcore"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
 
@@ -49,11 +49,11 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         start = time.perf_counter()
         try:
             response = await call_next(request)
+            elapsed_ms = (time.perf_counter() - start) * 1000
+            response.headers["X-Request-ID"] = rid
+            logging.getLogger("agriminds.access").info(
+                "%s %s -> %s %.1fms", request.method, request.url.path, response.status_code, elapsed_ms
+            )
+            return response
         finally:
             request_id_ctx.reset(token)
-        elapsed_ms = (time.perf_counter() - start) * 1000
-        response.headers["X-Request-ID"] = rid
-        logging.getLogger("agriminds.access").info(
-            "%s %s -> %s %.1fms", request.method, request.url.path, response.status_code, elapsed_ms
-        )
-        return response

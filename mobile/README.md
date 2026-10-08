@@ -1,52 +1,62 @@
-# AgriMinds AI-DREWS Mobile (React Native / Expo)
+# AgriMinds AI-DREWS Mobile (Expo SDK 57, expo-router)
 
-> **Farmer & Field Development Agent (DA) Mobile App**  
-> Tailored for agricultural extension workers and smallholder farmers across the Choke Mountain Watershed, Amhara, Ethiopia.
+Field app for Development Agents and farmers in the Choke Mountain Watershed. Reads the same
+FastAPI backend as the web console through the shared `@agriminds/api-types` package.
 
----
+## Structure
 
-## Architecture & Best Practices
+```
+app/                     expo-router routes
+├── _layout.tsx          providers: persisted TanStack Query, SafeArea, i18n, StatusBar
+└── (tabs)/              index (advisory) · grid · enso · settings
+src/
+├── components/          Card, SegmentedControl, RiskBadge, GridMap, ThumbPad, Banners, States, Screen
+├── features/            useAdvisory, useDroughtMap, useEnsoOutlook, useHealth, useLocation (+ queryKeys)
+├── services/            api.ts (typed client, ApiError), config.ts (base URL / key), queryClient.ts
+├── state/               zustand store: crop, lead, IEK, selected cell or GPS position
+├── storage/             AsyncStorage helpers (preferences, cache key)
+├── i18n/                en / am / or catalogues with identical keys; device locale default
+├── theme/               light/dark palettes, risk colours, spacing, typography
+└── utils/               relativeTime, error -> message key
+assets/                  icon, adaptive-icon, splash-icon, favicon (regenerate: node scripts/make-icons.js)
+```
 
-1. **Safe Area & Edge-to-Edge Design:**
-   - Full support for iPhone Dynamic Island, notches, and Android navigation bars using `react-native-safe-area-context`.
-2. **Offline-First Resilience:**
-   - Designed for rural Ethiopian highland areas with intermittent Ethio Telecom 3G/4G connectivity.
-   - Automatically detects server unavailability, loads local offline cached advisories and raster risk estimates, and switches the indicator to **"Offline Cache Active"**.
-3. **Three Segmented Tactical Tabs:**
-   - **🌾 Advisory (ምክረ ሃሳብ):** Crop vulnerability analysis for Tef, Wheat, Maize; IEK traditional ecological indicators toggle; 4 clear agronomic action directives.
-   - **🗺️ Drought Grid (የድርቅ ካርታ):** Interactive $8 \times 8$ Choke Watershed spatial grid with cell coordinates, probabilities, and one-handed thumb directional nudges (`◀ ▲ ▼ ▶`).
-   - **🌡️ Climate ENSO (የአየር ንብረት):** Equatorial Pacific Niño 3.4 anomaly gauge, regional teleconnection impact note, and 6-month outlook timeline.
-4. **Trilingual Localization:**
-   - One-tap language switcher in the header between **English (EN)**, **Amharic (አማ)**, and **Afaan Oromoo (ORO)**.
-5. **Pull-to-Refresh:**
-   - Native `RefreshControl` allows DAs to pull down and sync with the latest satellite telemetry from the FastAPI ML Engine.
+## Run on a device (Expo Go)
 
----
+```bash
+pnpm install                                    # from the repo root
+cd mobile
+EXPO_PUBLIC_API_URL=http://<HOST_IP>:8000/api/v1 pnpm start   # HOST_IP = your machine's LAN IP
+```
 
-## Running the Mobile App
+Scan the QR code with Expo Go. The API address and key can also be changed at runtime under
+**Settings** (persisted on the device). Emulator defaults: Android `10.0.2.2:8000`, iOS `localhost:8000`.
 
-### Prerequisites
-- Node.js 18+ or 20+ installed on your host machine.
-- Expo Go installed on your iOS or Android device (from App Store or Google Play).
+With Docker Compose (Metro inside a container, phone on the same Wi-Fi):
 
-### Quickstart
-1. Navigate to the `mobile/` directory:
-   ```bash
-   cd mobile
-   npm install
-   ```
-2. Start the Expo development server:
-   ```bash
-   npx expo start
-   ```
-3. **Connect to FastAPI Backend:**
-   - Android Emulator: Uses `http://10.0.2.2:8000/api/v1` automatically.
-   - iOS Simulator: Uses `http://localhost:8000/api/v1` automatically.
-   - Physical Phone (via Expo Go on same Wi-Fi): Update `API_BASE_URL` in `src/services/api.ts` to your machine's local IP address (e.g. `http://192.168.1.15:8000/api/v1`).
-4. Scan the QR code with your camera (iOS) or the Expo Go app (Android).
+```bash
+HOST_IP=192.168.0.104 docker compose --profile mobile up
+```
 
----
+## Offline behaviour
 
-## Alternative: Zero-Install PWA
-The Next.js frontend (`http://localhost:3000`) is configured with an offline-ready Progressive Web App manifest (`public/manifest.json`).
-On any mobile browser, tap **Share** / **Menu** $\rightarrow$ **"Add to Home Screen"** or **"Install App"** to run it as a standalone native-like mobile app.
+- Every successful response is persisted (TanStack Query + AsyncStorage, 7 days).
+- When a request fails and cached data exists, the last REAL response is shown with an
+  **Offline · last updated …** banner and a retry button.
+- When nothing is cached, an explicit empty state is shown. The app never invents numbers.
+- Forecasts whose `provenance.data_source` is not `real`, or whose `source` is `precomputed`,
+  show a warning banner so demonstration data is never mistaken for a live forecast.
+
+## GPS
+
+**Use my location** (foreground permission only) sends latitude/longitude; the server resolves
+the grid cell and the app shows it. Positions outside the watershed produce a translated
+"outside the grid" message (HTTP 422 `invalid_location`).
+
+## Checks
+
+```bash
+pnpm typecheck && pnpm lint && pnpm test
+npx expo-doctor
+pnpm exec expo export --platform android --output-dir /tmp/expo-export   # JS bundle check
+```

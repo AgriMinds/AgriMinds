@@ -5,6 +5,7 @@ Row 0 is the northern-most row (largest latitude); column 0 is the western-most 
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass
 
 
@@ -66,7 +67,7 @@ class GridSpec:
         lon = self.lon_min + (cell.col + 0.5) * self.lon_step
         return round(lat, 4), round(lon, 4)
 
-    def cells(self):
+    def cells(self) -> Iterator[Cell]:
         for r in range(self.rows):
             for c in range(self.cols):
                 yield Cell(r, c)

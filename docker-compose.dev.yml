@@ -1,0 +1,18 @@
+# Development overrides: hot reload for the API, Redis reachable from the host.
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+services:
+  redis:
+    ports:
+      - "6379:6379"
+
+  backend:
+    environment:
+      AGRIMINDS_ENV: development
+      AGRIMINDS_LOG_LEVEL: DEBUG
+    volumes:
+      - ./data:/app/data:z
+      - ./backend/src:/app/backend/src:z
+      - ./ml/src:/app/ml/src:z
+    command:
+      ["uvicorn", "agriminds_api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload",
+       "--reload-dir", "/app/backend/src", "--reload-dir", "/app/ml/src"]

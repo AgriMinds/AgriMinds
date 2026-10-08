@@ -1,147 +1,110 @@
-# AgriMinds: AI-DREWS
+# AgriMinds · AI-DREWS
 
-> **AI-Enabled Drought Early Warning and Climate-Resilient Decision Support System for Smallholder Farming**  
-> *A Super-Hybrid Deep Learning Framework over the Choke Mountain Watershed, Amhara, Ethiopia*
+> **AI-Enabled Drought Early Warning and Climate-Resilient Decision Support for Smallholder Farming**
+> A super-hybrid deep-learning framework over the Choke Mountain Watershed, Amhara, Ethiopia.
 
----
+AgriMinds turns monthly climate data into a 1–3 month drought-probability map for an 8×8 watershed grid,
+a Niño 3.4 (ENSO) outlook, and crop-specific advisories for tef, wheat and maize that can be checked
+against indigenous ecological knowledge (IEK). It ships as a web command centre for decision makers and
+an offline-capable mobile app for development agents in the field, in English, Amharic and Afaan Oromoo.
 
-## Architecture Overview
-
-AgriMinds is an enterprise full-stack agricultural intelligence platform structured around a decoupled microservice architecture orchestrated via **Docker Compose**:
-
-- **Frontend (`frontend/`)**: **Next.js 15 (App Router)**, **React 19**, **Tailwind CSS**, and **Lucide Icons**. Responsive across **all screen devices** (from compact 320px mobile up to 24"+ 4K command centers). Includes an interactive 8×8 Choke Watershed spatial grid map with directional thumb-pad controls, crop vulnerability decision panels for Tef, Wheat, and Maize, Indigenous Ecological Knowledge (IEK) validation, and trilingual support (**English, Amharic / አማርኛ, Afaan Oromoo**).
-- **Backend (`backend/`)**: **FastAPI** asynchronous REST API with **Pydantic v2** validation schemas, serving drought hazard maps, cell-level risk probabilities, crop-specific micro-advisories, and ENSO teleconnection outlooks.
-- **Mobile (`mobile/`)**: **React Native / Expo** field application for Agricultural Development Agents (DAs) in remote kebeles with offline caching, Safe Area handling, pull-to-refresh, and GPS readiness.
-- **ML Engine (`ai_drews/`)**: **PyTorch** deep learning pipelines implementing:
-  - **Objective 1**: Conv1D + LSTM Niño 3.4 seasonal climate forecast.
-  - **Objective 2**: Super-Hybrid (CNN-2D spatial + LSTM temporal + Fourier seasonal periodicity) drought probability model ($P(\text{SPI-3} \le -1.0)$).
-  - **Objective 3**: Rule-based agro-ecological decision trees co-designed with traditional ecological indicators.
-- **Cache & Message Broker**: **Redis 7 (Alpine)** for caching heavy geospatial predictions.
+> **Status:** the committed model weights were trained on **synthetic** data to validate the pipeline.
+> Every API response carries `provenance` and both clients show a banner until real CHIRPS/ERA5/MODIS
+> data has been ingested and the models retrained.
 
 ---
 
-## Directory Structure
+## Stack
 
-```text
+| Layer | Technology | Why |
+|---|---|---|
+| ML | Python 3.12, PyTorch (CPU), scipy, scikit-learn | the scientific ecosystem for SPI/VCI, CNN-LSTM and spatial models |
+| API | FastAPI, Pydantic v2, Redis 7 | typed async API, OpenAPI as the contract for every client |
+| Web | Next.js 16 (App Router), React 19, Tailwind CSS v4, shadcn/ui, TanStack Query, next-intl | server-side proxy to the API, tokenised theming, trilingual |
+| Mobile | Expo / React Native, expo-router, TanStack Query persisted to AsyncStorage | offline-first field app |
+| Infra | Docker Compose, pnpm workspace, uv workspace, GitHub Actions | one command to run, one lockfile per language |
+
+## Repository layout
+
+```
 AgriMinds/
-├── docker-compose.yml          # Container orchestration (Frontend, Backend, Redis)
-├── Makefile                    # Developer lifecycle commands (up, down, logs, test, health)
-├── README.md                   # System documentation
-│
-├── frontend/                   # Next.js 15 + Tailwind CSS Web Application & PWA
-│   ├── Dockerfile              # Multi-stage production container
-│   ├── package.json            # React 19, Next 15, Tailwind CSS v4, Lucide-React
-│   ├── next.config.ts          # Standalone container configuration
-│   ├── public/manifest.json    # Progressive Web App (PWA) manifest
-│   └── src/
-│       ├── app/                # App Router (page.tsx, layout.tsx, globals.css)
-│       ├── components/
-│       │   ├── layout/         # Navigation bar & trilingual language switcher
-│       │   ├── drought/        # 8x8 Watershed grid visualizer with thumb nudges
-│       │   ├── advisory/       # Tef/Wheat/Maize crop decision panel & IEK toggles
-│       │   ├── enso/           # Niño 3.4 SST anomaly spectrum gauge & 6-mo timeline
-│       │   └── stats/          # Executive watershed metrics (scaled for 24"+)
-│       ├── lib/                # API client wrapper & translations.ts
-│       └── types/              # TypeScript interface contracts
-│
-├── backend/                    # FastAPI Microservice & Model Server
-│   ├── Dockerfile              # Python 3.12-slim production container
-│   ├── requirements.txt        # FastAPI, Uvicorn, PyTorch (CPU), Scikit-learn, Pydantic v2
-│   ├── app/
-│   │   ├── main.py             # FastAPI entrypoint & CORS middleware
-│   │   ├── core/config.py      # Choke Watershed BBox, grid bounds, settings
-│   │   ├── schemas/            # Pydantic v2 contracts (drought, advisory, enso)
-│   │   ├── services/           # PyTorch Singleton inference & advisory decision trees
-│   │   └── api/v1/             # REST endpoints (/drought, /advisories, /enso, /health)
-│   └── tests/
-│       └── test_api.py         # Automated API integration tests (6/6 passing)
-│
-├── mobile/                     # React Native / Expo Field Application
-│   ├── App.tsx                 # 3-tab field app (Advisory, Grid, ENSO)
-│   ├── app.json                # Expo metadata & permissions
-│   ├── package.json            # React Native, Expo 52, Safe Area Context
-│   ├── README.md               # Mobile setup & device connection instructions
-│   └── src/
-│       ├── services/api.ts     # Mobile API client with offline fallback caching
-│       └── translations.ts     # Mobile trilingual localization (EN, አማ, ORO)
-│
-├── ai_drews/                   # ML Pipeline & PyTorch Artifacts
-│   ├── app.py                  # Legacy Streamlit app (researcher sandbox)
-│   ├── data/                   # Raw & processed data cubes (SPI-3, VCI, anomalies)
-│   ├── models/                 # PyTorch weights (drought_model.pt, enso_cnnlstm.pt)
-│   ├── outputs/                # Evaluation metrics, latest risk maps
-│   └── src/                    # Data preparation, feature engineering & training
-│
-└── research_archive/           # Legacy experimental scripts (e.g., CNN_LSTM2.m)
+├── ml/                      ai-drews Python package: data → features → models → inference → advisory rules → CLI
+├── backend/                 agriminds-api FastAPI service (core/, domain/, schemas/, services/, api/v1/)
+├── frontend/                Next.js web app (app/, components/, features/, lib/, messages/)
+├── mobile/                  Expo field app (app/, src/)
+├── packages/api-types/      TypeScript types generated from the API's OpenAPI schema (shared by web + mobile)
+├── data/                    raw/, processed/, models/, outputs/  (small, git-tracked; move to DVC before real data)
+├── docs/                    research material (proposal PDF, spreadsheets, MATLAB prototype)
+├── docker-compose.yml       redis + backend + web (+ `mobile` profile for the Expo dev server)
+├── docker-compose.dev.yml   hot-reload overrides for the API
+├── Makefile                 developer entry points (`make help`)
+├── pyproject.toml, uv.lock  Python workspace (ml + backend)
+├── package.json, pnpm-workspace.yaml, pnpm-lock.yaml   JS workspace (frontend + mobile + packages)
+└── .github/workflows/ci.yml lint, type-check, test, build and smoke-test the compose stack
 ```
 
----
+## Quick start (Docker Compose)
 
-## Quickstart with Docker Compose
-
-Ensure Docker and Docker Compose are running on your machine.
-
-### 1. Start all services
 ```bash
-make up
-# or: docker compose up --build -d
+cp .env.example .env          # set HOST_IP (your LAN IP) if you will use the mobile app
+make up                       # builds and starts redis, backend, web; prints health
 ```
 
-### 2. Access the Platform
-- **Web Application (Responsive: Mobile to 24"+ Screens)**: [http://localhost:3000](http://localhost:3000)
-- **FastAPI OpenAPI Swagger**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **API Health Check**: [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
+| Service | URL |
+|---|---|
+| Web command centre | http://localhost:3000 |
+| API docs (Swagger) | http://localhost:8000/docs |
+| API health | http://localhost:8000/api/v1/health |
 
-### 3. Run Automated Tests
+More commands:
+
 ```bash
-make test
+make up-dev        # API hot reload (bind-mounts backend/src and ml/src), Redis on :6379
+make up-mobile     # also start the Expo dev server; scan the QR code with Expo Go on the same Wi-Fi
+make train         # run the ML pipeline inside the backend image (synthetic unless real raw files exist)
+make logs          # tail everything
+make down          # stop
+make help          # everything else
 ```
 
-### 4. Health Check
+## Local development without Docker
+
 ```bash
-make health
+make setup                      # .venv with ml + backend (editable), pnpm install, .env
+make test                       # pytest (ml + backend) and JS tests
+make lint typecheck             # ruff, mypy (domain layer), eslint, tsc
+AGRIMINDS_DATA_DIR=./data .venv/bin/uvicorn agriminds_api.main:app --reload --app-dir backend/src
+pnpm --filter @agriminds/web dev
 ```
 
-### 5. Stream Container Logs
-```bash
-make logs
-# Or specifically:
-make logs-backend
-make logs-frontend
-```
+## API
 
-### 6. Stop Services
-```bash
-make down
-```
+All forecast endpoints are under `/api/v1` and protected by `X-API-Key` when `AGRIMINDS_API_KEYS` is set.
 
----
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/health`, `/health/ready` | liveness (always 200) and readiness (503 until a model can be served) |
+| GET | `/drought/map?lead_month=1..3` | 8×8 drought probability map with per-cell risk level |
+| GET / POST | `/drought/cell` | one cell by `row`/`col` or by `latitude`/`longitude` |
+| POST | `/advisories/evaluate` | crop advisory (tef / wheat / maize) with IEK consensus |
+| GET | `/enso/outlook` | Niño 3.4 history and CNN-LSTM forecast |
 
-## Core API Endpoints
+Every forecast response includes `provenance: { model_version, data_source, source, issued_date }`.
+Errors are `{ "error": { "code", "message" } }`. Changing a schema → `make api-types` regenerates the shared TypeScript types; CI fails if they drift.
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/v1/health` | Service and PyTorch artifact health check |
-| `GET` | `/api/v1/drought/map?lead_month=1` | 8×8 Drought probability map for leads 1–3 |
-| `GET/POST`| `/api/v1/drought/cell` | Query specific cell risk by `row`/`col` or `latitude`/`longitude` |
-| `POST` | `/api/v1/advisories/evaluate` | Evaluates crop advisory for Tef, Wheat, Maize with IEK |
-| `GET` | `/api/v1/enso/outlook` | Niño 3.4 historical values & 6-month CNN-LSTM forecast |
+## ML pipeline
 
----
+See [`ml/README.md`](ml/README.md). In short: `ai-drews build-data`, `build-features`, `train enso`, `train drought`, `maps` or `run-all`.
+Real data goes in `data/raw/` (`nino_indices.csv`, `grids.npz`); the pipeline uses it automatically.
 
-## Mobile Application
+## Design principles
 
-For agricultural extension workers (Development Agents) in rural kebeles:
-```bash
-cd mobile
-npm install
-npx expo start
-```
-- Supports offline fallback caching when cellular connectivity drops.
-- Supports trilingual switching between English, Amharic, and Afaan Oromoo.
-- See [`mobile/README.md`](mobile/README.md) for full details.
+- **No fabricated numbers.** Without weights the API returns 503, the web shows an unavailable state, and the mobile app shows its last real response with its age. Nothing invents a probability.
+- **One source of truth.** Risk thresholds, ENSO phases, seasons and crop rules live in `ml/src/ai_drews/advisory/rules.py`. Grid geometry lives in `backend/src/agriminds_api/domain/geo.py`. Types flow from the OpenAPI schema to both clients.
+- **Honest provenance.** Model version and data source travel with every response and are displayed.
+- **Boring, reproducible builds.** Locked dependencies (uv, pnpm), multi-stage non-root images, CI that builds the whole compose stack.
 
----
+## Research attribution
 
-## Research Attribution
-Developed under the **AI-DREWS** initiative in collaboration with **Debre Markos University**, the **AI Institute of Ethiopia**, and agricultural domain specialists for the Choke Mountain Watershed.
+Developed under the **AI-DREWS** initiative with **Debre Markos University**, the **AI Institute of Ethiopia**
+and agricultural domain specialists for the Choke Mountain Watershed. Research material is in [`docs/research`](docs/research).

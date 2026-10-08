@@ -1,10 +1,18 @@
-.venv
-frontend/node_modules
-frontend/.next
-ai_drews/__pycache__
-ai_drews/src/__pycache__
-backend/app/__pycache__
-backend/app/*/__pycache__
+# Applies to every image built with the repository root as context.
 .git
 .github
+.venv
+**/node_modules
+**/.next
+**/.expo
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+docs
+data
+.env
+.env.*
+!.env.example
 *.log

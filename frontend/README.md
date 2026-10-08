@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# @agriminds/web
 
-## Getting Started
+Next.js 16 (App Router, React 19, Tailwind v4) dashboard for AgriMinds AI-DREWS.
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+app/
+├── layout.tsx              server: fonts (Inter + Noto Sans Ethiopic), locale, providers, skip link
+├── page.tsx                thin: heading + <Dashboard/>
+├── providers.tsx           TanStack Query provider
+├── actions/locale.ts       server action: sets the NEXT_LOCALE cookie
+├── api/v1/[...path]/route.ts  same-origin proxy -> FastAPI (injects X-API-Key server-side)
+└── globals.css             ALL colour/font tokens (@theme); light/dark; no hex in components
+components/
+├── ui/                     button, card, badge, skeleton, chart, query-state
+└── layout/                 Shell, Sidebar, TopBar (health chip), ThemeToggle, LanguageSwitcher
+features/
+├── dashboard/Dashboard.tsx UI state (lead, cell, crop, IEK) + query wiring
+├── drought/                WatershedGridMap + useDroughtMap
+├── advisory/               CropDecisionPanel + useAdvisory
+├── enso/                   EnsoMonitor (recharts) + useEnsoOutlook
+├── summary/                WatershedSummary, ProvenanceBanner, ReportsPlaceholder
+└── health/useHealth.ts     polls /health every 30 s
+i18n/  messages/{en,am,or}.json   next-intl without locale routing (cookie based)
+lib/   api/client.ts (typed, ApiError), risk.ts (token classes), query-client.ts, utils.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Types come from `@agriminds/api-types` (generated from the backend OpenAPI schema; `make api-types`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment (server-side only; nothing is exposed with `NEXT_PUBLIC_`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| variable | default | purpose |
+|---|---|---|
+| `API_INTERNAL_URL` | `http://localhost:8000` | where the proxy forwards `/api/v1/*` (in compose: `http://backend:8000`) |
+| `API_KEY` | unset | sent as `X-API-Key` to the backend when `AGRIMINDS_API_KEYS` is configured |
 
-## Learn More
+## Commands (run from the repo root)
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm install
+pnpm --filter @agriminds/web dev        # http://localhost:3000 (expects the API on :8000)
+pnpm --filter @agriminds/web lint
+pnpm --filter @agriminds/web typecheck
+pnpm --filter @agriminds/web test       # vitest + jsdom
+pnpm --filter @agriminds/web build      # standalone output
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Docker: built from the repo root with `frontend/Dockerfile` (see `docker-compose.yml`).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Honesty rules baked into the UI
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Every forecast response carries `provenance`; a banner is shown whenever data is synthetic or precomputed.
+- The health chip reflects `/health` (`healthy` / `degraded` / `unavailable`) or `offline`.
+- No placeholder figures: the reports section is an explicit empty state until a reporting service exists.

@@ -1,0 +1,156 @@
+{
+  "app": {
+    "name": "AgriMinds",
+    "product": "AI-DREWS",
+    "title": "AgriMinds AI-DREWS",
+    "subtitle": "Choke Mountain Watershed, Amhara, Ethiopia",
+    "tagline": "Drought early warning and climate-resilient decision support",
+    "skipToContent": "Skip to content",
+    "openNavigation": "Open navigation",
+    "closeNavigation": "Close navigation",
+    "language": "Language",
+    "theme": {
+      "toDark": "Switch to dark mode",
+      "toLight": "Switch to light mode"
+    },
+    "nav": {
+      "overview": "Overview",
+      "drought": "Drought intelligence",
+      "advisories": "Crop advisories",
+      "enso": "Climate (ENSO)",
+      "reports": "Reports & briefings",
+      "section": "Navigation"
+    },
+    "workspace": "Choke Watershed workspace",
+    "workspaceSub": "Debre Markos University · AI Institute of Ethiopia",
+    "greeting": "Watershed overview",
+    "intro": "Drought probability, crop advisories and ENSO outlook for the Choke Mountain Watershed, in one view."
+  },
+  "status": {
+    "healthy": "ML engine online",
+    "degraded": "Degraded: precomputed forecast",
+    "unavailable": "Model unavailable",
+    "offline": "API offline",
+    "loading": "Connecting…",
+    "ariaLabel": "Backend status"
+  },
+  "provenance": {
+    "syntheticTitle": "Demonstration forecast",
+    "syntheticBody": "This model was trained on synthetic stand-in data. Numbers show the system works, not real drought risk. Do not use for decisions.",
+    "precomputedTitle": "Precomputed forecast",
+    "precomputedBody": "The live model is not loaded; the API is serving the last precomputed raster issued {issued}.",
+    "model": "Model {version}",
+    "issued": "Issued from data ending {issued}",
+    "rules": "Advisory rules {version}"
+  },
+  "common": {
+    "retry": "Retry",
+    "loading": "Loading…",
+    "errorTitle": "Could not load data",
+    "unavailableTitle": "Forecast unavailable",
+    "unavailableBody": "The drought model is not available on the server. Run the AI-DREWS pipeline and restart the API.",
+    "lead": "Lead",
+    "months": "{count, plural, one {# month} other {# months}}",
+    "monthShort": "{count} mo"
+  },
+  "summary": {
+    "basinMeanRisk": "Basin mean drought risk",
+    "spread": "Spread",
+    "min": "min",
+    "max": "max",
+    "forecastTarget": "Forecast target",
+    "leadAdvance": "{lead}-month advance warning",
+    "basinName": "Agro-ecological basin",
+    "chokeMountain": "Choke Mountain",
+    "elevation": "Elevation: 2,800 m – 4,070 m a.s.l.",
+    "aiFramework": "AI framework",
+    "superHybrid": "Super-Hybrid",
+    "aiComponents": "CNN-2D + LSTM + Fourier periodicity"
+  },
+  "grid": {
+    "title": "Choke Watershed drought risk grid",
+    "subtitle": "Objective 2: Super-Hybrid CNN-LSTM-Fourier probability of SPI-3 ≤ −1.0",
+    "leadLabel": "Lead",
+    "lead1": "1 mo (near)",
+    "lead2": "2 mo (mid)",
+    "lead3": "3 mo (seasonal)",
+    "leadGroup": "Forecast lead month",
+    "targetHorizon": "Target",
+    "issued": "Issued",
+    "meanBasinRisk": "Mean basin risk",
+    "computingInference": "Computing spatial inference…",
+    "selectedCell": "Selected farm cell",
+    "riskProbability": "Risk probability",
+    "cellAria": "Row {row}, column {col}, drought probability {pct}",
+    "moveLeft": "Move left",
+    "moveRight": "Move right",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "legend": "Legend",
+    "lowRisk": "<25% (Low)",
+    "moderateRisk": "25–45% (Moderate)",
+    "highRisk": "45–65% (High)",
+    "severeRisk": ">65% (Severe)",
+    "bbox": "BBox: 37.6°E – 38.4°E, 10.4°N – 11.2°N",
+    "pending": "Forecast pending"
+  },
+  "risk": {
+    "Low": "Low",
+    "Moderate": "Moderate",
+    "High": "High",
+    "Severe": "Severe"
+  },
+  "advisory": {
+    "title": "Agro-decision support & farm micro-advisories",
+    "subtitle": "Objective 3: localized recommendations co-designed for Choke Watershed smallholders",
+    "targetCrop": "Target staple crop",
+    "crops": {
+      "tef": { "label": "Tef (ጤፍ)", "desc": "Short cycle" },
+      "wheat": { "label": "Wheat (ስንዴ)", "desc": "Tillering-sensitive" },
+      "maize": { "label": "Maize (በቆሎ)", "desc": "High water need" }
+    },
+    "iekTitle": "Indigenous knowledge (IEK)",
+    "iekAgrees": "Agrees (dry signs)",
+    "iekDisagrees": "Disagrees (wet signs)",
+    "iekNotSet": "Not entered",
+    "evalCrop": "Evaluated crop",
+    "evalRisk": "Drought risk",
+    "cropAdjustedRisk": "Crop-adjusted risk",
+    "rawGrid": "Raw grid",
+    "strategyTitle": "Crop strategy",
+    "plantingTitle": "Planting window",
+    "waterTitle": "Water management",
+    "prepTitle": "Preparedness",
+    "iekIntegration": "Indigenous knowledge integration",
+    "confidenceRating": "Confidence rating",
+    "evaluating": "Evaluating agronomic thresholds…",
+    "empty": "Select a grid cell to generate crop-specific recommendations.",
+    "enso": "ENSO"
+  },
+  "enso": {
+    "title": "ENSO climate engine (Niño 3.4)",
+    "subtitle": "Objective 1: CNN-LSTM teleconnection forecast driving regional hydro-climatic risk",
+    "teleconnectionImpact": "Teleconnection impact",
+    "outlookTitle": "CNN-LSTM Niño 3.4 multi-lead outlook",
+    "threshold": "Threshold: ±0.5 °C",
+    "monthPlus": "Month +{n}",
+    "laNina": "La Niña (≤ −0.5 °C)",
+    "neutral": "Neutral (−0.5 to +0.5 °C)",
+    "elNino": "El Niño (≥ +0.5 °C)",
+    "loading": "Loading ENSO telemetry…",
+    "noForecast": "The ENSO model has not been trained yet; only observed values are shown.",
+    "observed": "Observed",
+    "forecast": "Forecast",
+    "chartAria": "Niño 3.4 anomaly, observed history and forecast"
+  },
+  "reports": {
+    "title": "Reports & briefings",
+    "emptyTitle": "Reports module is not connected yet",
+    "emptyBody": "Field reports, district coverage and briefing analytics will appear here once the reporting service is integrated. No placeholder figures are shown."
+  },
+  "footer": {
+    "affiliation": "AgriMinds AI-DREWS — Debre Markos University & AI Institute of Ethiopia.",
+    "telemetry": "CHIRPS · ERA5 · NOAA ONI telemetry",
+    "framework": "PyTorch Super-Hybrid deep learning"
+  }
+}

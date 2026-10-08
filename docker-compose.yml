@@ -1,56 +1,96 @@
+# AgriMinds AI-DREWS — full stack.
+#   docker compose up --build -d            # redis + backend + web
+#   docker compose --profile mobile up -d   # ...plus the Expo dev server for the field app
+#   docker compose run --rm backend ai-drews run-all   # (re)train on data/ (synthetic unless real raw files exist)
+name: agriminds
+
+x-common: &common
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
 services:
+  redis:
+    <<: *common
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   backend:
+    <<: *common
     build:
       context: .
       dockerfile: backend/Dockerfile
-    container_name: agriminds-backend
-    restart: unless-stopped
-    ports:
-      - "8000:8000"
+    image: agriminds/backend:local
+    env_file:
+      - path: .env
+        required: false
     environment:
-      - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app/backend:/app/ai_drews/src
-      - PROJECT_NAME=AgriMinds AI-DREWS
+      AGRIMINDS_ENV: ${AGRIMINDS_ENV:-production}
+      AGRIMINDS_LOG_LEVEL: ${AGRIMINDS_LOG_LEVEL:-INFO}
+      AGRIMINDS_DATA_DIR: /app/data
+      AI_DREWS_DATA_DIR: /app/data
+      AGRIMINDS_REDIS_URL: redis://redis:6379/0
+      AGRIMINDS_CORS_ORIGINS: ${AGRIMINDS_CORS_ORIGINS:-http://localhost:3000}
+      AGRIMINDS_API_KEYS: ${AGRIMINDS_API_KEYS:-}
     volumes:
-      - ./backend:/app/backend:z
-      - ./ai_drews/data:/app/ai_drews/data:z
-      - ./ai_drews/models:/app/ai_drews/models:z
-      - ./ai_drews/outputs:/app/ai_drews/outputs:z
+      - ./data:/app/data:z
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
     depends_on:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/v1/health"]
       interval: 15s
       timeout: 5s
-      retries: 3
-      start_period: 10s
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: agriminds-frontend
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-    depends_on:
-      - backend
-
-  redis:
-    image: redis:7-alpine
-    container_name: agriminds-redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
       retries: 5
+      start_period: 30s
+
+  web:
+    <<: *common
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: agriminds/web:local
+    environment:
+      NODE_ENV: production
+      API_INTERNAL_URL: http://backend:8000
+      API_KEY: ${API_KEY:-}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # Expo dev server for the field app. Opt-in: docker compose --profile mobile up
+  mobile:
+    profiles: ["mobile"]
+    build:
+      context: .
+      dockerfile: mobile/Dockerfile.dev
+    image: agriminds/mobile-dev:local
+    environment:
+      REACT_NATIVE_PACKAGER_HOSTNAME: ${HOST_IP:?set HOST_IP (your LAN IP) in .env so phones can reach the dev server}
+      EXPO_PUBLIC_API_URL: http://${HOST_IP}:${BACKEND_PORT:-8000}/api/v1
+      EXPO_PUBLIC_API_KEY: ${EXPO_PUBLIC_API_KEY:-}
+      CI: "1"
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./mobile/app:/workspace/mobile/app:z
+      - ./mobile/src:/workspace/mobile/src:z
+      - ./mobile/assets:/workspace/mobile/assets:z
+    depends_on:
+      backend:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
 
 networks:
   default:

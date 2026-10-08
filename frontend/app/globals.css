@@ -3,11 +3,176 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-:root { --background: #f7f8f4; --foreground: #172033; }
-.dark { --background: #183129; --foreground: #edf7ef; }
-@theme inline { --color-background: var(--background); --color-foreground: var(--foreground); --font-sans: Arial, Helvetica, sans-serif; }
-* { box-sizing: border-box; }
-html { background: var(--background); }
-body { margin: 0; background: var(--background); color: var(--foreground); font-family: Arial, Helvetica, sans-serif; transition: background-color 180ms ease, color 180ms ease; }
-button { cursor: pointer; }
-::selection { background: #d6e85f; color: #173f36; }
+/* ------------------------------------------------------------------
+   Design tokens. Raw values live ONLY here. Components use utilities
+   generated from @theme (bg-surface, text-fg-muted, bg-risk-high, ...).
+   ------------------------------------------------------------------ */
+:root {
+  /* brand: Choke highland forest + tef lime */
+  --brand-forest: oklch(0.32 0.055 170); /* #173f36 */
+  --brand-forest-deep: oklch(0.27 0.045 170); /* #183129 */
+  --brand-forest-soft: oklch(0.36 0.05 168); /* #21483b */
+  --brand-lime: oklch(0.9 0.16 112); /* #d6e85f */
+  --brand-sage: oklch(0.83 0.045 150); /* #b7d4b5 */
+  --brand-ochre: oklch(0.78 0.1 75); /* #e7b56c */
+  --brand-clay: oklch(0.66 0.11 55); /* #c98957 */
+
+  /* surfaces + text (light) */
+  --surface: oklch(0.975 0.006 110); /* #f7f8f4 */
+  --surface-raised: oklch(1 0 0);
+  --surface-sunken: oklch(0.955 0.006 110);
+  --fg: oklch(0.22 0.03 265); /* #172033 */
+  --fg-muted: oklch(0.5 0.02 260);
+  --fg-subtle: oklch(0.65 0.015 260);
+  --border: oklch(0.9 0.01 120);
+  --ring: oklch(0.55 0.13 160);
+
+  /* semantic */
+  --primary: oklch(0.52 0.13 160); /* emerald-700 */
+  --primary-fg: oklch(0.99 0 0);
+  --accent: var(--brand-lime);
+  --accent-fg: var(--brand-forest);
+
+  /* risk scale (mirrors ai_drews.advisory.rules) */
+  --risk-low: oklch(0.6 0.14 160); /* emerald */
+  --risk-moderate: oklch(0.8 0.16 80); /* amber */
+  --risk-high: oklch(0.7 0.19 45); /* orange */
+  --risk-severe: oklch(0.58 0.22 15); /* rose */
+  --risk-low-soft: oklch(0.95 0.04 160);
+  --risk-moderate-soft: oklch(0.96 0.05 85);
+  --risk-high-soft: oklch(0.96 0.04 50);
+  --risk-severe-soft: oklch(0.96 0.03 15);
+
+  /* ENSO */
+  --enso-warm: oklch(0.6 0.2 20);
+  --enso-cool: oklch(0.6 0.17 250);
+
+  /* status */
+  --status-ok: oklch(0.7 0.17 150);
+  --status-warn: oklch(0.8 0.16 80);
+  --status-bad: oklch(0.62 0.22 20);
+
+  --radius: 0.75rem;
+}
+
+.dark {
+  --surface: var(--brand-forest-deep);
+  --surface-raised: var(--brand-forest-soft);
+  --surface-sunken: oklch(0.24 0.04 170);
+  --fg: oklch(0.96 0.015 150); /* #edf7ef */
+  --fg-muted: oklch(0.8 0.02 150);
+  --fg-subtle: oklch(0.62 0.02 150);
+  --border: oklch(0.42 0.04 165);
+  --ring: var(--brand-lime);
+  --primary: oklch(0.72 0.14 160);
+  --primary-fg: var(--brand-forest-deep);
+  --risk-low-soft: oklch(0.32 0.06 160);
+  --risk-moderate-soft: oklch(0.36 0.07 80);
+  --risk-high-soft: oklch(0.36 0.07 50);
+  --risk-severe-soft: oklch(0.34 0.08 15);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --surface: var(--brand-forest-deep);
+    --surface-raised: var(--brand-forest-soft);
+    --surface-sunken: oklch(0.24 0.04 170);
+    --fg: oklch(0.96 0.015 150);
+    --fg-muted: oklch(0.8 0.02 150);
+    --fg-subtle: oklch(0.62 0.02 150);
+    --border: oklch(0.42 0.04 165);
+    --ring: var(--brand-lime);
+    --primary: oklch(0.72 0.14 160);
+    --primary-fg: var(--brand-forest-deep);
+    --risk-low-soft: oklch(0.32 0.06 160);
+    --risk-moderate-soft: oklch(0.36 0.07 80);
+    --risk-high-soft: oklch(0.36 0.07 50);
+    --risk-severe-soft: oklch(0.34 0.08 15);
+  }
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-ethiopic: var(--font-noto-ethiopic), var(--font-inter), sans-serif;
+  --font-mono: ui-monospace, 'JetBrains Mono', SFMono-Regular, monospace;
+
+  --color-brand-forest: var(--brand-forest);
+  --color-brand-forest-deep: var(--brand-forest-deep);
+  --color-brand-forest-soft: var(--brand-forest-soft);
+  --color-brand-lime: var(--brand-lime);
+  --color-brand-sage: var(--brand-sage);
+  --color-brand-ochre: var(--brand-ochre);
+  --color-brand-clay: var(--brand-clay);
+
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+
+  --color-risk-low: var(--risk-low);
+  --color-risk-moderate: var(--risk-moderate);
+  --color-risk-high: var(--risk-high);
+  --color-risk-severe: var(--risk-severe);
+  --color-risk-low-soft: var(--risk-low-soft);
+  --color-risk-moderate-soft: var(--risk-moderate-soft);
+  --color-risk-high-soft: var(--risk-high-soft);
+  --color-risk-severe-soft: var(--risk-severe-soft);
+
+  --color-enso-warm: var(--enso-warm);
+  --color-enso-cool: var(--enso-cool);
+  --color-status-ok: var(--status-ok);
+  --color-status-warn: var(--status-warn);
+  --color-status-bad: var(--status-bad);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    background: var(--surface);
+    color-scheme: light dark;
+  }
+  body {
+    @apply bg-surface text-fg font-sans antialiased;
+    transition:
+      background-color 180ms ease,
+      color 180ms ease;
+  }
+  :lang(am) {
+    font-family: var(--font-ethiopic);
+  }
+  button {
+    cursor: pointer;
+  }
+  ::selection {
+    background: var(--brand-lime);
+    color: var(--brand-forest);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
