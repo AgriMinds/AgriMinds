@@ -21,10 +21,18 @@
       "reports": "Reports & briefings",
       "section": "Navigation"
     },
-    "workspace": "Choke Watershed workspace",
     "workspaceSub": "Debre Markos University · AI Institute of Ethiopia",
-    "greeting": "Watershed overview",
-    "intro": "Drought probability, crop advisories and ENSO outlook for the Choke Mountain Watershed, in one view."
+    "greeting": "Drought outlook",
+    "intro": "Drought probability, crop advisories and ENSO outlook for the Choke Mountain Watershed, in one view.",
+    "eyebrow": "Choke Mountain Watershed · Amhara, Ethiopia",
+    "model": {
+      "title": "Forecast model",
+      "version": "Version",
+      "data": "Training data",
+      "issued": "Issued",
+      "real": "real observations",
+      "synthetic": "synthetic"
+    }
   },
   "status": {
     "healthy": "ML engine online",
@@ -55,44 +63,42 @@
   },
   "summary": {
     "basinMeanRisk": "Basin mean drought risk",
-    "spread": "Spread",
-    "min": "min",
-    "max": "max",
-    "forecastTarget": "Forecast target",
-    "leadAdvance": "{lead}-month advance warning",
-    "basinName": "Agro-ecological basin",
-    "chokeMountain": "Choke Mountain",
-    "elevation": "Elevation: 2,800 m – 4,070 m a.s.l.",
-    "aiFramework": "AI framework",
-    "superHybrid": "Super-Hybrid",
-    "aiComponents": "CNN-2D + LSTM + Fourier periodicity"
+    "range": "Range across the basin",
+    "highestRiskCell": "Highest-risk cell",
+    "selectCell": "Select on map",
+    "cellsAtRisk": "Cells at high or severe risk",
+    "ofCells": "of {total} grid cells",
+    "ensoState": "ENSO state",
+    "nino34": "Niño 3.4 anomaly"
   },
   "grid": {
-    "title": "Choke Watershed drought risk grid",
-    "subtitle": "Objective 2: Super-Hybrid CNN-LSTM-Fourier probability of SPI-3 ≤ −1.0",
-    "leadLabel": "Lead",
+    "title": "Watershed drought risk grid",
     "lead1": "1 mo (near)",
     "lead2": "2 mo (mid)",
     "lead3": "3 mo (seasonal)",
     "leadGroup": "Forecast lead month",
-    "targetHorizon": "Target",
-    "issued": "Issued",
-    "meanBasinRisk": "Mean basin risk",
     "computingInference": "Computing spatial inference…",
-    "selectedCell": "Selected farm cell",
-    "riskProbability": "Risk probability",
+    "selectedCell": "Selected cell",
     "cellAria": "Row {row}, column {col}, drought probability {pct}",
     "moveLeft": "Move left",
     "moveRight": "Move right",
     "moveUp": "Move up",
     "moveDown": "Move down",
-    "legend": "Legend",
     "lowRisk": "<25% (Low)",
     "moderateRisk": "25–45% (Moderate)",
     "highRisk": "45–65% (High)",
     "severeRisk": ">65% (Severe)",
     "bbox": "BBox: 37.6°E – 38.4°E, 10.4°N – 11.2°N",
-    "pending": "Forecast pending"
+    "probabilityOfDrought": "Probability of seasonal drought (SPI-3 ≤ −1.0) per 10 km cell",
+    "north": "North",
+    "south": "South",
+    "east": "East",
+    "west": "West",
+    "useArrows": "Arrow keys move the selection",
+    "nudge": "Move selected cell",
+    "lead1Short": "1 mo",
+    "lead2Short": "2 mo",
+    "lead3Short": "3 mo"
   },
   "risk": {
     "Low": "Low",
@@ -101,17 +107,26 @@
     "Severe": "Severe"
   },
   "advisory": {
-    "title": "Agro-decision support & farm micro-advisories",
-    "subtitle": "Objective 3: localized recommendations co-designed for Choke Watershed smallholders",
+    "title": "Crop advisory",
+    "subtitle": "Localised recommendations for smallholders, co-designed with extension agents",
     "targetCrop": "Target staple crop",
     "crops": {
-      "tef": { "label": "Tef (ጤፍ)", "desc": "Short cycle" },
-      "wheat": { "label": "Wheat (ስንዴ)", "desc": "Tillering-sensitive" },
-      "maize": { "label": "Maize (በቆሎ)", "desc": "High water need" }
+      "tef": {
+        "label": "Tef",
+        "desc": "ጤፍ · short cycle"
+      },
+      "wheat": {
+        "label": "Wheat",
+        "desc": "ስንዴ · tillering-sensitive"
+      },
+      "maize": {
+        "label": "Maize",
+        "desc": "በቆሎ · high water need"
+      }
     },
     "iekTitle": "Indigenous knowledge (IEK)",
-    "iekAgrees": "Agrees (dry signs)",
-    "iekDisagrees": "Disagrees (wet signs)",
+    "iekAgrees": "Agrees",
+    "iekDisagrees": "Disagrees",
     "iekNotSet": "Not entered",
     "evalCrop": "Evaluated crop",
     "evalRisk": "Drought risk",
@@ -125,23 +140,28 @@
     "confidenceRating": "Confidence rating",
     "evaluating": "Evaluating agronomic thresholds…",
     "empty": "Select a grid cell to generate crop-specific recommendations.",
-    "enso": "ENSO"
+    "enso": "ENSO",
+    "forCell": "Cell {row},{col}",
+    "iekAgreesHint": "Dry signs observed",
+    "iekDisagreesHint": "Wet signs observed",
+    "iekNotSetHint": "No local input"
   },
   "enso": {
-    "title": "ENSO climate engine (Niño 3.4)",
-    "subtitle": "Objective 1: CNN-LSTM teleconnection forecast driving regional hydro-climatic risk",
+    "title": "ENSO climate outlook",
+    "subtitle": "Niño 3.4 teleconnection driving Kiremt rainfall; CNN-LSTM forecast",
     "teleconnectionImpact": "Teleconnection impact",
-    "outlookTitle": "CNN-LSTM Niño 3.4 multi-lead outlook",
+    "outlookTitle": "Observed history and multi-lead forecast",
     "threshold": "Threshold: ±0.5 °C",
     "monthPlus": "Month +{n}",
-    "laNina": "La Niña (≤ −0.5 °C)",
-    "neutral": "Neutral (−0.5 to +0.5 °C)",
-    "elNino": "El Niño (≥ +0.5 °C)",
+    "laNina": "La Niña",
+    "neutral": "Neutral",
+    "elNino": "El Niño",
     "loading": "Loading ENSO telemetry…",
     "noForecast": "The ENSO model has not been trained yet; only observed values are shown.",
     "observed": "Observed",
     "forecast": "Forecast",
-    "chartAria": "Niño 3.4 anomaly, observed history and forecast"
+    "chartAria": "Niño 3.4 anomaly, observed history and forecast",
+    "gaugeTitle": "Current phase"
   },
   "reports": {
     "title": "Reports & briefings",
@@ -152,5 +172,10 @@
     "affiliation": "AgriMinds AI-DREWS — Debre Markos University & AI Institute of Ethiopia.",
     "telemetry": "CHIRPS · ERA5 · NOAA ONI telemetry",
     "framework": "PyTorch Super-Hybrid deep learning"
+  },
+  "controls": {
+    "leadHorizon": "Lead horizon",
+    "target": "Target",
+    "issued": "Issued"
   }
 }

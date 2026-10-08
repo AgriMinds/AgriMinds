@@ -1,89 +1,109 @@
 'use client'
 
-import { CloudDrizzle, Cpu, Mountain, Target } from 'lucide-react'
+import { Crosshair, Droplets, Flame, Waves } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import type { DroughtMapResponse, LeadMonth } from '@agriminds/api-types'
-import { Skeleton } from '@/components/ui/skeleton'
-import { ProvenanceBanner } from '@/features/summary/ProvenanceBanner'
-import { formatPercent } from '@/lib/utils'
+import type { DroughtMapResponse, EnsoOutlookResponse, LeadMonth } from '@agriminds/api-types'
+import { Badge } from '@/components/ui/badge'
+import { Stat } from '@/components/ui/stat'
+import { RISK_BADGE_VARIANT, ensoPhase, summarize } from '@/lib/risk'
+import { cn, formatPercent, formatSigned } from '@/lib/utils'
 
-type Props = { mapData?: DroughtMapResponse; isLoading: boolean; selectedLead: LeadMonth }
+type Props = {
+  mapData?: DroughtMapResponse
+  ensoData?: EnsoOutlookResponse
+  isLoading: boolean
+  selectedLead: LeadMonth
+  onSelectCell?: (cell: { row: number; col: number }) => void
+}
 
-function Tile({
-  icon,
-  label,
-  value,
-  sub,
-  tone,
-  loading,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string
-  sub: string
-  tone: string
-  loading?: boolean
-}) {
+/** Min–mean–max range bar for the basin. */
+function RangeBar({ min, mean, max }: { min: number; mean: number; max: number }) {
+  const pct = (v: number) => `${Math.min(100, Math.max(0, v * 100))}%`
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-surface-raised p-3.5 shadow-xs transition-shadow hover:shadow-sm sm:p-5 2xl:p-6">
-      <div className="flex items-center gap-2 text-[11px] font-semibold text-fg-muted sm:text-xs">
-        <div
-          className={`flex size-6 shrink-0 items-center justify-center rounded-lg sm:size-7 [&_svg]:size-3.5 sm:[&_svg]:size-4 ${tone}`}
-        >
-          {icon}
-        </div>
-        <span className="truncate">{label}</span>
-      </div>
-      {loading ? (
-        <Skeleton className="mt-3 h-8 w-24" />
-      ) : (
-        <div className="mt-2 truncate text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl">
-          {value}
-        </div>
-      )}
-      <div className="mt-1 truncate text-[10px] text-fg-subtle sm:text-xs">{sub}</div>
+    <div className="relative h-2 w-full rounded-full bg-surface-sunken" aria-hidden>
+      <div
+        className="absolute inset-y-0 rounded-full bg-gradient-to-r from-risk-low via-risk-moderate to-risk-severe opacity-80"
+        style={{ left: pct(min), width: `calc(${pct(max)} - ${pct(min)})` }}
+      />
+      <div className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface-raised bg-fg shadow-sm" style={{ left: pct(mean) }} />
     </div>
   )
 }
 
-export function WatershedSummary({ mapData, isLoading, selectedLead }: Props) {
+export function WatershedSummary({ mapData, ensoData, isLoading, selectedLead, onSelectCell }: Props) {
   const t = useTranslations('summary')
+  const tr = useTranslations('risk')
   const tc = useTranslations('common')
+  const s = summarize(mapData)
+  const loading = isLoading && !mapData
+  const phase = ensoData ? ensoPhase(ensoData.current_nino34) : null
+
   return (
-    <div className="flex flex-col gap-4">
-      <ProvenanceBanner provenance={mapData?.provenance} />
-      <section aria-label={t('basinMeanRisk')} className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-4">
-        <Tile
-          icon={<CloudDrizzle />}
-          label={t('basinMeanRisk')}
-          value={formatPercent(mapData?.mean_probability)}
-          sub={`${t('spread')}: ${formatPercent(mapData?.min_probability)} (${t('min')}) – ${formatPercent(mapData?.max_probability)} (${t('max')})`}
-          tone="bg-primary/15 text-primary"
-          loading={isLoading && !mapData}
-        />
-        <Tile
-          icon={<Target />}
-          label={t('forecastTarget')}
-          value={mapData?.target_date ?? `+${tc('months', { count: selectedLead })}`}
-          sub={t('leadAdvance', { lead: selectedLead })}
-          tone="bg-risk-moderate-soft text-fg"
-          loading={isLoading && !mapData}
-        />
-        <Tile
-          icon={<Mountain />}
-          label={t('basinName')}
-          value={t('chokeMountain')}
-          sub={t('elevation')}
-          tone="bg-brand-sage/40 text-brand-forest dark:text-brand-sage"
-        />
-        <Tile
-          icon={<Cpu />}
-          label={t('aiFramework')}
-          value={t('superHybrid')}
-          sub={t('aiComponents')}
-          tone="bg-brand-lime/40 text-brand-forest dark:text-brand-lime"
-        />
-      </section>
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <Stat
+        icon={<Droplets />}
+        label={t('basinMeanRisk')}
+        value={formatPercent(mapData?.mean_probability)}
+        loading={loading}
+        detail={
+          mapData
+            ? `${t('range')}: ${formatPercent(mapData.min_probability)} – ${formatPercent(mapData.max_probability)}`
+            : `${tc('lead')} ${tc('months', { count: selectedLead })}`
+        }
+      >
+        {mapData && <RangeBar min={mapData.min_probability} mean={mapData.mean_probability} max={mapData.max_probability} />}
+      </Stat>
+
+      <Stat
+        icon={<Crosshair />}
+        label={t('highestRiskCell')}
+        tone="bg-risk-high-soft text-risk-high"
+        value={formatPercent(s?.highest?.probability)}
+        loading={loading}
+        onClick={s?.highest && onSelectCell ? () => onSelectCell({ row: s.highest!.row, col: s.highest!.col }) : undefined}
+        aria-label={s?.highest ? `${t('highestRiskCell')} ${formatPercent(s.highest.probability)}, ${t('selectCell')}` : undefined}
+        detail={
+          s?.highest ? (
+            <span className="flex flex-col gap-0.5">
+              <span className="font-mono">
+                {s.highest.row},{s.highest.col} · {s.highest.latitude}°N, {s.highest.longitude}°E
+              </span>
+              <span className="font-medium text-primary underline-offset-2 group-hover:underline">{t('selectCell')} →</span>
+            </span>
+          ) : undefined
+        }
+      >
+        {s?.highest && <Badge variant={RISK_BADGE_VARIANT[s.highest.risk_level]} size="sm">{tr(s.highest.risk_level)}</Badge>}
+      </Stat>
+
+      <Stat
+        icon={<Flame />}
+        label={t('cellsAtRisk')}
+        tone="bg-risk-severe-soft text-risk-severe"
+        value={s ? s.atRisk : '—'}
+        loading={loading}
+        detail={s ? t('ofCells', { total: s.total }) : undefined}
+      >
+        {s && (
+          <div className="flex h-1.5 w-full gap-0.5 overflow-hidden rounded-full" aria-hidden>
+            {mapData?.cells.map((c) => (
+              <span
+                key={`${c.row}-${c.col}`}
+                className={cn('flex-1', c.risk_level === 'High' || c.risk_level === 'Severe' ? 'bg-risk-severe' : 'bg-surface-sunken')}
+              />
+            ))}
+          </div>
+        )}
+      </Stat>
+
+      <Stat
+        icon={<Waves />}
+        label={t('ensoState')}
+        tone={cn(phase === 'warm' && 'bg-enso-warm/12 text-enso-warm', phase === 'cool' && 'bg-enso-cool/12 text-enso-cool', phase === 'neutral' && 'bg-primary/12 text-primary')}
+        value={ensoData ? ensoData.current_state : '—'}
+        loading={!ensoData}
+        detail={ensoData ? `${t('nino34')}: ${formatSigned(ensoData.current_nino34)} °C` : undefined}
+      />
     </div>
   )
 }

@@ -1,13 +1,12 @@
 'use client'
 
 import { useTransition } from 'react'
-import { Globe } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { setLocale } from '@/app/actions/locale'
 import { LOCALES, type Locale } from '@/i18n/config'
 import { cn } from '@/lib/utils'
 
-const LABEL: Record<Locale, string> = { en: 'EN', am: 'አማ', or: 'ORO' }
+const LABEL: Record<Locale, string> = { en: 'EN', am: 'አማ', or: 'OM' }
 
 export function LanguageSwitcher() {
   const locale = useLocale() as Locale
@@ -18,12 +17,8 @@ export function LanguageSwitcher() {
       role="group"
       aria-label={t('language')}
       aria-busy={pending}
-      className={cn(
-        'flex items-center gap-0.5 rounded-xl border border-border bg-surface-sunken p-0.5 sm:p-1',
-        pending && 'opacity-60',
-      )}
+      className={cn('flex h-9 items-center gap-0.5 rounded-lg border border-border bg-surface-raised p-0.5 shadow-xs', pending && 'opacity-60')}
     >
-      <Globe className="ml-1 hidden size-3.5 text-fg-subtle sm:block" aria-hidden />
       {LOCALES.map((l) => (
         <button
           key={l}
@@ -33,8 +28,8 @@ export function LanguageSwitcher() {
           disabled={pending}
           onClick={() => startTransition(() => setLocale(l))}
           className={cn(
-            'min-h-8 rounded-lg px-2 text-[11px] font-bold transition-colors focus-visible:ring-2 focus-visible:ring-ring sm:text-xs',
-            locale === l ? 'bg-surface-raised text-primary shadow-xs' : 'text-fg-muted hover:text-fg',
+            'h-full min-w-9 rounded-md px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-ring',
+            locale === l ? 'bg-fg text-surface' : 'text-fg-muted hover:bg-surface-sunken hover:text-fg',
           )}
         >
           {LABEL[l]}

@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 
-function Card({ className, ...props }: React.ComponentProps<'div'>) {
+function Card({ className, ...props }: React.ComponentProps<'section'>) {
   return (
-    <div
+    <section
       data-slot="card"
       className={cn(
-        'flex flex-col gap-4 rounded-2xl border border-border/80 bg-surface-raised p-4 text-fg shadow-xs transition-shadow hover:shadow-sm sm:p-5',
+        'flex flex-col gap-5 rounded-2xl border border-border bg-surface-raised p-4 text-fg shadow-sm sm:p-6',
         className,
       )}
       {...props}
@@ -14,24 +14,26 @@ function Card({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
-function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
+/** Header row: icon + (title, description) on the left, optional actions on the right. */
+function CardHeader({ className, ...props }: React.ComponentProps<'header'>) {
   return (
-    <div
+    <header
       data-slot="card-header"
-      className={cn(
-        'flex flex-col gap-3 border-b border-border/70 pb-3.5 sm:flex-row sm:items-start sm:justify-between',
-        className,
-      )}
+      className={cn('flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6', className)}
       {...props}
     />
   )
+}
+
+function CardHeading({ className, ...props }: React.ComponentProps<'div'>) {
+  return <div data-slot="card-heading" className={cn('flex min-w-0 items-start gap-3', className)} {...props} />
 }
 
 function CardTitle({ className, ...props }: React.ComponentProps<'h2'>) {
   return (
     <h2
       data-slot="card-title"
-      className={cn('text-base font-bold tracking-tight sm:text-lg', className)}
+      className={cn('font-display text-base font-semibold leading-tight tracking-tight sm:text-lg', className)}
       {...props}
     />
   )
@@ -39,12 +41,12 @@ function CardTitle({ className, ...props }: React.ComponentProps<'h2'>) {
 
 function CardDescription({ className, ...props }: React.ComponentProps<'p'>) {
   return (
-    <p
-      data-slot="card-description"
-      className={cn('mt-0.5 text-[11px] text-fg-muted sm:text-xs', className)}
-      {...props}
-    />
+    <p data-slot="card-description" className={cn('mt-1 text-xs leading-relaxed text-fg-muted sm:text-sm', className)} {...props} />
   )
+}
+
+function CardActions({ className, ...props }: React.ComponentProps<'div'>) {
+  return <div data-slot="card-actions" className={cn('flex shrink-0 items-center gap-2', className)} {...props} />
 }
 
 function CardContent({ className, ...props }: React.ComponentProps<'div'>) {
@@ -52,21 +54,28 @@ function CardContent({ className, ...props }: React.ComponentProps<'div'>) {
 }
 
 function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div data-slot="card-footer" className={cn('flex items-center gap-2 pt-2', className)} {...props} />
+  return (
+    <div
+      data-slot="card-footer"
+      className={cn('flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-4 text-xs text-fg-muted', className)}
+      {...props}
+    />
+  )
 }
 
-/** Icon tile used in card headers and KPI tiles. */
+/** Icon tile used in card headers, stat tiles and directives. */
 function CardIcon({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
     <div
       className={cn(
-        'flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary [&_svg]:size-4',
+        'flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-primary [&_svg]:size-[18px]',
         className,
       )}
+      aria-hidden
     >
       {children}
     </div>
   )
 }
 
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, CardIcon }
+export { Card, CardHeader, CardHeading, CardTitle, CardDescription, CardActions, CardContent, CardFooter, CardIcon }

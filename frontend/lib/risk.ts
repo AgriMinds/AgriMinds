@@ -1,22 +1,22 @@
-import type { RiskLevel } from '@agriminds/api-types'
-import { riskLevelFor } from '@agriminds/api-types'
+import type { DroughtMapResponse, GridCellRisk, RiskLevel } from '@agriminds/api-types'
+import { RISK_LEVELS, riskLevelFor } from '@agriminds/api-types'
 
-export { riskLevelFor }
+export { riskLevelFor, RISK_LEVELS }
 
 /** Solid cell colour for the grid map (background + readable foreground). */
 export const RISK_CELL_CLASS: Record<RiskLevel, string> = {
-  Low: 'bg-risk-low text-white hover:brightness-110',
-  Moderate: 'bg-risk-moderate text-brand-forest-deep hover:brightness-105',
-  High: 'bg-risk-high text-white hover:brightness-110',
-  Severe: 'bg-risk-severe text-white hover:brightness-110',
+  Low: 'bg-risk-low text-risk-low-fg',
+  Moderate: 'bg-risk-moderate text-risk-moderate-fg',
+  High: 'bg-risk-high text-risk-high-fg',
+  Severe: 'bg-risk-severe text-risk-severe-fg',
 }
 
-/** Soft badge/panel treatment. */
+/** Soft panel treatment. */
 export const RISK_SOFT_CLASS: Record<RiskLevel, string> = {
-  Low: 'bg-risk-low-soft text-fg border-risk-low/40',
-  Moderate: 'bg-risk-moderate-soft text-fg border-risk-moderate/50',
-  High: 'bg-risk-high-soft text-fg border-risk-high/50',
-  Severe: 'bg-risk-severe-soft text-fg border-risk-severe/50',
+  Low: 'bg-risk-low-soft',
+  Moderate: 'bg-risk-moderate-soft',
+  High: 'bg-risk-high-soft',
+  Severe: 'bg-risk-severe-soft',
 }
 
 export const RISK_ACCENT_BORDER: Record<RiskLevel, string> = {
@@ -33,6 +33,20 @@ export const RISK_DOT_CLASS: Record<RiskLevel, string> = {
   Severe: 'bg-risk-severe',
 }
 
+export const RISK_TEXT_CLASS: Record<RiskLevel, string> = {
+  Low: 'text-risk-low',
+  Moderate: 'text-risk-moderate',
+  High: 'text-risk-high',
+  Severe: 'text-risk-severe',
+}
+
+export const RISK_BADGE_VARIANT: Record<RiskLevel, 'low' | 'moderate' | 'high' | 'severe'> = {
+  Low: 'low',
+  Moderate: 'moderate',
+  High: 'high',
+  Severe: 'severe',
+}
+
 export function cellClassFor(probability: number): string {
   return RISK_CELL_CLASS[riskLevelFor(probability)]
 }
@@ -42,4 +56,16 @@ export function ensoPhase(nino34: number): EnsoPhase {
   if (nino34 >= 0.5) return 'warm'
   if (nino34 <= -0.5) return 'cool'
   return 'neutral'
+}
+
+/** Derived headline figures for the KPI strip. */
+export function summarize(map: DroughtMapResponse | undefined) {
+  if (!map) return undefined
+  let highest: GridCellRisk | undefined
+  let atRisk = 0
+  for (const c of map.cells) {
+    if (!highest || c.probability > highest.probability) highest = c
+    if (c.risk_level === 'High' || c.risk_level === 'Severe') atRisk += 1
+  }
+  return { highest, atRisk, total: map.cells.length }
 }

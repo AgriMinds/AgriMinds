@@ -21,10 +21,18 @@
       "reports": "Gabaasota",
       "section": "Baafata"
     },
-    "workspace": "Iddoo hojii Lolaa Choke",
     "workspaceSub": "Yuunivarsiitii Dabra Maarqoos · Dhaabbata AI Itoophiyaa",
-    "greeting": "Ilaalcha waliigalaa lolaa",
-    "intro": "Carraa hongee, gorsa midhaanii fi raaga ENSO Lolaa Gaara Choketiif fuula tokko irratti."
+    "greeting": "Tilmaama hongee",
+    "intro": "Carraa hongee, gorsa midhaanii fi raaga ENSO Lolaa Gaara Choketiif fuula tokko irratti.",
+    "eyebrow": "Sulula Tulluu Chooqee · Amaaraa, Itoophiyaa",
+    "model": {
+      "title": "Moodeela tilmaamaa",
+      "version": "Veershinii",
+      "data": "Daataa leenjii",
+      "issued": "Ba'e",
+      "real": "daawwannaa dhugaa",
+      "synthetic": "kan uumame"
+    }
   },
   "status": {
     "healthy": "Mootora AI toora irra jira",
@@ -55,44 +63,42 @@
   },
   "summary": {
     "basinMeanRisk": "Giddu-galeessa sodaa hongee lolaa",
-    "spread": "Garaagarummaa",
-    "min": "gadi-aanaa",
-    "max": "olaanaa",
-    "forecastTarget": "Galma raagichaa",
-    "leadAdvance": "Akeekkachiisa ji'a {lead} dura",
-    "basinName": "Sulula qonna-ikoloojii",
-    "chokeMountain": "Gaara Choke",
-    "elevation": "Olka'iinsa: 2,800 m – 4,070 m",
-    "aiFramework": "Moodeela AI",
-    "superHybrid": "Super-Hybrid",
-    "aiComponents": "CNN-2D + LSTM + Fourier"
+    "range": "Hamma sulula keessaa",
+    "highestRiskCell": "Kutaa balaa ol'aanaa",
+    "selectCell": "Kaartaa irratti fili",
+    "cellsAtRisk": "Kutaalee balaa ol'aanaa ykn hamaa",
+    "ofCells": "kutaalee kaartaa {total} keessaa",
+    "ensoState": "Haala ENSO",
+    "nino34": "Garaagarummaa Niño 3.4"
   },
   "grid": {
-    "title": "Kaartaa sodaa hongee Lolaa Choke",
-    "subtitle": "Galma 2: carraa SPI-3 ≤ −1.0 moodeela Super-Hybrid CNN-LSTM-Fourier",
-    "leadLabel": "Yeroo",
+    "title": "Kaartaa balaa hongee sululaa",
     "lead1": "Ji'a 1 (dhihoo)",
     "lead2": "Ji'a 2 (giddugala)",
     "lead3": "Ji'a 3 (waqtii)",
     "leadGroup": "Ji'a raagaa",
-    "targetHorizon": "Galma",
-    "issued": "Kan bahe",
-    "meanBasinRisk": "Sodaa giddu-galeessaa",
     "computingInference": "Herregaa jira…",
-    "selectedCell": "Qotiisa filatame",
-    "riskProbability": "Carraa sodaa",
+    "selectedCell": "Kutaa filatame",
     "cellAria": "Tarree {row}, tarjaa {col}, carraa hongee {pct}",
     "moveLeft": "Gara bitaa",
     "moveRight": "Gara mirgaa",
     "moveUp": "Gara olii",
     "moveDown": "Gara gadii",
-    "legend": "Ibsa",
     "lowRisk": "<25% (gadi-aanaa)",
     "moderateRisk": "25–45% (giddugaleessa)",
     "highRisk": "45–65% (olaanaa)",
     "severeRisk": ">65% (balaa)",
     "bbox": "Daangaa: 37.6°E – 38.4°E, 10.4°N – 11.2°N",
-    "pending": "Raagni eegamaa jira"
+    "probabilityOfDrought": "Carraa hongee waqtii (SPI-3 ≤ −1.0) kutaa km 10 hundaaf",
+    "north": "Kaaba",
+    "south": "Kibba",
+    "east": "Baha",
+    "west": "Dhiha",
+    "useArrows": "Qubeewwan xiyyaa filannoo socho'su",
+    "nudge": "Kutaa filatame socho'si",
+    "lead1Short": "ji'a 1",
+    "lead2Short": "ji'a 2",
+    "lead3Short": "ji'a 3"
   },
   "risk": {
     "Low": "Gadi-aanaa",
@@ -101,18 +107,27 @@
     "Severe": "Balaa"
   },
   "advisory": {
-    "title": "Deeggarsa murtoo qonnaa fi gorsa oomishaa",
-    "subtitle": "Galma 3: gorsa qonnaan bultoota Gaara Choketiif qophaa'e",
+    "title": "Gorsa midhaanii",
+    "subtitle": "Gorsa naannoo qonnaan bultoota xixiqqaaf, ogeessota qonnaa waliin qophaa'e",
     "targetCrop": "Midhaan filadhu",
     "crops": {
-      "tef": { "label": "Xaafii (Tef)", "desc": "Marsaa gabaabaa" },
-      "wheat": { "label": "Qamadii (Wheat)", "desc": "Jiidhina barbaada" },
-      "maize": { "label": "Boqqoolloo (Maize)", "desc": "Bishaan baay'ee" }
+      "tef": {
+        "label": "Xaafii",
+        "desc": "marsaa gabaabaa"
+      },
+      "wheat": {
+        "label": "Qamadii",
+        "desc": "yeroo biqiluu miira qabu"
+      },
+      "maize": {
+        "label": "Boqqolloo",
+        "desc": "bishaan baay'ee barbaada"
+      }
     },
     "iekTitle": "Beekumsa aadaa naannoo (IEK)",
-    "iekAgrees": "Waliigala (hongee mul'isa)",
-    "iekDisagrees": "Waliihingalu (rooba mul'isa)",
-    "iekNotSet": "Hin filatamne",
+    "iekAgrees": "Walii gala",
+    "iekDisagrees": "Walii hin galu",
+    "iekNotSet": "Hin galchamne",
     "evalCrop": "Midhaan qoratame",
     "evalRisk": "Sodaa hongee",
     "cropAdjustedRisk": "Sodaa midhaaniif sirreeffame",
@@ -125,23 +140,28 @@
     "confidenceRating": "Sadarkaa amanamummaa",
     "evaluating": "Gorsa herregaa jira…",
     "empty": "Gorsa midhaaniif kaartaa irraa iddoo filadhu.",
-    "enso": "ENSO"
+    "enso": "ENSO",
+    "forCell": "Kutaa {row},{col}",
+    "iekAgreesHint": "Mallattoon gogiinsaa mul'ate",
+    "iekDisagreesHint": "Mallattoon roobaa mul'ate",
+    "iekNotSetHint": "Odeeffannoo naannoo hin jiru"
   },
   "enso": {
-    "title": "Moodeela qilleensa ENSO (Niño 3.4)",
-    "subtitle": "Galma 1: raaga CNN-LSTM haala qilleensa idil-addunyaa",
+    "title": "Tilmaama qilleensaa ENSO",
+    "subtitle": "Walitti dhufeenya Niño 3.4 rooba Kiremt hogganu; tilmaama CNN-LSTM",
     "teleconnectionImpact": "Dhiibbaa qilleensaa",
-    "outlookTitle": "Raaga ji'oota hedduu Niño 3.4 (CNN-LSTM)",
+    "outlookTitle": "Seenaa daawwatamee fi tilmaama fageenya hedduu",
     "threshold": "Daangaa: ±0.5 °C",
     "monthPlus": "Ji'a +{n}",
-    "laNina": "La Niña (≤ −0.5 °C)",
-    "neutral": "Giddugaleessa (−0.5 hanga +0.5 °C)",
-    "elNino": "El Niño (≥ +0.5 °C)",
+    "laNina": "La Niña",
+    "neutral": "Giddugaleessa",
+    "elNino": "El Niño",
     "loading": "Odeeffannoo ENSO fe'aa jira…",
     "noForecast": "Moodeelli ENSO ammallee hin leenjine; gatiin mul'atan qofti agarsiifamu.",
     "observed": "Mul'ate",
     "forecast": "Raaga",
-    "chartAria": "Garaagarummaa Niño 3.4, seenaa fi raaga"
+    "chartAria": "Garaagarummaa Niño 3.4, seenaa fi raaga",
+    "gaugeTitle": "Sadarkaa ammaa"
   },
   "reports": {
     "title": "Gabaasota",
@@ -152,5 +172,10 @@
     "affiliation": "AgriMinds AI-DREWS — Yuunivarsiitii Dabra Maarqoos & Dhaabbata AI Itoophiyaa",
     "telemetry": "Odeeffannoo saateelaayitii CHIRPS · ERA5 · NOAA ONI",
     "framework": "PyTorch Super-Hybrid Deep Learning"
+  },
+  "controls": {
+    "leadHorizon": "Fageenya tilmaamaa",
+    "target": "Galma",
+    "issued": "Ba'e"
   }
 }

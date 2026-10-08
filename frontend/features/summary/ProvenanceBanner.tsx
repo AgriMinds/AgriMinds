@@ -1,6 +1,7 @@
 'use client'
 
-import { FlaskConical, Archive } from 'lucide-react'
+import type { CSSProperties } from 'react'
+import { Archive, FlaskConical } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import type { ForecastProvenance } from '@agriminds/api-types'
 import { cn } from '@/lib/utils'
@@ -9,9 +10,11 @@ import { cn } from '@/lib/utils'
 export function ProvenanceBanner({
   provenance,
   className,
+  style,
 }: {
   provenance?: ForecastProvenance
   className?: string
+  style?: CSSProperties
 }) {
   const t = useTranslations('provenance')
   if (!provenance) return null
@@ -22,27 +25,25 @@ export function ProvenanceBanner({
     <div
       role="status"
       data-testid="provenance-banner"
+      style={style}
       className={cn(
-        'flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm shadow-xs',
-        synthetic
-          ? 'border-brand-ochre/60 bg-brand-ochre/15 text-fg'
-          : 'border-brand-clay/60 bg-brand-clay/15 text-fg',
+        'flex items-start gap-3 rounded-xl border border-l-4 px-4 py-3 text-sm',
+        synthetic ? 'border-brand-ochre/50 border-l-brand-ochre bg-brand-ochre/10' : 'border-brand-clay/50 border-l-brand-clay bg-brand-clay/10',
         className,
       )}
     >
-      <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-raised/80 text-brand-clay">
+      <span className="mt-0.5 text-brand-clay" aria-hidden>
         {synthetic ? <FlaskConical className="size-4" /> : <Archive className="size-4" />}
-      </div>
-      <div className="min-w-0">
-        <p className="font-bold">{synthetic ? t('syntheticTitle') : t('precomputedTitle')}</p>
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold">{synthetic ? t('syntheticTitle') : t('precomputedTitle')}</p>
         <p className="mt-0.5 text-xs leading-relaxed text-fg-muted">
           {synthetic ? t('syntheticBody') : t('precomputedBody', { issued: provenance.issued_date })}
         </p>
-        <p className="mt-1.5 font-mono text-[10px] text-fg-subtle">
-          {t('model', { version: provenance.model_version })} ·{' '}
-          {t('issued', { issued: provenance.issued_date })}
-        </p>
       </div>
+      <p className="hidden shrink-0 self-center font-mono text-[11px] text-fg-subtle md:block">
+        {t('model', { version: provenance.model_version })} · {t('issued', { issued: provenance.issued_date })}
+      </p>
     </div>
   )
 }

@@ -21,10 +21,18 @@
       "reports": "ሪፖርቶች",
       "section": "ምናሌ"
     },
-    "workspace": "የጮቄ ተፋሰስ የሥራ ቦታ",
     "workspaceSub": "ደብረ ማርቆስ ዩኒቨርሲቲ · የኢትዮጵያ AI ኢንስቲትዩት",
-    "greeting": "የተፋሰሱ አጠቃላይ እይታ",
-    "intro": "የድርቅ እድል፣ የሰብል ምክረ ሃሳቦች እና የኤል ኒኞ እይታ ለጮቄ ተራራ ተፋሰስ በአንድ ገጽ።"
+    "greeting": "የድርቅ ትንበያ",
+    "intro": "የድርቅ እድል፣ የሰብል ምክረ ሃሳቦች እና የኤል ኒኞ እይታ ለጮቄ ተራራ ተፋሰስ በአንድ ገጽ።",
+    "eyebrow": "የጮቄ ተራራ ተፋሰስ · አማራ፣ ኢትዮጵያ",
+    "model": {
+      "title": "የትንበያ ሞዴል",
+      "version": "ስሪት",
+      "data": "የሥልጠና መረጃ",
+      "issued": "የወጣበት",
+      "real": "እውነተኛ ምልከታ",
+      "synthetic": "ሰው ሰራሽ"
+    }
   },
   "status": {
     "healthy": "AI ሞተር በመስመር ላይ",
@@ -55,44 +63,42 @@
   },
   "summary": {
     "basinMeanRisk": "የተፋሰሱ አማካይ ድርቅ አደጋ",
-    "spread": "ልዩነት",
-    "min": "ዝቅተኛ",
-    "max": "ከፍተኛ",
-    "forecastTarget": "የትንበያ ኢላማ",
-    "leadAdvance": "የ{lead} ወር ቅድመ ማስጠንቀቂያ",
-    "basinName": "ግብርና-ሥነ-ምህዳር ተፋሰስ",
-    "chokeMountain": "የጮቄ ተራራ",
-    "elevation": "ከፍታ፡ 2,800 – 4,070 ሜትር",
-    "aiFramework": "የአርቴፊሻል ኢንተለጀንስ ሞዴል",
-    "superHybrid": "ሱፐር-ሀይብሪድ",
-    "aiComponents": "CNN-2D + LSTM + ፉሪየር ሞገድ"
+    "range": "በተፋሰሱ ውስጥ ያለው ክልል",
+    "highestRiskCell": "ከፍተኛ አደጋ ያለበት ቦታ",
+    "selectCell": "በካርታው ላይ ምረጥ",
+    "cellsAtRisk": "ከፍተኛ ወይም ከባድ አደጋ ያለባቸው ቦታዎች",
+    "ofCells": "ከ{total} የካርታ ቦታዎች",
+    "ensoState": "የኢንሶ (ENSO) ሁኔታ",
+    "nino34": "የኒኞ 3.4 ልዩነት"
   },
   "grid": {
-    "title": "የጮቄ ተፋሰስ የድርቅ አደጋ ካርታ",
-    "subtitle": "ግብ 2፡ ሱፐር-ሀይብሪድ CNN-LSTM-Fourier SPI-3 ≤ −1.0 እድል",
-    "leadLabel": "የጊዜ ርዝመት",
+    "title": "የተፋሰሱ የድርቅ አደጋ ካርታ",
     "lead1": "1 ወር (ቅርብ)",
     "lead2": "2 ወር (መካከለኛ)",
     "lead3": "3 ወር (ወቅታዊ)",
     "leadGroup": "የትንበያ ጊዜ ርዝመት",
-    "targetHorizon": "ኢላማ",
-    "issued": "የወጣበት",
-    "meanBasinRisk": "አማካይ አደጋ",
     "computingInference": "ትንበያ በማስላት ላይ…",
-    "selectedCell": "የተመረጠ እርሻ ቦታ",
-    "riskProbability": "የአደጋ እድል",
+    "selectedCell": "የተመረጠ ቦታ",
     "cellAria": "ረድፍ {row}፣ አምድ {col}፣ የድርቅ እድል {pct}",
     "moveLeft": "ወደ ግራ",
     "moveRight": "ወደ ቀኝ",
     "moveUp": "ወደ ላይ",
     "moveDown": "ወደ ታች",
-    "legend": "መመሪያ",
     "lowRisk": "<25% (ዝቅተኛ)",
     "moderateRisk": "25–45% (መካከለኛ)",
     "highRisk": "45–65% (ከፍተኛ)",
     "severeRisk": ">65% (አስጊ)",
     "bbox": "ወሰን፡ 37.6°E – 38.4°E, 10.4°N – 11.2°N",
-    "pending": "ትንበያ በመጠባበቅ ላይ"
+    "probabilityOfDrought": "በእያንዳንዱ 10 ኪ.ሜ ቦታ የወቅታዊ ድርቅ እድል (SPI-3 ≤ −1.0)",
+    "north": "ሰሜን",
+    "south": "ደቡብ",
+    "east": "ምሥራቅ",
+    "west": "ምዕራብ",
+    "useArrows": "የቀስት ቁልፎች ምርጫውን ያንቀሳቅሳሉ",
+    "nudge": "የተመረጠውን ቦታ አንቀሳቅስ",
+    "lead1Short": "1 ወር",
+    "lead2Short": "2 ወር",
+    "lead3Short": "3 ወር"
   },
   "risk": {
     "Low": "ዝቅተኛ",
@@ -101,18 +107,27 @@
     "Severe": "አስጊ"
   },
   "advisory": {
-    "title": "የግብርና ውሳኔ ድጋፍ እና ማይክሮ-ምክረ ሃሳቦች",
-    "subtitle": "ግብ 3፡ ለጮቄ ተፋሰስ አርሶ አደሮች የተዘጋጁ ተግባራዊ ምክረ ሃሳቦች",
+    "title": "የሰብል ምክር",
+    "subtitle": "ከግብርና ባለሙያዎች ጋር የተዘጋጀ ለአነስተኛ አርሶ አደሮች የአካባቢ ምክር",
     "targetCrop": "ዋነኛ ሰብል ይምረጡ",
     "crops": {
-      "tef": { "label": "ጤፍ (Tef)", "desc": "አጭር የእድገት ጊዜ" },
-      "wheat": { "label": "ስንዴ (Wheat)", "desc": "እርጥበት ፈላጊ" },
-      "maize": { "label": "በቆሎ (Maize)", "desc": "ከፍተኛ ውሃ ፈላጊ" }
+      "tef": {
+        "label": "ጤፍ",
+        "desc": "አጭር ዑደት"
+      },
+      "wheat": {
+        "label": "ስንዴ",
+        "desc": "በመቀንጨር ወቅት ስሜታዊ"
+      },
+      "maize": {
+        "label": "በቆሎ",
+        "desc": "ከፍተኛ የውሃ ፍላጎት"
+      }
     },
     "iekTitle": "የአካባቢ ባህላዊ እውቀት (IEK)",
-    "iekAgrees": "ይስማማል (ድርቅ ያሳያል)",
-    "iekDisagrees": "አይስማማም (ዝናብ ያሳያል)",
-    "iekNotSet": "አልተመረጠም",
+    "iekAgrees": "ይስማማል",
+    "iekDisagrees": "አይስማማም",
+    "iekNotSet": "አልገባም",
     "evalCrop": "የተመረጠ ሰብል",
     "evalRisk": "የድርቅ አደጋ ደረጃ",
     "cropAdjustedRisk": "ለሰብሉ የተስተካከለ አደጋ",
@@ -125,23 +140,28 @@
     "confidenceRating": "የእርግጠኝነት ደረጃ",
     "evaluating": "ምክረ ሃሳብ በማስላት ላይ…",
     "empty": "ለሰብል-ተኮር ምክረ ሃሳብ ከካርታው ላይ ቦታ ይምረጡ።",
-    "enso": "ኤል ኒኞ"
+    "enso": "ኤል ኒኞ",
+    "forCell": "ቦታ {row},{col}",
+    "iekAgreesHint": "የድርቅ ምልክቶች ታይተዋል",
+    "iekDisagreesHint": "የዝናብ ምልክቶች ታይተዋል",
+    "iekNotSetHint": "የአካባቢ መረጃ የለም"
   },
   "enso": {
-    "title": "የኤል ኒኞ የአየር ንብረት ሞተር (Niño 3.4)",
-    "subtitle": "ግብ 1፡ CNN-LSTM ዓለም አቀፍ የአየር ንብረት ትንበያ",
+    "title": "የኢንሶ (ENSO) የአየር ንብረት ትንበያ",
+    "subtitle": "የክረምት ዝናብን የሚመራ የኒኞ 3.4 ግንኙነት፤ CNN-LSTM ትንበያ",
     "teleconnectionImpact": "የአየር ንብረት ተፅእኖ",
-    "outlookTitle": "CNN-LSTM የኒኞ 3.4 ባለብዙ-ወር እይታ",
+    "outlookTitle": "የታየ ታሪክ እና የብዙ-ጊዜ ትንበያ",
     "threshold": "ገደብ፡ ±0.5 °C",
     "monthPlus": "ወር +{n}",
-    "laNina": "ላ ኒኛ (≤ −0.5 °C)",
-    "neutral": "ገለልተኛ (−0.5 እስከ +0.5 °C)",
-    "elNino": "ኤል ኒኞ (≥ +0.5 °C)",
+    "laNina": "ላ ኒኛ",
+    "neutral": "መካከለኛ",
+    "elNino": "ኤል ኒኞ",
     "loading": "የአየር ንብረት መረጃ በመጫን ላይ…",
     "noForecast": "የኤል ኒኞ ሞዴል ገና አልሰለጠነም፤ የተመዘገቡ እሴቶች ብቻ ይታያሉ።",
     "observed": "የተመዘገበ",
     "forecast": "ትንበያ",
-    "chartAria": "የኒኞ 3.4 ልዩነት፣ ታሪክ እና ትንበያ"
+    "chartAria": "የኒኞ 3.4 ልዩነት፣ ታሪክ እና ትንበያ",
+    "gaugeTitle": "የአሁኑ ደረጃ"
   },
   "reports": {
     "title": "ሪፖርቶች",
@@ -152,5 +172,10 @@
     "affiliation": "አግሪማይንድስ AI-DREWS — ደብረ ማርቆስ ዩኒቨርሲቲ እና የኢትዮጵያ አርቴፊሻል ኢንተለጀንስ ኢንስቲትዩት",
     "telemetry": "CHIRPS · ERA5 · NOAA ONI ሳተላይት መረጃ",
     "framework": "ፓይቶርች (PyTorch) ሱፐር-ሀይብሪድ ጥልቅ ትምህርት"
+  },
+  "controls": {
+    "leadHorizon": "የትንበያ ርቀት",
+    "target": "ኢላማ",
+    "issued": "የወጣበት"
   }
 }

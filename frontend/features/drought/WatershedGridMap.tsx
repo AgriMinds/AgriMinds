@@ -1,24 +1,16 @@
 'use client'
 
-import {
-  Calendar,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronUp,
-  Info,
-  Layers,
-  Navigation,
-} from 'lucide-react'
+import { useCallback, useRef } from 'react'
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Compass, Map } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import type { DroughtMapResponse, LeadMonth, RiskLevel } from '@agriminds/api-types'
-import { LEAD_MONTHS } from '@agriminds/api-types'
+import { RISK_THRESHOLDS } from '@agriminds/api-types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardIcon, CardTitle } from '@/components/ui/card'
+import { Card, CardActions, CardContent, CardDescription, CardFooter, CardHeader, CardHeading, CardIcon, CardTitle } from '@/components/ui/card'
 import { QueryError } from '@/components/ui/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
-import { RISK_DOT_CLASS, cellClassFor } from '@/lib/risk'
+import { RISK_BADGE_VARIANT, RISK_DOT_CLASS, RISK_TEXT_CLASS, cellClassFor } from '@/lib/risk'
 import { cn, formatPercent } from '@/lib/utils'
 
 export type Cell = { row: number; col: number }
@@ -30,224 +22,233 @@ type Props = {
   error: unknown
   onRetry: () => void
   selectedLead: LeadMonth
-  onLeadChange: (lead: LeadMonth) => void
   selectedCell: Cell
   onCellSelect: (cell: Cell) => void
 }
 
-const RISK_BADGE: Record<RiskLevel, 'low' | 'moderate' | 'high' | 'severe'> = {
-  Low: 'low',
-  Moderate: 'moderate',
-  High: 'high',
-  Severe: 'severe',
+const LEVELS: RiskLevel[] = ['Low', 'Moderate', 'High', 'Severe']
+
+/** Threshold legend: four coloured segments proportional to their probability range. */
+function Legend({ t }: { t: ReturnType<typeof useTranslations<'grid'>> }) {
+  const stops = [0, ...RISK_THRESHOLDS.slice(0, 3).map((r) => r.below), 1]
+  return (
+    <div className="w-full">
+      <div className="flex h-2 w-full overflow-hidden rounded-full" aria-hidden>
+        {LEVELS.map((lvl, i) => (
+          <span key={lvl} className={cn(RISK_DOT_CLASS[lvl])} style={{ flexGrow: stops[i + 1]! - stops[i]! }} />
+        ))}
+      </div>
+      <div className="relative mt-1 h-4 text-[10px] font-medium text-fg-subtle tabular" aria-hidden>
+        {stops.map((s) => (
+          <span key={s} className="absolute -translate-x-1/2" style={{ left: `${s * 100}%` }}>
+            {Math.round(s * 100)}%
+          </span>
+        ))}
+      </div>
+      <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-fg-muted">
+        {LEVELS.map((lvl) => (
+          <li key={lvl} className="flex items-center gap-1.5">
+            <span className={cn('size-2 rounded-full', RISK_DOT_CLASS[lvl])} aria-hidden />
+            {t(`${lvl.toLowerCase()}Risk` as 'lowRisk' | 'moderateRisk' | 'highRisk' | 'severeRisk')}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
 }
 
-export function WatershedGridMap({
-  mapData,
-  isLoading,
-  isFetching,
-  error,
-  onRetry,
-  selectedLead,
-  onLeadChange,
-  selectedCell,
-  onCellSelect,
-}: Props) {
+export function WatershedGridMap({ mapData, isLoading, isFetching, error, onRetry, selectedLead, selectedCell, onCellSelect }: Props) {
   const t = useTranslations('grid')
   const tr = useTranslations('risk')
+  const gridRef = useRef<HTMLDivElement>(null)
   const [rows, cols] = mapData?.grid_shape ?? [8, 8]
+  const [lonMin, latMin, lonMax, latMax] = mapData?.bbox ?? [37.6, 10.4, 38.4, 11.2]
   const selected = mapData?.cells.find((c) => c.row === selectedCell.row && c.col === selectedCell.col)
-  const move = (dr: number, dc: number) =>
-    onCellSelect({
-      row: Math.min(Math.max(0, selectedCell.row + dr), rows - 1),
-      col: Math.min(Math.max(0, selectedCell.col + dc), cols - 1),
-    })
-  const leadLabel: Record<LeadMonth, string> = { 1: t('lead1'), 2: t('lead2'), 3: t('lead3') }
+
+  const move = useCallback(
+    (dr: number, dc: number) => {
+      const next = {
+        row: Math.min(Math.max(0, selectedCell.row + dr), rows - 1),
+        col: Math.min(Math.max(0, selectedCell.col + dc), cols - 1),
+      }
+      onCellSelect(next)
+      gridRef.current?.querySelector<HTMLButtonElement>(`[data-cell="${next.row}-${next.col}"]`)?.focus()
+    },
+    [selectedCell, rows, cols, onCellSelect],
+  )
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const d: Record<string, [number, number]> = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }
+    const delta = d[e.key]
+    if (!delta) return
+    e.preventDefault()
+    move(...delta)
+  }
+
+  const lat = (r: number) => (latMax - ((r + 0.5) * (latMax - latMin)) / rows).toFixed(2)
+  const lon = (c: number) => (lonMin + ((c + 0.5) * (lonMax - lonMin)) / cols).toFixed(2)
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <CardIcon>
-              <Layers />
-            </CardIcon>
+        <CardHeading>
+          <CardIcon>
+            <Map />
+          </CardIcon>
+          <div className="min-w-0">
             <CardTitle>{t('title')}</CardTitle>
+            <CardDescription>{t('probabilityOfDrought')}</CardDescription>
           </div>
-          <CardDescription>{t('subtitle')}</CardDescription>
-        </div>
-        <div
-          role="group"
-          aria-label={t('leadGroup')}
-          className="flex items-center gap-1 self-start rounded-xl bg-surface-sunken p-1"
-        >
-          <span className="hidden items-center gap-1 px-2 text-[11px] font-semibold text-fg-muted sm:flex">
-            <Calendar className="size-3" /> {t('leadLabel')}
-          </span>
-          {LEAD_MONTHS.map((lead) => (
-            <button
-              key={lead}
-              type="button"
-              onClick={() => onLeadChange(lead)}
-              aria-pressed={selectedLead === lead}
-              className={cn(
-                'min-h-9 rounded-lg px-2.5 text-[11px] font-bold transition-colors focus-visible:ring-2 focus-visible:ring-ring sm:text-xs',
-                selectedLead === lead
-                  ? 'bg-primary text-primary-fg shadow-xs'
-                  : 'text-fg-muted hover:bg-border/50 hover:text-fg',
-              )}
-            >
-              <span className="hidden sm:inline">{leadLabel[lead]}</span>
-              <span className="sm:hidden">{lead} mo</span>
-            </button>
-          ))}
-        </div>
+        </CardHeading>
+        <CardActions>
+          <Badge variant="outline">{t(`lead${selectedLead}` as 'lead1' | 'lead2' | 'lead3')}</Badge>
+          {mapData && <Badge variant="default">{mapData.target_date}</Badge>}
+        </CardActions>
       </CardHeader>
 
       <CardContent>
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-[11px] sm:text-xs">
-          <span className="truncate">
-            <strong>{t('targetHorizon')}:</strong> {mapData?.target_date ?? t('pending')}
-          </span>
-          <span className="truncate">
-            <strong>{t('issued')}:</strong> {mapData?.issued_date ?? '--'}
-          </span>
-          <span className="truncate font-semibold">
-            <strong>{t('meanBasinRisk')}:</strong> {formatPercent(mapData?.mean_probability)}
-          </span>
-        </div>
-
         {error && !mapData ? (
           <QueryError error={error} onRetry={onRetry} isRetrying={isFetching} />
         ) : (
           <div className="relative">
             {isFetching && mapData && (
-              <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-surface-raised/70 backdrop-blur-[2px]">
-                <span className="flex items-center gap-2 text-xs font-semibold text-primary">
+              <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-surface-raised/60 backdrop-blur-[1px]">
+                <span className="flex items-center gap-2 rounded-full border border-border bg-surface-raised px-3 py-1.5 text-xs font-semibold text-primary shadow-md">
                   <span className="size-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   {t('computingInference')}
                 </span>
               </div>
             )}
-            <div
-              role="grid"
-              aria-label={t('title')}
-              className="grid gap-1 rounded-2xl border border-border bg-surface-sunken p-1.5 sm:gap-1.5 sm:p-2"
-              style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-            >
-              {isLoading && !mapData
-                ? Array.from({ length: rows * cols }, (_, i) => (
-                    <Skeleton key={i} className="aspect-square rounded-md sm:rounded-lg" />
-                  ))
-                : mapData?.probabilities.map((rowVals, r) =>
-                    rowVals.map((p, c) => {
-                      const isSelected = r === selectedCell.row && c === selectedCell.col
-                      return (
-                        <button
-                          key={`${r}-${c}`}
-                          type="button"
-                          role="gridcell"
-                          aria-selected={isSelected}
-                          aria-label={t('cellAria', { row: r, col: c, pct: formatPercent(p) })}
-                          onClick={() => onCellSelect({ row: r, col: c })}
-                          className={cn(
-                            'flex aspect-square flex-col items-center justify-center rounded-md p-0.5 font-black transition-[transform,opacity] duration-150 active:scale-90 sm:rounded-lg',
-                            cellClassFor(p),
-                            isSelected
-                              ? 'z-10 scale-105 shadow-lg ring-3 ring-fg sm:ring-4'
-                              : 'opacity-90 hover:opacity-100 hover:scale-[1.02]',
-                          )}
-                        >
-                          <span className="text-[10px] leading-none sm:text-xs">{formatPercent(p)}</span>
-                          <span className="mt-0.5 hidden font-mono text-[8px] leading-none opacity-80 sm:block sm:text-[9px]">
-                            {r},{c}
-                          </span>
-                        </button>
-                      )
-                    }),
-                  )}
-            </div>
-          </div>
-        )}
 
-        {selected && (
-          <div className="flex flex-col justify-between gap-2.5 rounded-xl border border-border bg-surface-sunken/70 p-2.5 sm:flex-row sm:items-center sm:p-3">
-            <div className="flex min-w-0 items-center gap-2">
-              <CardIcon className="size-6 [&_svg]:size-3.5">
-                <Navigation />
-              </CardIcon>
-              <div className="truncate text-[11px] sm:text-xs">
-                {t('selectedCell')}:{' '}
-                <strong>
-                  {selected.row},{selected.col}
-                </strong>{' '}
-                <span className="font-mono text-fg-subtle">
-                  ({selected.latitude}°N, {selected.longitude}°E)
+            {/* Map frame: longitude ticks across the top, latitude ticks down the left. */}
+            <div className="rounded-2xl border border-border bg-surface-sunken/60 p-3 sm:p-4">
+              <div className="mb-1.5 flex items-center justify-between pl-9 text-[10px] font-semibold tracking-wide text-fg-subtle uppercase">
+                <span>{t('west')}</span>
+                <span className="flex items-center gap-1 text-fg-muted">
+                  <Compass className="size-3.5 text-primary" aria-hidden /> {t('north')}
                 </span>
+                <span>{t('east')}</span>
               </div>
-            </div>
-            <div className="flex shrink-0 items-center justify-between gap-2.5 sm:justify-end">
-              <div className="flex items-center gap-0.5 rounded-lg bg-border/50 p-0.5">
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t('moveLeft')}
-                  disabled={selectedCell.col === 0}
-                  onClick={() => move(0, -1)}
+              <div className="grid grid-cols-[auto_1fr] gap-1.5">
+                <div className="flex flex-col justify-around pr-1 font-mono text-[9px] text-fg-subtle tabular sm:text-[10px]" aria-hidden>
+                  {Array.from({ length: rows }, (_, r) => (
+                    <span key={r} className="text-right leading-none">
+                      {lat(r)}
+                    </span>
+                  ))}
+                </div>
+                <div
+                  ref={gridRef}
+                  role="grid"
+                  aria-label={t('title')}
+                  aria-rowcount={rows}
+                  aria-colcount={cols}
+                  onKeyDown={onKeyDown}
+                  className="grid gap-1 sm:gap-1.5"
+                  style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
                 >
-                  <ChevronLeft />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t('moveUp')}
-                  disabled={selectedCell.row === 0}
-                  onClick={() => move(-1, 0)}
-                >
-                  <ChevronUp />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t('moveDown')}
-                  disabled={selectedCell.row === rows - 1}
-                  onClick={() => move(1, 0)}
-                >
-                  <ChevronDown />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t('moveRight')}
-                  disabled={selectedCell.col === cols - 1}
-                  onClick={() => move(0, 1)}
-                >
-                  <ChevronRight />
-                </Button>
+                  {isLoading && !mapData
+                    ? Array.from({ length: rows * cols }, (_, i) => <Skeleton key={i} className="aspect-square rounded-md" />)
+                    : mapData?.probabilities.map((rowVals, r) =>
+                        rowVals.map((p, c) => {
+                          const isSelected = r === selectedCell.row && c === selectedCell.col
+                          return (
+                            <button
+                              key={`${r}-${c}`}
+                              type="button"
+                              role="gridcell"
+                              data-cell={`${r}-${c}`}
+                              tabIndex={isSelected ? 0 : -1}
+                              aria-selected={isSelected}
+                              aria-rowindex={r + 1}
+                              aria-colindex={c + 1}
+                              aria-label={t('cellAria', { row: r, col: c, pct: formatPercent(p) })}
+                              title={`${lat(r)}°N, ${lon(c)}°E`}
+                              onClick={() => onCellSelect({ row: r, col: c })}
+                              className={cn(
+                                'flex aspect-square items-center justify-center rounded-md font-display text-[11px] font-semibold tabular transition-[transform,filter,box-shadow] duration-150 outline-none sm:rounded-lg sm:text-xs',
+                                cellClassFor(p),
+                                isSelected
+                                  ? 'z-10 scale-[1.08] shadow-lg ring-2 ring-fg ring-offset-2 ring-offset-surface-sunken'
+                                  : 'hover:z-10 hover:scale-[1.04] hover:brightness-110 focus-visible:ring-2 focus-visible:ring-ring',
+                              )}
+                            >
+                              {formatPercent(p)}
+                            </button>
+                          )
+                        }),
+                      )}
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 text-xs">
-                <span className="font-extrabold">{formatPercent(selected.probability, 1)}</span>
-                <Badge variant={RISK_BADGE[selected.risk_level]}>{tr(selected.risk_level)}</Badge>
+              <div className="mt-1.5 flex justify-between pl-9 font-mono text-[9px] text-fg-subtle tabular sm:text-[10px]" aria-hidden>
+                {Array.from({ length: cols }, (_, c) => (
+                  <span key={c}>{lon(c)}</span>
+                ))}
               </div>
+              <div className="mt-1 text-center text-[10px] font-semibold tracking-wide text-fg-subtle uppercase">{t('south')}</div>
             </div>
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-fg-muted sm:text-xs">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <span className="font-bold text-fg">{t('legend')}:</span>
-            {(['Low', 'Moderate', 'High', 'Severe'] as const).map((lvl) => (
-              <span key={lvl} className="flex items-center gap-1">
-                <span className={cn('size-2 rounded-full', RISK_DOT_CLASS[lvl])} />
-                {t(`${lvl.toLowerCase()}Risk` as 'lowRisk' | 'moderateRisk' | 'highRisk' | 'severeRisk')}
-              </span>
-            ))}
+        {/* Inspector for the selected cell + keyboard-friendly nudge pad */}
+        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface-raised p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+          <div className="flex min-w-0 items-center gap-3">
+            {selected ? (
+              <>
+                <div className={cn('font-display text-3xl font-bold tabular', RISK_TEXT_CLASS[selected.risk_level])}>
+                  {formatPercent(selected.probability, 1)}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">{t('selectedCell')}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="font-display text-sm font-semibold tabular">
+                      {selected.row},{selected.col}
+                    </span>
+                    <Badge variant={RISK_BADGE_VARIANT[selected.risk_level]} size="sm">
+                      {tr(selected.risk_level)}
+                    </Badge>
+                  </div>
+                  <div className="truncate font-mono text-[11px] text-fg-subtle">
+                    {selected.latitude}°N, {selected.longitude}°E
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <Skeleton className="h-9 w-16" />
+                <div className="flex flex-col gap-1.5">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-28" />
+                </div>
+              </>
+            )}
           </div>
-          <span className="flex items-center gap-1 font-mono text-[10px] text-fg-subtle">
-            <Info className="size-3 shrink-0" /> {t('bbox')}
-          </span>
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            <span className="hidden text-[11px] text-fg-subtle 2xl:block">{t('useArrows')}</span>
+            <div className="grid grid-cols-3 gap-0.5" role="group" aria-label={t('nudge')}>
+              <span />
+              <Button variant="subtle" size="icon-sm" aria-label={t('moveUp')} disabled={selectedCell.row === 0} onClick={() => move(-1, 0)}>
+                <ChevronUp />
+              </Button>
+              <span />
+              <Button variant="subtle" size="icon-sm" aria-label={t('moveLeft')} disabled={selectedCell.col === 0} onClick={() => move(0, -1)}>
+                <ChevronLeft />
+              </Button>
+              <Button variant="subtle" size="icon-sm" aria-label={t('moveDown')} disabled={selectedCell.row === rows - 1} onClick={() => move(1, 0)}>
+                <ChevronDown />
+              </Button>
+              <Button variant="subtle" size="icon-sm" aria-label={t('moveRight')} disabled={selectedCell.col === cols - 1} onClick={() => move(0, 1)}>
+                <ChevronRight />
+              </Button>
+            </div>
+          </div>
         </div>
       </CardContent>
+
+      <CardFooter className="flex-col items-stretch gap-3">
+        <Legend t={t} />
+        <p className="font-mono text-[10px] text-fg-subtle">{t('bbox')}</p>
+      </CardFooter>
     </Card>
   )
 }
