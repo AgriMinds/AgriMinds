@@ -193,7 +193,7 @@
   },
   "footer": {
     "affiliation": "AgriMinds AI-DREWS — Yuunivarsiitii Dabra Maarqoos & Dhaabbata AI Itoophiyaa",
-    "telemetry": "Odeeffannoo saateelaayitii CHIRPS · ERA5 · NOAA ONI",
+    "telemetry": "Galtee CHIRPS, ERA5 fi NOAA ONI tiif kan qophaa’e",
     "framework": "PyTorch Super-Hybrid Deep Learning"
   },
   "controls": {
@@ -407,6 +407,7 @@
     "statusConnected": "Walqunnamee jira",
     "statusSynthetic": "Daataa yeroo",
     "statusNotConnected": "Hin walqunnamne",
+    "inputsTitle": "Galteewwan shanan",
     "legend": "Maddi tokkoon tokkoon maaliif akka tajaajiluu fi daataa dhugaa dhiyeessuu isaa agarsiifameera.",
     "empty": "Sirna kana irraa tarreen hin argamne."
   }

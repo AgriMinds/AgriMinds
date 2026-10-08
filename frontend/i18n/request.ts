@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { getRequestConfig } from 'next-intl/server'
-import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, type Locale } from '@/i18n/config'
+import { DEFAULT_LOCALE, FORMATS, LOCALE_COOKIE, isLocale, type Locale } from '@/i18n/config'
 
 /**
  * Locale is selected with a cookie (no locale routing): the dashboard is a single internal page and
@@ -18,5 +18,6 @@ export default getRequestConfig(async () => {
     locale,
     messages: (await import(`../messages/${locale}.json`)).default,
     timeZone: 'Africa/Addis_Ababa',
+    formats: FORMATS,
   }
 })

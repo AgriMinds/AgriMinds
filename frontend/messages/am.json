@@ -193,7 +193,7 @@
   },
   "footer": {
     "affiliation": "አግሪማይንድስ AI-DREWS — ደብረ ማርቆስ ዩኒቨርሲቲ እና የኢትዮጵያ አርቴፊሻል ኢንተለጀንስ ኢንስቲትዩት",
-    "telemetry": "CHIRPS · ERA5 · NOAA ONI ሳተላይት መረጃ",
+    "telemetry": "ለCHIRPS፣ ERA5 እና NOAA ONI ግብዓቶች የተዘጋጀ",
     "framework": "ፓይቶርች (PyTorch) ሱፐር-ሀይብሪድ ጥልቅ ትምህርት"
   },
   "controls": {
@@ -407,6 +407,7 @@
     "statusConnected": "ተገናኝቷል",
     "statusSynthetic": "ጊዜያዊ መረጃ",
     "statusNotConnected": "አልተገናኘም",
+    "inputsTitle": "አምስቱ ግብዓቶች",
     "legend": "እያንዳንዱ ምንጭ ለምን እንደሚያገለግልና እውነተኛ መረጃ እያቀረበ መሆኑ ተመልክቷል።",
     "empty": "ከዚህ ሥርዓት ዝርዝር አልተገኘም።"
   }

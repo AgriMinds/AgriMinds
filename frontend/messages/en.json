@@ -193,7 +193,7 @@
   },
   "footer": {
     "affiliation": "AgriMinds AI-DREWS — Debre Markos University & AI Institute of Ethiopia.",
-    "telemetry": "CHIRPS · ERA5 · NOAA ONI telemetry",
+    "telemetry": "Built for CHIRPS, ERA5 and NOAA ONI inputs",
     "framework": "PyTorch Super-Hybrid deep learning"
   },
   "controls": {
@@ -407,6 +407,7 @@
     "statusConnected": "Connected",
     "statusSynthetic": "Stand-in data",
     "statusNotConnected": "Not connected",
+    "inputsTitle": "The five inputs",
     "legend": "Each input is shown with what it feeds and whether anything real is supplying it.",
     "empty": "No inventory is available from this deployment."
   }

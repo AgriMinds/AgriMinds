@@ -4,7 +4,16 @@ import { AlertTriangle, CheckCircle2, CircleDashed, Database, FlaskConical, type
 import { useTranslations } from 'next-intl'
 import type { DataInventory } from '@agriminds/api-types'
 import { Badge, type BadgeProps } from '@/components/ui/badge'
-import { Card, CardContent, CardFooter, CardHeader, CardHeading, CardIcon, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardHeading,
+  CardIcon,
+  CardTitle,
+} from '@/components/ui/card'
 import { QueryError } from '@/components/ui/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDataSources } from '@/features/system/useDataSources'
@@ -48,7 +57,7 @@ function SourceRow({ source }: { source: DataInventory['sources'][number] }) {
   const t = useTranslations('dataSources')
   const { icon: Icon, badge, label, row, mark } = TREATMENT[source.status]
   return (
-    <li className={cn('flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-start sm:gap-4', row)}>
+    <li className={cn('flex items-start gap-3 rounded-xl border p-4 sm:gap-4', row)}>
       <Icon className={cn('mt-0.5 size-5 shrink-0', mark)} aria-hidden />
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
@@ -156,7 +165,10 @@ export function DataSourcesPage() {
             <Card>
               <CardHeader>
                 <CardHeading>
-                  <CardTitle>{t('legend')}</CardTitle>
+                  <div className="min-w-0">
+                    <CardTitle>{t('inputsTitle')}</CardTitle>
+                    <CardDescription>{t('legend')}</CardDescription>
+                  </div>
                 </CardHeading>
               </CardHeader>
               <CardContent>

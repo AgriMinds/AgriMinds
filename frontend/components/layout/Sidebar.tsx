@@ -203,10 +203,10 @@ function LanguageChoice() {
               disabled={pending}
               onClick={() => startTransition(() => setLocale(l))}
               className={cn(
-                'flex min-h-11 items-center justify-between rounded-lg px-3 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-brand-lime disabled:opacity-60',
+                'flex min-h-11 items-center justify-between rounded-lg border px-3 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-brand-lime disabled:opacity-60',
                 selected
-                  ? 'bg-brand-lime font-semibold text-brand-forest-deep'
-                  : 'text-white/70 hover:bg-white/[0.06] hover:text-white',
+                  ? 'border-brand-lime bg-brand-lime font-semibold text-brand-forest-deep'
+                  : 'border-white/12 text-white/70 hover:border-white/25 hover:bg-white/[0.06] hover:text-white',
               )}
             >
               {LOCALE_LABEL[l]}
