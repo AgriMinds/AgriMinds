@@ -1,7 +1,17 @@
 from fastapi import APIRouter, Depends
 
 from agriminds_api.api.deps import require_principal
-from agriminds_api.api.v1 import advisory, auth, dashboard, drought, enso, farms, health
+from agriminds_api.api.v1 import (
+    advisory,
+    analytics,
+    auth,
+    dashboard,
+    drought,
+    enso,
+    farms,
+    health,
+    system,
+)
 from agriminds_api.schemas.common import ErrorResponse
 
 api_router = APIRouter()
@@ -32,4 +42,6 @@ _private = APIRouter(
 )
 _private.include_router(farms.router)
 _private.include_router(dashboard.router)
+_private.include_router(analytics.router)
+_private.include_router(system.router)
 api_router.include_router(_private)

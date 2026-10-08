@@ -14,7 +14,12 @@ from pydantic import BaseModel, Field
 
 from agriminds_api.schemas.advisory import AdvisoryResponse
 from agriminds_api.schemas.auth import UserOut
-from agriminds_api.schemas.common import CropName, ForecastProvenance, RiskLevelName
+from agriminds_api.schemas.common import (
+    CropName,
+    EnsoCategoryName,
+    ForecastProvenance,
+    RiskLevelName,
+)
 from agriminds_api.schemas.farm import FarmOut
 
 
@@ -30,7 +35,10 @@ class FarmerDashboard(BaseModel):
     advisory_acknowledged_at: datetime | None = Field(
         None, description="When the farmer confirmed they had read this advisory"
     )
-    enso_state: str | None = None
+    enso_state: str | None = Field(None, description="Coarse phase right now")
+    enso_category: EnsoCategoryName | None = Field(
+        None, description="Five-way band right now; the advisory's own band refers to its target month"
+    )
     enso_summary: str | None = None
     provenance: ForecastProvenance | None = None
 

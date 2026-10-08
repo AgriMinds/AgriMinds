@@ -86,12 +86,14 @@ export function WatershedSummary({ mapData, ensoData, isLoading, selectedLead, o
       >
         {s && (
           <div className="flex h-1.5 w-full gap-0.5 overflow-hidden rounded-full" aria-hidden>
-            {mapData?.cells.map((c) => (
-              <span
-                key={`${c.row}-${c.col}`}
-                className={cn('flex-1', c.risk_level === 'High' || c.risk_level === 'Severe' ? 'bg-risk-severe' : 'bg-surface-sunken')}
-              />
-            ))}
+            {mapData?.cells
+              .filter((c) => c.in_watershed !== false)
+              .map((c) => (
+                <span
+                  key={`${c.row}-${c.col}`}
+                  className={cn('flex-1', c.risk_level === 'High' || c.risk_level === 'Severe' ? 'bg-risk-severe' : 'bg-surface-sunken')}
+                />
+              ))}
           </div>
         )}
       </Stat>

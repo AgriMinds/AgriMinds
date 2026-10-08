@@ -92,6 +92,8 @@ jobs:
           for i in $(seq 1 40); do curl -fsS http://localhost:8000/api/v1/health >/dev/null && break; sleep 3; done
           docker compose run --rm backend alembic upgrade head
           docker compose run --rm backend agriminds seed --demo
+          docker compose run --rm backend agriminds snapshot-risk
+          docker compose run --rm backend agriminds snapshot-risk  # must be idempotent
           curl -fsS http://localhost:8000/api/v1/health | tee /dev/stderr | grep -q '"reachable":true'
           TOKEN=$(curl -fsS -X POST http://localhost:8000/api/v1/auth/login \
             -H 'Content-Type: application/json' \

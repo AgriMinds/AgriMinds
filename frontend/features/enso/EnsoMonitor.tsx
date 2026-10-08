@@ -118,8 +118,11 @@ export function EnsoMonitor({ data, isLoading, isFetching, error, onRetry }: Pro
                 </div>
                 <p className="mt-0.5 flex flex-wrap items-baseline gap-x-2 text-sm">
                   <span className={cn('font-semibold', ENSO_TEXT_CLASS[band])}>{bandName(band)}</span>
-                  {/* The coarse three-way phase stays visible so the finer band never looks like a rename. */}
-                  <span className="text-xs text-fg-muted">({data.current_state})</span>
+                  {/* The coarse three-way phase is shown only when it says something different —
+                      "Neutral (Neutral)" is noise. */}
+                  {data.current_state !== band && (
+                    <span className="text-xs text-fg-muted">({data.current_state})</span>
+                  )}
                 </p>
 
                 <div

@@ -90,6 +90,7 @@ class DashboardService:
         try:
             outlook = self._enso.outlook()
             dashboard.enso_state = outlook.current_state
+            dashboard.enso_category = outlook.current_category
             dashboard.enso_summary = outlook.teleconnection_summary
         except ModelUnavailableError:
             pass

@@ -2,18 +2,18 @@
 
 import { useMemo, useState } from 'react'
 import { Plus, Sprout, Waves } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import type { Farm, LeadMonth } from '@agriminds/api-types'
 import { LEAD_MONTHS } from '@agriminds/api-types'
 import { Button } from '@/components/ui/button'
 import { QueryError } from '@/components/ui/query-state'
 import { SegmentedControl } from '@/components/ui/segmented'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useGroundConditions } from '@/features/conditions/useGround'
 import { AdvisoryActionCard } from '@/features/farmer/AdvisoryActionCard'
 import { PlotCard } from '@/features/farmer/PlotCard'
 import { PlotDialog } from '@/features/farmer/PlotDialog'
 import { useAcknowledge, useFarmAdvisory, useFarmerDashboard } from '@/features/farmer/useFarmer'
+import { localeName } from '@/features/ministry/useMinistry'
 import { ProvenanceBanner } from '@/features/summary/ProvenanceBanner'
 import { ensoKey } from '@/lib/classification'
 
@@ -27,8 +27,8 @@ export function FarmerDashboard() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [dialog, setDialog] = useState<DialogState>({ open: false })
 
+  const locale = useLocale()
   const dashboard = useFarmerDashboard(lead)
-  const { groundFor } = useGroundConditions()
   const data = dashboard.data
   const farms = useMemo(() => data?.farms ?? [], [data])
 
@@ -38,6 +38,7 @@ export function FarmerDashboard() {
   const picked = useFarmAdvisory(activeId, lead, !usingDefault)
   const advisory = usingDefault ? data?.advisory : picked.data
   const activeFarm = farms.find((f) => f.id === activeId)
+  const woreda = data?.user.woreda
 
   // The dashboard and the per-plot endpoint both identify the advisory record they wrote,
   // which is what the acknowledge endpoint takes.
@@ -66,7 +67,7 @@ export function FarmerDashboard() {
         <div className="mx-auto flex max-w-[1200px] flex-col gap-4 px-4 pt-8 pb-7 sm:px-6 lg:px-8">
           <div className="reveal">
             <p className="text-xs font-semibold tracking-[0.14em] text-primary uppercase">
-              {data?.user.woreda?.name_en ?? t('eyebrow')}
+              {woreda ? localeName(woreda, locale) : t('eyebrow')}
             </p>
             <h1 className="mt-2 font-display text-display font-bold">
               {data ? t('greeting', { name: data.user.full_name.split(' ')[0] ?? '' }) : t('greetingPlain')}
@@ -80,14 +81,12 @@ export function FarmerDashboard() {
               onChange={setLead}
               options={LEAD_MONTHS.map((l) => ({ value: l, label: leadLabel(l) }))}
             />
-            {/* The band is for the month the advice covers, so the month is named with it. */}
-            {advisory?.enso_category && (
+            {/* The ocean as it is today. The advisory card carries the band for the month the
+                advice covers, which is a different reading and often a different band. */}
+            {data?.enso_category && (
               <span className="flex items-center gap-1.5 text-xs text-fg-muted">
                 <Waves className="size-3.5 text-primary" aria-hidden />
-                {t('ensoBandLine', {
-                  month: advisory.target_date,
-                  band: tb(ensoKey(advisory.enso_category)),
-                })}
+                {t('ensoNowBand', { band: tb(ensoKey(data.enso_category)) })}
               </span>
             )}
           </div>
@@ -111,6 +110,7 @@ export function FarmerDashboard() {
         ) : (
           <>
             {advisory ? (
+              <div id="advice" className="scroll-mt-24">
               <AdvisoryActionCard
                 advisory={advisory}
                 plotName={activeFarm?.name}
@@ -122,9 +122,10 @@ export function FarmerDashboard() {
                   setJustAcknowledged((prev) => new Set(prev).add(recordId))
                   acknowledge.mutate(recordId)
                 }}
-                ground={activeFarm ? groundFor(activeFarm.grid_row, activeFarm.grid_col) : null}
+                ground={activeFarm?.risk?.pdsi_category ?? null}
                 isStale={dashboard.isFetching || picked.isFetching}
               />
+              </div>
             ) : (
               <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border-strong bg-surface-raised/50 px-6 py-12 text-center">
                 <span className="flex size-12 items-center justify-center rounded-xl bg-surface-sunken text-fg-subtle" aria-hidden>
@@ -139,7 +140,7 @@ export function FarmerDashboard() {
             )}
 
             {farms.length > 0 && (
-              <section aria-labelledby="plots-heading" className="flex flex-col gap-3">
+              <section id="plots" aria-labelledby="plots-heading" className="flex scroll-mt-24 flex-col gap-3">
                 <div className="flex items-center justify-between gap-3">
                   <h2 id="plots-heading" className="font-display text-lg font-semibold">
                     {t('myPlots', { count: farms.length })}
@@ -157,7 +158,7 @@ export function FarmerDashboard() {
                       selected={farm.id === activeId}
                       onSelect={() => setSelectedId(farm.id)}
                       onEdit={() => setDialog({ open: true, farm })}
-                      ground={groundFor(farm.grid_row, farm.grid_col)}
+                      ground={farm.risk?.pdsi_category ?? null}
                     />
                   ))}
                 </div>
@@ -165,7 +166,10 @@ export function FarmerDashboard() {
             )}
 
             {data?.enso_summary && (
-              <p className="rounded-xl border border-border bg-surface-raised p-4 text-sm leading-relaxed text-fg-muted">
+              <p
+                id="season"
+                className="scroll-mt-24 rounded-xl border border-border bg-surface-raised p-4 text-sm leading-relaxed text-fg-muted"
+              >
                 <Waves className="mr-2 inline size-4 text-primary" aria-hidden />
                 {data.enso_summary}
               </p>

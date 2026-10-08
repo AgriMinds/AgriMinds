@@ -13,7 +13,7 @@ export function Shell({ children, user }: Props) {
   const t = useTranslations('footer')
   return (
     <div className="min-h-svh">
-      <Sidebar open={navOpen} onClose={() => setNavOpen(false)} role={user.role} />
+      <Sidebar open={navOpen} onClose={() => setNavOpen(false)} user={user} />
       <div className="flex min-h-svh flex-col lg:pl-[264px]">
         <TopBar onOpenNav={() => setNavOpen(true)} user={user} />
         <main id="main" tabIndex={-1} className="flex-1 outline-none">

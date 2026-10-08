@@ -18,6 +18,15 @@ export type EnsoCategory = Schemas['EnsoOutlookResponse']['current_category']
 export type PdsiCategory = NonNullable<Schemas['GridCellRisk']['pdsi_category']>
 export type ObservedConditions = Schemas['ObservedConditions']
 
+/** The surveyed Choke Mountain Watershed outline (18,948 km2) and which grid cells fall in it. */
+export type WatershedBoundary = Schemas['WatershedBoundary']
+export type WatershedGrid = Schemas['WatershedGrid']
+
+/** What the forecast is actually built from, reported from disk rather than a fixed list. */
+export type DataInventory = Schemas['DataInventory']
+export type DataSource = Schemas['DataSource']
+export type SourceStatus = DataSource['status']
+
 export const ENSO_CATEGORIES = [
   'High La Niña',
   'Moderate La Niña',
@@ -111,5 +120,10 @@ export function isStaff(role: Role): boolean {
 export function homePathFor(role: Role): '/farm' | '/ministry' {
   return role === 'farmer' ? '/farm' : '/ministry'
 }
+
+// ---- analytics (Power BI) ------------------------------------------------------------
+export type PowerBiStatus = Schemas['PowerBiStatus']
+export type EmbedConfig = Schemas['EmbedConfig']
+export type AnalyticsConnection = Schemas['AnalyticsConnection']
 
 export const API_V1_PREFIX = '/api/v1'

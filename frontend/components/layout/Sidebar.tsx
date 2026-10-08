@@ -2,12 +2,27 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Leaf, Map, Sprout, X, type LucideIcon } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import {
+  BarChart3,
+  Database,
+  Leaf,
+  ListChecks,
+  Map,
+  Sprout,
+  Waves,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
+import { useLocale, useTranslations } from 'next-intl'
+import { useTransition } from 'react'
 import type { Role } from '@agriminds/api-types'
-import { isStaff } from '@agriminds/api-types'
+import { setLocale } from '@/app/actions/locale'
 import { Button } from '@/components/ui/button'
+import { useFarmerDashboard } from '@/features/farmer/useFarmer'
 import { useHealth } from '@/features/health/useHealth'
+import { localeName } from '@/features/ministry/useMinistry'
+import { useActiveSection } from '@/hooks/useActiveSection'
+import { LOCALES, type Locale } from '@/i18n/config'
 import { cn } from '@/lib/utils'
 
 type NavItem = { href: string; key: string; icon: LucideIcon }
@@ -18,8 +33,19 @@ export function navForRole(role: Role): NavItem[] {
   return [
     { href: '/ministry', key: 'ministry', icon: Leaf },
     { href: '/watershed', key: 'watershed', icon: Map },
+    { href: '/analytics', key: 'analytics', icon: BarChart3 },
+    { href: '/data-sources', key: 'dataSources', icon: Database },
   ]
 }
+
+/** Anchors on the farm dashboard. A farmer has one page, so its sections are the navigation. */
+export const FARM_SECTIONS: { id: string; key: string; icon: LucideIcon }[] = [
+  { id: 'advice', key: 'advice', icon: ListChecks },
+  { id: 'plots', key: 'plots', icon: Sprout },
+  { id: 'season', key: 'season', icon: Waves },
+]
+
+const LOCALE_LABEL: Record<Locale, string> = { en: 'English', am: 'አማርኛ', or: 'Afaan Oromoo' }
 
 function ModelCard() {
   const t = useTranslations('app.model')
@@ -54,13 +80,153 @@ function ModelCard() {
   )
 }
 
-type Props = { open: boolean; onClose: () => void; role: Role }
+/**
+ * Who is signed in.
+ *
+ * The farmer variant also names their land, because "2 plots · Hulet Ej Enese" tells them at a
+ * glance that the figures on screen are about their fields and not somebody else's. It reads the
+ * dashboard query for the default lead month, which the farm page requests anyway, so this costs
+ * no extra request.
+ */
+function Identity({ user, detail }: { user: { name: string; role: Role }; detail?: string }) {
+  const tr = useTranslations('roles')
+  const initials = user.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0] ?? '')
+    .join('')
+    .toUpperCase()
+  return (
+    <div className="mx-4 mb-2 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.06] p-3">
+      <span
+        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-sage/25 text-xs font-bold text-white"
+        aria-hidden
+      >
+        {initials || '\u2014'}
+      </span>
+      <span className="min-w-0 leading-tight">
+        <span className="block truncate text-sm font-semibold">{user.name}</span>
+        <span className="block truncate text-[11px] text-white/55">{detail ?? tr(user.role)}</span>
+      </span>
+    </div>
+  )
+}
 
-export function Sidebar({ open, onClose, role }: Props) {
+function FarmerIdentity({ user }: { user: { name: string; role: Role } }) {
+  const t = useTranslations('sidebar')
+  const locale = useLocale()
+  const { data } = useFarmerDashboard(1)
+  const woreda = data?.user.woreda
+  const detail = data
+    ? [t('plotsCount', { count: data.farms.length }), woreda && localeName(woreda, locale)]
+        .filter(Boolean)
+        .join(' \u00b7 ')
+    : undefined
+  return <Identity user={user} detail={detail} />
+}
+
+/**
+ * Sections of the farm dashboard, with the one in view highlighted.
+ *
+ * A farmer has a single page, so a list of routes would be one link in an empty column. Jumping
+ * to the part they want is the navigation they actually need, and on a phone it saves scrolling
+ * past advice they have already read.
+ */
+function FarmSections({ onNavigate }: { onNavigate: () => void }) {
+  const t = useTranslations('nav')
+  const ids = FARM_SECTIONS.map((s) => s.id)
+  const active = useActiveSection(ids)
+  return (
+    <>
+      <p className="px-3 pt-4 pb-2 text-[10px] font-semibold tracking-[0.18em] text-white/40 uppercase">
+        {t('onThisPage')}
+      </p>
+      <ul className="flex flex-col gap-0.5">
+        {FARM_SECTIONS.map(({ id, key, icon: Icon }) => {
+          const current = active === id
+          return (
+            <li key={id}>
+              <a
+                href={`#${id}`}
+                onClick={onNavigate}
+                aria-current={current ? 'location' : undefined}
+                className={cn(
+                  'relative flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-brand-lime',
+                  current ? 'bg-white/10 text-white' : 'text-white/65 hover:bg-white/[0.06] hover:text-white',
+                )}
+              >
+                <span
+                  className={cn(
+                    'absolute top-1/2 left-0 h-5 w-0.75 -translate-y-1/2 rounded-full bg-brand-lime transition-opacity',
+                    current ? 'opacity-100' : 'opacity-0',
+                  )}
+                  aria-hidden
+                />
+                <Icon className={cn('size-[18px]', current ? 'text-brand-lime' : 'text-white/50')} />
+                {t(key)}
+              </a>
+            </li>
+          )
+        })}
+      </ul>
+    </>
+  )
+}
+
+/**
+ * Full-width language choice.
+ *
+ * The top bar's switcher is a compact three-letter control. For a farmer reading in Amharic or
+ * Afaan Oromoo this is the most important setting on the screen, so here it is spelled out in
+ * each language's own script at a comfortable touch size.
+ */
+function LanguageChoice() {
+  const t = useTranslations('sidebar')
+  const locale = useLocale() as Locale
+  const [pending, startTransition] = useTransition()
+  return (
+    <div className="px-1">
+      <p className="px-2 pb-2 text-[10px] font-semibold tracking-[0.18em] text-white/40 uppercase">
+        {t('language')}
+      </p>
+      <div role="radiogroup" aria-label={t('language')} aria-busy={pending} className="flex flex-col gap-1">
+        {LOCALES.map((l) => {
+          const selected = locale === l
+          return (
+            <button
+              key={l}
+              type="button"
+              role="radio"
+              lang={l}
+              aria-checked={selected}
+              disabled={pending}
+              onClick={() => startTransition(() => setLocale(l))}
+              className={cn(
+                'flex min-h-11 items-center justify-between rounded-lg px-3 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-brand-lime disabled:opacity-60',
+                selected
+                  ? 'bg-brand-lime font-semibold text-brand-forest-deep'
+                  : 'text-white/70 hover:bg-white/[0.06] hover:text-white',
+              )}
+            >
+              {LOCALE_LABEL[l]}
+              {selected && <span className="text-xs">✓</span>}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+type Props = { open: boolean; onClose: () => void; user: { name: string; role: Role } }
+
+export function Sidebar({ open, onClose, user }: Props) {
   const t = useTranslations('app')
   const tn = useTranslations('nav')
   const pathname = usePathname()
-  const items = navForRole(role)
+  const items = navForRole(user.role)
+  const farmer = user.role === 'farmer'
 
   return (
     <>
@@ -75,7 +241,7 @@ export function Sidebar({ open, onClose, role }: Props) {
       <aside
         aria-label={tn('section')}
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col bg-surface-inverse text-white shadow-lg transition-transform duration-300 lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col overflow-y-auto bg-surface-inverse text-white shadow-lg transition-transform duration-300 lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
@@ -105,6 +271,8 @@ export function Sidebar({ open, onClose, role }: Props) {
             <X />
           </Button>
         </div>
+
+        {farmer ? <FarmerIdentity user={user} /> : <Identity user={user} />}
 
         <nav className="flex-1 px-3 py-2">
           <p className="px-3 pb-2 text-[10px] font-semibold tracking-[0.18em] text-white/40 uppercase">
@@ -138,10 +306,11 @@ export function Sidebar({ open, onClose, role }: Props) {
               )
             })}
           </ul>
+          {farmer && pathname === '/farm' && <FarmSections onNavigate={onClose} />}
         </nav>
 
         <div className="flex flex-col gap-3 px-4 pb-5">
-          {isStaff(role) && <ModelCard />}
+          {farmer ? <LanguageChoice /> : <ModelCard />}
           <p className="px-1 text-[11px] leading-relaxed text-white/45">{t('workspaceSub')}</p>
         </div>
       </aside>

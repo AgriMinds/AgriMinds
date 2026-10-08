@@ -117,3 +117,35 @@ class TestFarmAdvisory:
             client.get(f"/api/v1/farms/{created['id']}/advisory?crop=tef", headers=headers).json()["crop"]
             == "tef"
         )
+
+
+class TestGroundConditionsOnAPlot:
+    """A plot carries both the forecast for its cell and how dry that ground already is."""
+
+    def test_both_quantities_are_present_and_distinct(self, client, headers):
+        created = client.post("/api/v1/farms", json=PLOT, headers=headers).json()
+        risk = created["risk"]
+        assert 0 <= risk["probability"] <= 1
+        assert risk["risk_level"] in {"Low", "Moderate", "High", "Severe"}
+        assert risk["pdsi"] is not None, "the test artifacts include mean temperature"
+        assert risk["pdsi_category"] in {
+            "Extremely wet",
+            "Very wet",
+            "Moderately wet",
+            "Normal",
+            "Moderately dry",
+            "Very dry",
+            "Extremely dry",
+        }
+        # A probability and a Palmer index share no scale; a client must never treat them alike.
+        assert risk["pdsi"] != risk["probability"]
+
+    def test_the_plot_band_matches_the_grid_cell_it_sits_in(self, client, headers):
+        created = client.post("/api/v1/farms", json=PLOT, headers=headers).json()
+        cell = client.get(
+            "/api/v1/drought/cell",
+            params={"row": created["grid_row"], "col": created["grid_col"]},
+            headers=headers,
+        ).json()
+        assert created["risk"]["pdsi"] == cell["pdsi"]
+        assert created["risk"]["pdsi_category"] == cell["pdsi_category"]

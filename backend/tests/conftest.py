@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 import uuid
 from collections.abc import AsyncIterator
+from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
 import pytest
@@ -71,6 +72,13 @@ def artifacts_dir(tmp_path_factory) -> DataPaths:
     train_enso(paths, TEST_CFG, plot=False)
     train_drought(paths, TEST_CFG, data_source="synthetic")
     render_risk_maps(paths, TEST_CFG, plot=False)
+
+    # The surveyed catchment outline travels with the artifacts, so the tests exercise the
+    # boundary-aware grid rather than silently falling back to a bounding box.
+    survey = BACKEND_ROOT.parent / "data/geo/choke_watershed.geojson"
+    if survey.exists():
+        paths.watershed_geojson.parent.mkdir(parents=True, exist_ok=True)
+        paths.watershed_geojson.write_bytes(survey.read_bytes())
     return paths
 
 
@@ -93,14 +101,35 @@ async def db_engine():
     finally:
         await admin.dispose()
 
+    # Build the schema with Alembic rather than metadata.create_all, so the tests exercise the
+    # migrations that production actually runs -- including the analytics views and the read-only
+    # role, which exist only there. Alembic's env.py opens its own event loop, so it runs in a
+    # subprocess rather than inside pytest-asyncio's.
+    _run_migrations(TEST_DATABASE_URL)
+
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
     yield engine
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
     await engine.dispose()
+
+
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _run_migrations(url: str) -> None:
+    import subprocess
+    import sys
+
+    env = {**os.environ, "AGRIMINDS_DATABASE_URL": url}
+    for argv in (["downgrade", "base"], ["upgrade", "head"]):
+        result = subprocess.run(
+            [sys.executable, "-m", "alembic", *argv],
+            cwd=BACKEND_ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            pytest.fail(f"alembic {' '.join(argv)} failed:\n{result.stdout}\n{result.stderr}")
 
 
 @pytest_asyncio.fixture
@@ -252,6 +281,20 @@ async def make_farm(db_session, woredas):
         return farm
 
     return _make
+
+
+@pytest_asyncio.fixture
+async def minister_headers(make_user, sign_in):
+    """Authorization header for a ministry account."""
+    user = await make_user(UserRole.MINISTER, email="inventory-minister@example.et")
+    return sign_in(user.email)["headers"]
+
+
+@pytest_asyncio.fixture
+async def farmer_headers(make_user, sign_in):
+    """Authorization header for a farmer account."""
+    user = await make_user(UserRole.FARMER, phone="+251911909090")
+    return sign_in(user.phone)["headers"]
 
 
 @pytest.fixture

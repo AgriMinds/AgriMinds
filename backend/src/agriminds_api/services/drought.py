@@ -15,6 +15,8 @@ from agriminds_api.schemas.drought import (
     DroughtMapResponse,
     GridCellRisk,
     ObservedConditions,
+    WatershedBoundary,
+    WatershedGrid,
 )
 from agriminds_api.services.inference import InferenceService, RiskCube
 
@@ -54,6 +56,7 @@ class DroughtService:
             risk_level=risk_level(p),
             pdsi=observed,
             pdsi_category=None if observed is None else pdsi_category(observed),
+            in_watershed=self._grid.in_watershed(cell),
         )
 
     def _conditions(self, cube: RiskCube, pdsi) -> ObservedConditions | None:
@@ -94,6 +97,29 @@ class DroughtService:
             cells=[self._cell_risk(cube, lead_month, c, pdsi) for c in self._grid.cells()],
             conditions=self._conditions(cube, pdsi),
             provenance=cube.provenance(),
+        )
+
+    def boundary(self, simplify_tolerance: float = 0.004) -> WatershedBoundary | None:
+        """The surveyed outline plus the grid mask, or None when no boundary is configured."""
+        outline = self._grid.boundary
+        if outline is None:
+            return None
+        feature = outline.to_geojson(simplify_tolerance)
+        return WatershedBoundary(
+            name=outline.name,
+            source=outline.source,
+            area_km2=outline.area_km2,
+            bbox=self._grid.bbox,
+            geometry=feature["geometry"],
+            grid=WatershedGrid(
+                rows=self._grid.rows,
+                cols=self._grid.cols,
+                cells_inside=self._grid.cells_in_watershed(),
+                inside=[
+                    [self._grid.in_watershed(Cell(r, c)) for c in range(self._grid.cols)]
+                    for r in range(self._grid.rows)
+                ],
+            ),
         )
 
     def cell(self, query: CellRiskQuery) -> CellRiskResponse:

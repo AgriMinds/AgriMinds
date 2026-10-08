@@ -22,7 +22,7 @@ type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE'
 
 const ALLOWED: ReadonlyArray<{ method: Method; path: RegExp }> = [
   { method: 'GET', path: /^health(\/ready)?$/ },
-  { method: 'GET', path: /^drought\/(map|cell)$/ },
+  { method: 'GET', path: /^drought\/(map|cell|watershed)$/ },
   { method: 'POST', path: /^drought\/cell$/ },
   { method: 'POST', path: /^advisories\/evaluate$/ },
   { method: 'GET', path: /^enso\/outlook$/ },
@@ -37,9 +37,14 @@ const ALLOWED: ReadonlyArray<{ method: Method; path: RegExp }> = [
   { method: 'PATCH', path: new RegExp(`^farms/${UUID}$`) },
   { method: 'DELETE', path: new RegExp(`^farms/${UUID}$`) },
   { method: 'GET', path: new RegExp(`^farms/${UUID}/advisory$`) },
+  // what the platform is built from (staff)
+  { method: 'GET', path: /^system\/data-sources$/ },
   // dashboards
   { method: 'GET', path: /^dashboard\/(farmer|ministry)$/ },
   { method: 'POST', path: new RegExp(`^dashboard/farmer/advisories/${UUID}/acknowledge$`) },
+  // analytics (staff; the service enforces the role and, for Power BI, the row-level scope)
+  { method: 'GET', path: /^analytics\/powerbi\/(status|embed-token)$/ },
+  { method: 'GET', path: /^analytics\/connection(\.pbids)?$/ },
 ]
 
 function errorJson(status: number, code: string, message: string) {
@@ -54,6 +59,9 @@ async function toResponse(upstream: Response): Promise<NextResponse> {
   if (type) headers.set('Content-Type', type)
   const rid = upstream.headers.get('x-request-id')
   if (rid) headers.set('X-Request-ID', rid)
+  // Carried through so a file response (the .pbids connection file) still downloads by name.
+  const disposition = upstream.headers.get('content-disposition')
+  if (disposition) headers.set('Content-Disposition', disposition)
   return new NextResponse(body, { status: upstream.status, headers })
 }
 

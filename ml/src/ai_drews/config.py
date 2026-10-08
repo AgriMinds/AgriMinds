@@ -18,8 +18,10 @@ class PipelineConfig:
     start: str = "1990-01-01"  # first month of the record
     end: str = "2026-06-01"  # last month of the record
     grid: tuple[int, int] = (8, 8)  # watershed cells (rows, cols)
-    # PLACEHOLDER bounding box (lon_min, lat_min, lon_max, lat_max) -> replace with Choke bounds
-    bbox: tuple[float, float, float, float] = (37.6, 10.4, 38.4, 11.2)
+    #: Bounding box of the Choke Mountain Watershed (lon_min, lat_min, lon_max, lat_max), taken
+    #: from the surveyed boundary `cmw_max_boundary_wgs` (WGS84, 18,948 km2). Roughly a quarter
+    #: of this rectangle lies outside the catchment, which is why the grid carries a mask.
+    bbox: tuple[float, float, float, float] = (37.00780, 9.84375, 38.53125, 11.26234)
 
     window: int = 12  # months of history fed to the networks
     enso_leads: int = 6  # Objective 1: Nino3.4 forecast horizon (months)
@@ -122,8 +124,13 @@ class DataPaths:
     def latest_risk_npz(self) -> Path:
         return self.outputs / "latest_risk.npz"
 
+    @property
+    def watershed_geojson(self) -> Path:
+        """Surveyed catchment outline, converted from the shapefile. Plain JSON: no geo library."""
+        return self.root / "geo" / "choke_watershed.geojson"
+
     def ensure(self) -> DataPaths:
-        for p in (self.raw, self.processed, self.models, self.outputs):
+        for p in (self.raw, self.processed, self.models, self.outputs, self.root / "geo"):
             p.mkdir(parents=True, exist_ok=True)
         return self
 

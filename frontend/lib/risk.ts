@@ -63,9 +63,14 @@ export function summarize(map: DroughtMapResponse | undefined) {
   if (!map) return undefined
   let highest: GridCellRisk | undefined
   let atRisk = 0
+  let total = 0
+  // Only the cells inside the catchment count: the bounding box also covers ground that is not
+  // in the basin, and a reading there is not a statement about this watershed.
   for (const c of map.cells) {
+    if (c.in_watershed === false) continue
+    total += 1
     if (!highest || c.probability > highest.probability) highest = c
     if (c.risk_level === 'High' || c.risk_level === 'Severe') atRisk += 1
   }
-  return { highest, atRisk, total: map.cells.length }
+  return { highest, atRisk, total }
 }

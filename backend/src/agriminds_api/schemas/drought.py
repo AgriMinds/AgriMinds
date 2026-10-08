@@ -16,6 +16,13 @@ class GridCellRisk(BaseModel):
     pdsi_category: PdsiCategoryName | None = Field(
         None, description="Drought intensity band for `pdsi` (Table 2)"
     )
+    in_watershed: bool = Field(
+        True,
+        description=(
+            "Whether this cell's centre falls inside the surveyed catchment. The grid is a "
+            "rectangle over a catchment that is not one, so some cells are outside it."
+        ),
+    )
 
 
 class ObservedConditions(BaseModel):
@@ -70,3 +77,23 @@ class CellRiskQuery(BaseModel):
 class CellRiskResponse(GridCellRisk):
     lead_month: int
     provenance: ForecastProvenance
+
+
+class WatershedGrid(BaseModel):
+    """Which cells of the forecast grid fall inside the catchment."""
+
+    rows: int
+    cols: int
+    cells_inside: int
+    inside: list[list[bool]] = Field(description="Row-major, row 0 northern-most")
+
+
+class WatershedBoundary(BaseModel):
+    """The surveyed catchment outline, for drawing the real shape instead of a rectangle."""
+
+    name: str
+    source: str = Field(description="File the outline was surveyed from")
+    area_km2: float | None
+    bbox: tuple[float, float, float, float] = Field(description="lon_min, lat_min, lon_max, lat_max")
+    geometry: dict = Field(description="GeoJSON Polygon, simplified for display")
+    grid: WatershedGrid

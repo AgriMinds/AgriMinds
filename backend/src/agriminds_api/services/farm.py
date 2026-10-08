@@ -11,7 +11,7 @@ from sqlalchemy.orm import selectinload
 from agriminds_api.core.exceptions import InvalidLocationError, ModelUnavailableError, NotFoundError
 from agriminds_api.db.models import Crop, Farm, User, Woreda
 from agriminds_api.domain.geo import GridSpec
-from agriminds_api.domain.risk import risk_level
+from agriminds_api.domain.risk import pdsi_category, risk_level
 from agriminds_api.schemas.farm import FarmCreate, FarmOut, FarmRisk, FarmUpdate
 from agriminds_api.services.inference import InferenceService, RiskCube
 
@@ -41,7 +41,15 @@ class FarmService:
         out = FarmOut.model_validate(farm)
         if cube is not None:
             p = float(cube.probs[lead_month - 1, farm.grid_row, farm.grid_col])
-            out.risk = FarmRisk(lead_month=lead_month, probability=round(p, 3), risk_level=risk_level(p))
+            observed = self._inference.observed_pdsi()
+            value = None if observed is None else round(float(observed[farm.grid_row, farm.grid_col]), 2)
+            out.risk = FarmRisk(
+                lead_month=lead_month,
+                probability=round(p, 3),
+                risk_level=risk_level(p),
+                pdsi=value,
+                pdsi_category=None if value is None else pdsi_category(value),
+            )
         return out
 
     # ------------------------------------------------------------------ queries

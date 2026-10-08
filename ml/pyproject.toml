@@ -25,8 +25,10 @@ dependencies = [
 plots = ["matplotlib>=3.9"]
 # Reading CMIP6 / CORDEX NetCDF projections. Not needed for the operational pipeline.
 scenarios = ["xarray>=2024.0", "netCDF4>=1.7", "cftime>=1.6"]
+# Reading an ESRI shapefile. Needed once, to convert a survey boundary to GeoJSON.
+geo = ["pyshp>=2.3"]
 research = ["matplotlib>=3.9", "streamlit>=1.38"]
-dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11", "matplotlib>=3.9", "xarray>=2024.0", "netCDF4>=1.7", "cftime>=1.6"]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11", "matplotlib>=3.9", "xarray>=2024.0", "netCDF4>=1.7", "cftime>=1.6", "pyshp>=2.3"]
 
 [project.scripts]
 ai-drews = "ai_drews.cli:app"

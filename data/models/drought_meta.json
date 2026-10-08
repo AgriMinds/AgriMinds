@@ -9,7 +9,7 @@
     0.1
   ],
   "model_version": "superhybrid-0.2.0",
-  "trained_at": "2026-10-08T06:16:05+00:00",
+  "trained_at": "2026-10-08T13:56:07+00:00",
   "training_data_end": "2026-06-01",
   "data_source": "synthetic",
   "metrics": [

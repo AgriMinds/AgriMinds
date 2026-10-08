@@ -12,6 +12,7 @@ src/ai_drews/
 │   └── pdsi.py        self-calibrated Palmer Drought Severity Index
 ├── analysis/          ENSO-drought correlation by lag (Fig. 5), climate-scenario outlook
 ├── data/cmip6.py      reads CMIP6 monthly projections (ScenarioMIP NetCDF)
+├── geo/watershed.py   surveyed catchment: shapefile -> GeoJSON, containment, grid masking
 ├── models/            CNNLSTM (Objective 1), SuperHybrid (Objective 2)
 ├── training/          trainer loop, train_enso (3), train_drought (4), render_risk_maps (5)
 ├── inference.py       load_artifacts() / predict_risk() used by the API

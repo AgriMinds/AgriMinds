@@ -318,6 +318,17 @@
     22px 22px;
 }
 
+/* Grid cells that fall outside the surveyed catchment. A diagonal hatch, not a pale fill, so a
+   blank cell reads as "no basin here" rather than as a low reading on the colour scale. */
+@utility outside-basin {
+  background-color: var(--surface-sunken);
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--border-strong) 85%, transparent) 0 1px,
+    transparent 1px 5px
+  );
+}
+
 /* Entry animation: cards rise in a staggered sequence on first paint. */
 @utility reveal {
   animation: reveal 560ms cubic-bezier(0.25, 0.1, 0.25, 1) both;

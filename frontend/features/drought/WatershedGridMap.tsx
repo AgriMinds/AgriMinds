@@ -1,9 +1,24 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Compass, Map as MapIcon, Sprout } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import type { DroughtMapResponse, GridCellRisk, LeadMonth, PdsiCategory, RiskLevel } from '@agriminds/api-types'
+import { useRef, useState } from 'react'
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Compass,
+  Map as MapIcon,
+  Sprout,
+} from 'lucide-react'
+import { useFormatter, useTranslations } from 'next-intl'
+import type {
+  DroughtMapResponse,
+  GridCellRisk,
+  LeadMonth,
+  PdsiCategory,
+  RiskLevel,
+  WatershedBoundary,
+} from '@agriminds/api-types'
 import { RISK_THRESHOLDS } from '@agriminds/api-types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -21,6 +36,7 @@ import {
 import { QueryError } from '@/components/ui/query-state'
 import { SegmentedControl } from '@/components/ui/segmented'
 import { Skeleton } from '@/components/ui/skeleton'
+import { CatchmentOutline } from '@/features/drought/CatchmentOutline'
 import { PDSI_CATEGORIES, PDSI_CELL_CLASS, PDSI_DOT_CLASS, formatPdsi, pdsiKey } from '@/lib/classification'
 import { RISK_BADGE_VARIANT, RISK_DOT_CLASS, RISK_TEXT_CLASS, cellClassFor } from '@/lib/risk'
 import { cn, formatPercent } from '@/lib/utils'
@@ -37,6 +53,8 @@ type Mode = 'risk' | 'dryness'
 
 type Props = {
   mapData?: DroughtMapResponse
+  /** The surveyed outline. Absent on a deployment that has none; the grid then draws plain. */
+  boundary?: WatershedBoundary
   isLoading: boolean
   isFetching: boolean
   error: unknown
@@ -48,6 +66,16 @@ type Props = {
 
 const LEVELS: RiskLevel[] = ['Low', 'Moderate', 'High', 'Severe']
 
+/** Shown under either legend: what a hatched, valueless cell means. */
+function OutsideBasinKey({ label }: { label: string }) {
+  return (
+    <li className="flex items-center gap-1.5">
+      <span className="outside-basin size-2.5 rounded-sm border border-border-strong" aria-hidden />
+      {label}
+    </li>
+  )
+}
+
 /** Forecast legend: four segments sized by the probability range each level covers. */
 function RiskLegend({ t }: { t: ReturnType<typeof useTranslations<'grid'>> }) {
   const stops = [0, ...RISK_THRESHOLDS.slice(0, 3).map((r) => r.below), 1]
@@ -55,7 +83,11 @@ function RiskLegend({ t }: { t: ReturnType<typeof useTranslations<'grid'>> }) {
     <div className="w-full">
       <div className="flex h-2 w-full overflow-hidden rounded-full" aria-hidden>
         {LEVELS.map((lvl, i) => (
-          <span key={lvl} className={cn(RISK_DOT_CLASS[lvl])} style={{ flexGrow: stops[i + 1]! - stops[i]! }} />
+          <span
+            key={lvl}
+            className={cn(RISK_DOT_CLASS[lvl])}
+            style={{ flexGrow: stops[i + 1]! - stops[i]! }}
+          />
         ))}
       </div>
       <div className="relative mt-1 h-4 text-[10px] font-medium text-fg-subtle tabular" aria-hidden>
@@ -72,6 +104,7 @@ function RiskLegend({ t }: { t: ReturnType<typeof useTranslations<'grid'>> }) {
             {t(`${lvl.toLowerCase()}Risk` as 'lowRisk' | 'moderateRisk' | 'highRisk' | 'severeRisk')}
           </li>
         ))}
+        <OutsideBasinKey label={t('outsideBasin')} />
       </ul>
     </div>
   )
@@ -100,6 +133,7 @@ function DrynessLegend() {
             {tp(pdsiKey(c))}
           </li>
         ))}
+        <OutsideBasinKey label={t('outsideBasin')} />
       </ul>
       <p className="mt-1.5 text-[11px] text-fg-subtle">{t('drynessLegend')}</p>
     </div>
@@ -108,6 +142,7 @@ function DrynessLegend() {
 
 export function WatershedGridMap({
   mapData,
+  boundary,
   isLoading,
   isFetching,
   error,
@@ -119,38 +154,66 @@ export function WatershedGridMap({
   const t = useTranslations('grid')
   const tr = useTranslations('risk')
   const tp = useTranslations('pdsi')
+  const format = useFormatter()
   const gridRef = useRef<HTMLDivElement>(null)
   const [mode, setMode] = useState<Mode>('risk')
 
-  const [rows, cols] = mapData?.grid_shape ?? [8, 8]
-  const [lonMin, latMin, lonMax, latMax] = mapData?.bbox ?? [37.6, 10.4, 38.4, 11.2]
+  const [rows, cols] = mapData?.grid_shape ?? (boundary ? [boundary.grid.rows, boundary.grid.cols] : [8, 8])
+  const bbox = mapData?.bbox ?? boundary?.bbox ?? [37.0078, 9.84375, 38.53125, 11.26234]
+  const [lonMin, latMin, lonMax, latMax] = bbox
 
   // Ground measurements only exist when the server had a climate record to compute them from.
   const hasDryness = Boolean(mapData?.conditions)
   const active: Mode = hasDryness ? mode : 'risk'
 
-  const byCell = new Map<string, GridCellRisk>((mapData?.cells ?? []).map((c) => [`${c.row}-${c.col}`, c]))
+  const cells = mapData?.cells ?? []
+  const byCell = new Map<string, GridCellRisk>(cells.map((c) => [`${c.row}-${c.col}`, c]))
   const selected = byCell.get(`${selectedCell.row}-${selectedCell.col}`)
 
-  const move = useCallback(
-    (dr: number, dc: number) => {
-      const next = {
-        row: Math.min(Math.max(0, selectedCell.row + dr), rows - 1),
-        col: Math.min(Math.max(0, selectedCell.col + dc), cols - 1),
-      }
-      onCellSelect(next)
-      gridRef.current?.querySelector<HTMLButtonElement>(`[data-cell="${next.row}-${next.col}"]`)?.focus()
-    },
-    [selectedCell, rows, cols, onCellSelect],
-  )
+  // The catchment is irregular: of the 64 cells in the bounding box, 49 are in the basin. The
+  // flag travels with every cell, so muting works even where no outline is configured to draw.
+  // A cell the server said nothing about is treated as in-basin, which is the old plain grid.
+  const isInside = (row: number, col: number) => byCell.get(`${row}-${col}`)?.in_watershed !== false
+  const insideCount = cells.filter((c) => c.in_watershed).length || rows * cols
+  const selectedInside = isInside(selectedCell.row, selectedCell.col)
+
+  /** The next in-basin cell along a direction, continuing past muted cells. Null if there is none. */
+  const seek = (dr: number, dc: number): Cell | null => {
+    let { row, col } = selectedCell
+    for (let i = 0; i < Math.max(rows, cols); i++) {
+      row += dr
+      col += dc
+      if (row < 0 || col < 0 || row >= rows || col >= cols) return null
+      if (isInside(row, col)) return { row, col }
+    }
+    return null
+  }
+
+  const move = (dr: number, dc: number) => {
+    const next = seek(dr, dc)
+    if (!next) return
+    onCellSelect(next)
+    gridRef.current?.querySelector<HTMLButtonElement>(`[data-cell="${next.row}-${next.col}"]`)?.focus()
+  }
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    const d: Record<string, [number, number]> = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }
+    const d: Record<string, [number, number]> = {
+      ArrowUp: [-1, 0],
+      ArrowDown: [1, 0],
+      ArrowLeft: [0, -1],
+      ArrowRight: [0, 1],
+    }
     const delta = d[e.key]
     if (!delta) return
     e.preventDefault()
     move(...delta)
   }
+
+  // Exactly one cell carries tabIndex 0. If the selection sits outside the basin it is not a
+  // button, so the roving focus falls to the first cell that is, and the grid stays reachable.
+  const firstInside = cells.find((c) => c.in_watershed)
+  const focusCell =
+    selectedInside || !firstInside ? selectedCell : { row: firstInside.row, col: firstInside.col }
 
   const lat = (r: number) => (latMax - ((r + 0.5) * (latMax - latMin)) / rows).toFixed(2)
   const lon = (c: number) => (lonMin + ((c + 0.5) * (lonMax - lonMin)) / cols).toFixed(2)
@@ -169,9 +232,13 @@ export function WatershedGridMap({
           </div>
         </CardHeading>
         <CardActions className="flex-wrap">
-          {active === 'risk' && <Badge variant="outline">{t(`lead${selectedLead}` as 'lead1' | 'lead2' | 'lead3')}</Badge>}
+          {active === 'risk' && (
+            <Badge variant="outline">{t(`lead${selectedLead}` as 'lead1' | 'lead2' | 'lead3')}</Badge>
+          )}
           {mapData && (
-            <Badge variant="default">{active === 'risk' ? mapData.target_date : mapData.conditions?.as_of}</Badge>
+            <Badge variant="default">
+              {active === 'risk' ? mapData.target_date : mapData.conditions?.as_of}
+            </Badge>
           )}
         </CardActions>
       </CardHeader>
@@ -214,75 +281,122 @@ export function WatershedGridMap({
                 <span>{t('east')}</span>
               </div>
               <div className="grid grid-cols-[auto_1fr] gap-1.5">
-                <div className="flex flex-col justify-around pr-1 font-mono text-[9px] text-fg-subtle tabular sm:text-[10px]" aria-hidden>
+                <div
+                  className="flex flex-col justify-around pr-1 font-mono text-[9px] text-fg-subtle tabular sm:text-[10px]"
+                  aria-hidden
+                >
                   {Array.from({ length: rows }, (_, r) => (
                     <span key={r} className="text-right leading-none">
                       {lat(r)}
                     </span>
                   ))}
                 </div>
-                <div
-                  ref={gridRef}
-                  role="grid"
-                  aria-label={active === 'risk' ? t('title') : t('drynessTitle')}
-                  aria-rowcount={rows}
-                  aria-colcount={cols}
-                  onKeyDown={onKeyDown}
-                  className="grid gap-1 sm:gap-1.5"
-                  style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-                >
-                  {isLoading && !mapData
-                    ? Array.from({ length: rows * cols }, (_, i) => <Skeleton key={i} className="aspect-square rounded-md" />)
-                    : Array.from({ length: rows }, (_, r) =>
-                        Array.from({ length: cols }, (_, c) => {
-                          const cell = byCell.get(`${r}-${c}`)
-                          if (!cell) return <span key={`${r}-${c}`} />
-                          const isSelected = r === selectedCell.row && c === selectedCell.col
-                          const dry = active === 'dryness' && cell.pdsi != null && cell.pdsi_category != null
-                          return (
-                            <button
-                              key={`${r}-${c}`}
-                              type="button"
-                              role="gridcell"
-                              data-cell={`${r}-${c}`}
-                              data-mode={active}
-                              tabIndex={isSelected ? 0 : -1}
-                              aria-selected={isSelected}
-                              aria-rowindex={r + 1}
-                              aria-colindex={c + 1}
-                              aria-label={
-                                dry
-                                  ? t('cellAriaDryness', {
-                                      row: r,
-                                      col: c,
-                                      value: formatPdsi(cell.pdsi!),
-                                      band: bandName(cell.pdsi_category),
-                                    })
-                                  : t('cellAria', { row: r, col: c, pct: formatPercent(cell.probability) })
-                              }
-                              title={`${lat(r)}°N, ${lon(c)}°E`}
-                              onClick={() => onCellSelect({ row: r, col: c })}
-                              className={cn(
-                                'flex aspect-square items-center justify-center rounded-md font-display text-[11px] font-semibold tabular transition-[transform,filter,box-shadow] duration-150 outline-none sm:rounded-lg sm:text-xs',
-                                dry ? PDSI_CELL_CLASS[cell.pdsi_category!] : cellClassFor(cell.probability),
-                                isSelected
-                                  ? 'z-10 scale-[1.08] shadow-lg ring-2 ring-fg ring-offset-2 ring-offset-surface-sunken'
-                                  : 'hover:z-10 hover:scale-[1.04] hover:brightness-110 focus-visible:ring-2 focus-visible:ring-ring',
-                              )}
-                            >
-                              {dry ? formatPdsi(cell.pdsi!) : formatPercent(cell.probability)}
-                            </button>
-                          )
-                        }),
-                      )}
+                {/* The outline is a sibling of the grid and covers it exactly: the grid has no
+                    padding and no gap, so its content box is the rows x cols frame the SVG
+                    projects into. Cells inset themselves with a margin to keep the visual gap. */}
+                <div className="relative min-w-0">
+                  <div
+                    ref={gridRef}
+                    role="grid"
+                    aria-label={active === 'risk' ? t('title') : t('drynessTitle')}
+                    aria-rowcount={rows}
+                    aria-colcount={cols}
+                    onKeyDown={onKeyDown}
+                    className="grid gap-0"
+                    style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+                  >
+                    {isLoading && !mapData
+                      ? Array.from({ length: rows * cols }, (_, i) => (
+                          <Skeleton key={i} className="m-[1.5px] aspect-square rounded-md sm:m-[3px]" />
+                        ))
+                      : Array.from({ length: rows }, (_, r) =>
+                          Array.from({ length: cols }, (_, c) => {
+                            const cell = byCell.get(`${r}-${c}`)
+                            if (!cell) return <span key={`${r}-${c}`} />
+                            const inside = cell.in_watershed !== false
+
+                            // Outside the basin: no value, no colour from either scale, not
+                            // selectable. A hatch reads as "not surveyed here" where a pale fill
+                            // would read as a low number on whichever scale is showing.
+                            if (!inside) {
+                              return (
+                                <div
+                                  key={`${r}-${c}`}
+                                  role="gridcell"
+                                  data-cell={`${r}-${c}`}
+                                  data-outside="true"
+                                  aria-disabled
+                                  aria-rowindex={r + 1}
+                                  aria-colindex={c + 1}
+                                  aria-label={t('cellAriaOutside', { row: r, col: c })}
+                                  title={t('outsideBasin')}
+                                  className="outside-basin m-[1.5px] aspect-square rounded-md opacity-70 sm:m-[3px] sm:rounded-lg"
+                                />
+                              )
+                            }
+
+                            const isSelected = r === selectedCell.row && c === selectedCell.col
+                            const dry =
+                              active === 'dryness' && cell.pdsi != null && cell.pdsi_category != null
+                            return (
+                              <button
+                                key={`${r}-${c}`}
+                                type="button"
+                                role="gridcell"
+                                data-cell={`${r}-${c}`}
+                                data-mode={active}
+                                tabIndex={r === focusCell.row && c === focusCell.col ? 0 : -1}
+                                aria-selected={isSelected}
+                                aria-rowindex={r + 1}
+                                aria-colindex={c + 1}
+                                aria-label={
+                                  dry
+                                    ? t('cellAriaDryness', {
+                                        row: r,
+                                        col: c,
+                                        value: formatPdsi(cell.pdsi!),
+                                        band: bandName(cell.pdsi_category),
+                                      })
+                                    : t('cellAria', { row: r, col: c, pct: formatPercent(cell.probability) })
+                                }
+                                title={`${lat(r)}°N, ${lon(c)}°E`}
+                                onClick={() => onCellSelect({ row: r, col: c })}
+                                className={cn(
+                                  'm-[1.5px] flex aspect-square items-center justify-center rounded-md font-display text-[11px] font-semibold tabular transition-[transform,filter,box-shadow] duration-150 outline-none sm:m-[3px] sm:rounded-lg sm:text-xs',
+                                  dry ? PDSI_CELL_CLASS[cell.pdsi_category!] : cellClassFor(cell.probability),
+                                  isSelected
+                                    ? 'z-10 scale-[1.08] shadow-lg ring-2 ring-fg ring-offset-2 ring-offset-surface-sunken'
+                                    : 'hover:z-10 hover:scale-[1.04] hover:brightness-110 focus-visible:ring-2 focus-visible:ring-ring',
+                                )}
+                              >
+                                {dry ? formatPdsi(cell.pdsi!) : formatPercent(cell.probability)}
+                              </button>
+                            )
+                          }),
+                        )}
+                  </div>
+                  {boundary && !(isLoading && !mapData) && (
+                    <CatchmentOutline
+                      boundary={boundary}
+                      bbox={bbox as [number, number, number, number]}
+                      rows={rows}
+                      cols={cols}
+                      label={t('outlineAria', { name: boundary.name })}
+                    />
+                  )}
                 </div>
               </div>
-              <div className="mt-1.5 flex justify-between pl-9 font-mono text-[9px] text-fg-subtle tabular sm:text-[10px]" aria-hidden>
+              <div
+                className="mt-1.5 flex justify-between pl-9 font-mono text-[9px] text-fg-subtle tabular sm:text-[10px]"
+                aria-hidden
+              >
                 {Array.from({ length: cols }, (_, c) => (
                   <span key={c}>{lon(c)}</span>
                 ))}
               </div>
-              <div className="mt-1 text-center text-[10px] font-semibold tracking-wide text-fg-subtle uppercase">{t('south')}</div>
+              <div className="mt-1 text-center text-[10px] font-semibold tracking-wide text-fg-subtle uppercase">
+                {t('south')}
+              </div>
             </div>
           </div>
         )}
@@ -294,7 +408,9 @@ export function WatershedGridMap({
             {selected ? (
               <>
                 <div>
-                  <p className="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">{t('selectedCell')}</p>
+                  <p className="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+                    {t('selectedCell')}
+                  </p>
                   <div className="flex items-center gap-2">
                     <span className="font-display text-sm font-semibold tabular">
                       {selected.row},{selected.col}
@@ -304,35 +420,48 @@ export function WatershedGridMap({
                     </span>
                   </div>
                 </div>
-                <dl data-testid="cell-inspector" className="flex flex-wrap items-end gap-x-6 gap-y-2">
-                  <div>
-                    <dt className="text-[11px] text-fg-subtle">{t('forecastLabel')}</dt>
-                    <dd className="flex items-baseline gap-2">
-                      <span className={cn('font-display text-2xl font-bold tabular', RISK_TEXT_CLASS[selected.risk_level])}>
-                        {formatPercent(selected.probability, 1)}
-                      </span>
-                      <Badge variant={RISK_BADGE_VARIANT[selected.risk_level]} size="sm">
-                        {tr(selected.risk_level)}
-                      </Badge>
-                    </dd>
-                  </div>
-                  {selected.pdsi != null && selected.pdsi_category != null && (
+                {selectedInside ? (
+                  <dl data-testid="cell-inspector" className="flex flex-wrap items-end gap-x-6 gap-y-2">
                     <div>
-                      <dt className="text-[11px] text-fg-subtle">{t('drynessLabel')}</dt>
+                      <dt className="text-[11px] text-fg-subtle">{t('forecastLabel')}</dt>
                       <dd className="flex items-baseline gap-2">
-                        <span className="font-display text-2xl font-bold tabular">{formatPdsi(selected.pdsi)}</span>
                         <span
                           className={cn(
-                            'rounded-full px-2 py-0.5 text-[11px] font-semibold',
-                            PDSI_CELL_CLASS[selected.pdsi_category],
+                            'font-display text-2xl font-bold tabular',
+                            RISK_TEXT_CLASS[selected.risk_level],
                           )}
                         >
-                          {bandName(selected.pdsi_category)}
+                          {formatPercent(selected.probability, 1)}
                         </span>
+                        <Badge variant={RISK_BADGE_VARIANT[selected.risk_level]} size="sm">
+                          {tr(selected.risk_level)}
+                        </Badge>
                       </dd>
                     </div>
-                  )}
-                </dl>
+                    {selected.pdsi != null && selected.pdsi_category != null && (
+                      <div>
+                        <dt className="text-[11px] text-fg-subtle">{t('drynessLabel')}</dt>
+                        <dd className="flex items-baseline gap-2">
+                          <span className="font-display text-2xl font-bold tabular">
+                            {formatPdsi(selected.pdsi)}
+                          </span>
+                          <span
+                            className={cn(
+                              'rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                              PDSI_CELL_CLASS[selected.pdsi_category],
+                            )}
+                          >
+                            {bandName(selected.pdsi_category)}
+                          </span>
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                ) : (
+                  <p data-testid="cell-outside" className="max-w-xs text-sm text-fg-muted">
+                    {t('outsideSelected')}
+                  </p>
+                )}
               </>
             ) : (
               <>
@@ -345,17 +474,41 @@ export function WatershedGridMap({
             <span className="hidden text-[11px] text-fg-subtle 2xl:block">{t('useArrows')}</span>
             <div className="grid grid-cols-3 gap-0.5" role="group" aria-label={t('nudge')}>
               <span />
-              <Button variant="subtle" size="icon-sm" aria-label={t('moveUp')} disabled={selectedCell.row === 0} onClick={() => move(-1, 0)}>
+              <Button
+                variant="subtle"
+                size="icon-sm"
+                aria-label={t('moveUp')}
+                disabled={!seek(-1, 0)}
+                onClick={() => move(-1, 0)}
+              >
                 <ChevronUp />
               </Button>
               <span />
-              <Button variant="subtle" size="icon-sm" aria-label={t('moveLeft')} disabled={selectedCell.col === 0} onClick={() => move(0, -1)}>
+              <Button
+                variant="subtle"
+                size="icon-sm"
+                aria-label={t('moveLeft')}
+                disabled={!seek(0, -1)}
+                onClick={() => move(0, -1)}
+              >
                 <ChevronLeft />
               </Button>
-              <Button variant="subtle" size="icon-sm" aria-label={t('moveDown')} disabled={selectedCell.row === rows - 1} onClick={() => move(1, 0)}>
+              <Button
+                variant="subtle"
+                size="icon-sm"
+                aria-label={t('moveDown')}
+                disabled={!seek(1, 0)}
+                onClick={() => move(1, 0)}
+              >
                 <ChevronDown />
               </Button>
-              <Button variant="subtle" size="icon-sm" aria-label={t('moveRight')} disabled={selectedCell.col === cols - 1} onClick={() => move(0, 1)}>
+              <Button
+                variant="subtle"
+                size="icon-sm"
+                aria-label={t('moveRight')}
+                disabled={!seek(0, 1)}
+                onClick={() => move(0, 1)}
+              >
                 <ChevronRight />
               </Button>
             </div>
@@ -365,7 +518,21 @@ export function WatershedGridMap({
 
       <CardFooter className="flex-col items-stretch gap-3">
         {active === 'risk' ? <RiskLegend t={t} /> : <DrynessLegend />}
-        <p className="font-mono text-[10px] text-fg-subtle">{t('bbox')}</p>
+        {/* Why cells are blank, and how much ground the grid actually covers. */}
+        <p className="text-[11px] text-fg-muted">
+          {t('basinCells', { inside: insideCount, total: rows * cols })}
+          {boundary?.area_km2 != null && (
+            <> · {t('basinArea', { area: format.number(Math.round(boundary.area_km2)) })}</>
+          )}
+        </p>
+        <p className="font-mono text-[10px] text-fg-subtle">
+          {t('bbox', {
+            west: lonMin.toFixed(2),
+            east: lonMax.toFixed(2),
+            south: latMin.toFixed(2),
+            north: latMax.toFixed(2),
+          })}
+        </p>
       </CardFooter>
     </Card>
   )

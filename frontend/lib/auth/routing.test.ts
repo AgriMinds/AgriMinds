@@ -15,6 +15,7 @@ describe('isProtectedPath', () => {
     expect(isProtectedPath('/farm')).toBe(true)
     expect(isProtectedPath('/ministry/anything')).toBe(true)
     expect(isProtectedPath('/watershed')).toBe(true)
+    expect(isProtectedPath('/analytics')).toBe(true)
     expect(isProtectedPath('/login')).toBe(false)
     expect(isProtectedPath('/')).toBe(false)
   })
@@ -36,6 +37,13 @@ describe('redirectForRole', () => {
     expect(redirectForRole('minister', '/farm')).toBe('/ministry')
     expect(redirectForRole('agent', '/watershed')).toBeNull()
     expect(redirectForRole('farmer', '/farm')).toBeNull()
+  })
+
+  it('keeps a farmer out of the analytics view, which is for ministry staff', () => {
+    expect(redirectForRole('farmer', '/analytics')).toBe('/farm')
+    expect(redirectForRole('agent', '/analytics')).toBeNull()
+    expect(redirectForRole('minister', '/analytics')).toBeNull()
+    expect(redirectForRole('admin', '/analytics')).toBeNull()
   })
 
   it('moves a signed-in person off the entry and sign-in pages', () => {

@@ -91,7 +91,13 @@
     "moderateRisk": "25–45% (መካከለኛ)",
     "highRisk": "45–65% (ከፍተኛ)",
     "severeRisk": ">65% (አስጊ)",
-    "bbox": "ወሰን፡ 37.6°E – 38.4°E, 10.4°N – 11.2°N",
+    "bbox": "ወሰን፡ {west}°E – {east}°E, {south}°N – {north}°N",
+    "outlineAria": "የ{name} የተቀየሰ ድንበር",
+    "outsideBasin": "ከተፋሰሱ ውጭ",
+    "cellAriaOutside": "ረድፍ {row}፣ አምድ {col}፣ ከተፋሰሱ ውጭ — መረጃ የለም",
+    "outsideSelected": "ይህ ቦታ ከተፋሰሱ ውጭ ነው፤ ስለዚህ ለእሱ ትንበያ አይወጣም።",
+    "basinCells": "ከ{total} ቦታዎች {inside} በተፋሰሱ ውስጥ ናቸው",
+    "basinArea": "የተፋሰሱ ስፋት {area} ካሬ ኪ.ሜ",
     "probabilityOfDrought": "በእያንዳንዱ 10 ኪ.ሜ ቦታ የወቅታዊ ድርቅ እድል (SPI-3 ≤ −1.0)",
     "north": "ሰሜን",
     "south": "ደቡብ",
@@ -199,7 +205,13 @@
     "section": "ዳሰሳ",
     "farm": "የእኔ እርሻ",
     "ministry": "ብሔራዊ እይታ",
-    "watershed": "የተፋሰስ ትንበያ"
+    "watershed": "የተፋሰስ ትንበያ",
+    "analytics": "ትንታኔ",
+    "dataSources": "የመረጃ ምንጮች",
+    "onThisPage": "በዚህ ገጽ ላይ",
+    "advice": "ምን ማድረግ እንዳለብዎ",
+    "plots": "የእኔ መሬት",
+    "season": "ወቅቱ"
   },
   "roles": {
     "farmer": "አርሶ አደር",
@@ -259,7 +271,6 @@
     "riskUnavailable": "አደጋው አልተገኘም",
     "noPlotsTitle": "እስካሁን የተመዘገበ መሬት የለም",
     "noPlotsBody": "የድርቅ ትንበያና ምክር ለማግኘት መሬትዎን ይጨምሩ።",
-    "ensoNow": "የፓሲፊክ ውቅያኖስ፡ {state}",
     "errors": {
       "nameRequired": "ለመሬቱ ስም ይስጡ።",
       "latitude": "በ-90 እና 90 መካከል ኬክሮስ ያስገቡ።",
@@ -270,7 +281,7 @@
     "landRisk": "የዚህ መሬት አደጋ",
     "groundNow": "የአሁኑ መሬት፡ {band}",
     "groundUnavailable": "የመሬት ንባብ የለም",
-    "ensoBandLine": "ፓሲፊክ ውቅያኖስ፣ {month}፡ {band}"
+    "ensoNowBand": "የፓሲፊክ ውቅያኖስ አሁን፡ {band}"
   },
   "ministry": {
     "eyebrow": "ብሔራዊ እይታ",
@@ -348,5 +359,55 @@
     "explain": "ከላይ ያለው ትንበያ በሚቀጥለው ወቅት ድርቅ የመከሰት እድልን ያሳያል። ይህ ደግሞ አሁን አፈሩ ምን ያህል ደረቅ እንደሆነ በፓልመር መለኪያ ያሳያል።",
     "methodLabel": "ዘዴ",
     "sourceLabel": "መስፈርቶች"
+  },
+  "analytics": {
+    "eyebrow": "የሚኒስቴር ትንታኔ",
+    "title": "መረጃውን ያስሱ",
+    "intro": "ስለተመዘገቡ እርሻዎች፣ ስለደረሱ ምክሮች እና ስለ ትንበያ ታሪክ የራስዎን እይታ ይገንቡ።",
+    "notConfiguredTitle": "የPower BI ሪፖርቶች እዚህ ይታያሉ",
+    "notConfiguredLead": "ይህ ሥርዓት እስካሁን ከPower BI ጋር አልተገናኘም።",
+    "notConfiguredNative": "እስከዚያ ድረስ ከዕለት ተዕለት ሥራ የጎደለ ነገር የለም። ብሔራዊ አጠቃላይ እይታውና የተፋሰሱ ትንበያ በሦስቱም ቋንቋዎች፣ በማንኛውም ስልክ ላይ ሸፍነውታል።",
+    "adminSetupTitle": "አስተዳዳሪው ማድረግ ያለበት",
+    "adminSetupBody": "ለማካተት የMicrosoft Entra የአገልግሎት መለያና የተከፈለበት የPower BI አቅም ያስፈልጋል። በEntra ID ውስጥ መተግበሪያ ይመዝግቡ፣ ለPower BI የሥራ ቦታ መዳረሻ ይስጡት፣ ከዚያ የPower BI ተለዋዋጮችን አዘጋጅተው አገልግሎቱን እንደገና ያስጀምሩ። እስከዚያ ድረስ ተንታኝ Power BI Desktop ከታች ካለው ለማንበብ ብቻ ከሆነው ገበታ ጋር በቀጥታ ማገናኘት ይችላል።",
+    "connectionTitle": "Power BI Desktop ያገናኙ",
+    "connectionLead": "ተንታኝ ዛሬውኑ ሪፖርት መገንባት የሚችልበት ለማንበብ ብቻ የሆነ ገበታ።",
+    "downloadPbids": "የግንኙነት ፋይል ያውርዱ",
+    "server": "አገልጋይ",
+    "database": "ዳታቤዝ",
+    "schema": "ገበታ",
+    "readOnlyRole": "ለማንበብ ብቻ የሆነ ሚና",
+    "viewsAvailable": "የሚገኙ ሰንጠረዦች",
+    "connectionUnavailable": "የግንኙነት ዝርዝሮችን ማንበብ አልተቻለም።",
+    "showing": "እየታየ ያለው፡ {scope}",
+    "rlsApplied": "በአገልጋዩ የተገደበ",
+    "renewing": "መዳረሻ በማደስ ላይ…",
+    "embedFailed": "ሪፖርቱን ማሳየት አልተቻለም። ገጹን እንደገና ይጫኑ።",
+    "tokenRenewFailed": "የእይታ ክፍለ ጊዜውን ማደስ አልተቻለም። ለመቀጠል ገጹን እንደገና ይጫኑ።",
+    "whereInstead": "በምትኩ የት መመልከት እንደሚችሉ",
+    "openMinistry": "ብሔራዊ አጠቃላይ እይታ",
+    "openWatershed": "የተፋሰሱ ትንበያ",
+    "willShowTitle": "ከተገናኘ በኋላ የሚያዩት",
+    "willShowFarms": "የተመዘገቡ አርሶ አደሮች፣ እርሻዎችና ሄክታሮች በወረዳ ተከፋፍለው",
+    "willShowAdvisories": "ለአርሶ አደሮች የደረሱ ምክሮች፣ እና ስንቶቹ እንደተነበቡ",
+    "willShowHistory": "የትንበያ ታሪክ ወር በወር፣ ከታዩት የመሬት ሁኔታዎች ጋር",
+    "willShowCrops": "በተመዘገበው መሬት ላይ ያለው የሰብል ድብልቅ"
+  },
+  "sidebar": {
+    "plotsCount": "{count, plural, =0 {ምንም መሬት አልተመዘገበም} one {# ቦታ} other {# ቦታዎች}}",
+    "language": "ቋንቋ"
+  },
+  "dataSources": {
+    "eyebrow": "የመረጃ ምንጭ",
+    "title": "መረጃው ከየት እንደመጣ",
+    "intro": "ይህ ትንበያ በእርግጥ ከምን እንደተገነባ፤ ከቋሚ ዝርዝር ሳይሆን በዚህ ሥርዓት ላይ ካሉ ፋይሎች የተነበበ።",
+    "headline": "ከ{total} ምንጮች {connected}ቱ እውነተኛ መረጃ እያቀረቡ ነው",
+    "modelLine": "ሞዴል {version}፣ እስከ {issued} ካለው መረጃ የወጣ",
+    "feeds": "የሚያገለግለው",
+    "provider": "አቅራቢ",
+    "statusConnected": "ተገናኝቷል",
+    "statusSynthetic": "ጊዜያዊ መረጃ",
+    "statusNotConnected": "አልተገናኘም",
+    "legend": "እያንዳንዱ ምንጭ ለምን እንደሚያገለግልና እውነተኛ መረጃ እያቀረበ መሆኑ ተመልክቷል።",
+    "empty": "ከዚህ ሥርዓት ዝርዝር አልተገኘም።"
   }
 }

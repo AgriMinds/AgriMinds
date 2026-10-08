@@ -62,6 +62,28 @@ class Settings(BaseSettings):
     login_max_attempts: int = 8
     login_lockout_minutes: int = 15
 
+    # ---- Power BI (optional analytics layer) ------------------------------------------------
+    # Embedding uses the "app owns data" model: one service principal holds the workspace
+    # licence and the server mints a short-lived token per viewer. Ministry staff therefore need
+    # no Power BI licence of their own, and farmers are never sent to it at all.
+    powerbi_tenant_id: str | None = None
+    powerbi_client_id: str | None = None
+    powerbi_client_secret: SecretStr | None = None
+    powerbi_workspace_id: str | None = None  # Power BI group id
+    powerbi_report_id: str | None = None
+    powerbi_dataset_id: str | None = None  # needed only when row-level security is in use
+    #: Name of the role defined inside the report's dataset, if it enforces row-level security.
+    powerbi_rls_role: str | None = None
+    powerbi_token_minutes: int = 50  # Power BI caps embed tokens at 60 minutes
+    powerbi_api_base: str = "https://api.powerbi.com/v1.0/myorg"
+    powerbi_authority: str = "https://login.microsoftonline.com"
+    powerbi_scope: str = "https://analysis.windows.net/powerbi/api/.default"
+
+    #: Host:port an analyst's own machine should use to reach the database, for the connection
+    #: details and the .pbids file. Inside Compose the server knows itself as `postgres:5432`,
+    #: which resolves only on that network, so this must be set for Power BI Desktop to connect.
+    analytics_public_host: str | None = None
+
     allow_precomputed_fallback: bool = True  # serve outputs/latest_risk.npz when weights are missing
 
     @field_validator("cors_origins", "api_keys", mode="before")
@@ -86,6 +108,19 @@ class Settings(BaseSettings):
                 "(generate one with: openssl rand -hex 32)"
             )
         return self
+
+    @property
+    def powerbi_configured(self) -> bool:
+        """True only when every value needed to mint an embed token is present."""
+        return all(
+            (
+                self.powerbi_tenant_id,
+                self.powerbi_client_id,
+                self.powerbi_client_secret,
+                self.powerbi_workspace_id,
+                self.powerbi_report_id,
+            )
+        )
 
     @property
     def service_auth_enabled(self) -> bool:

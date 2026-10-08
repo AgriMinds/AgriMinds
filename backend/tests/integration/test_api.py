@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 
 def test_health_healthy(client):
@@ -197,3 +198,79 @@ class TestTable2Classification:
         body = precomputed_client.get("/api/v1/drought/map").json()
         assert body["conditions"] is None
         assert all(c["pdsi"] is None and c["pdsi_category"] is None for c in body["cells"])
+
+
+class TestCatchmentBoundary:
+    """The surveyed outline, so a map can draw the catchment instead of a rectangle."""
+
+    def test_the_outline_is_served_with_its_grid_mask(self, client):
+        r = client.get("/api/v1/drought/watershed")
+        if r.status_code == 404:
+            pytest.skip("no catchment outline configured in this test deployment")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["geometry"]["type"] == "Polygon"
+        assert body["area_km2"] == pytest.approx(18_948, abs=1)
+        assert len(body["bbox"]) == 4
+        grid = body["grid"]
+        assert len(grid["inside"]) == grid["rows"]
+        assert all(len(row) == grid["cols"] for row in grid["inside"])
+        assert 0 < grid["cells_inside"] < grid["rows"] * grid["cols"]
+
+    def test_the_outline_is_small_enough_for_a_browser(self, client):
+        r = client.get("/api/v1/drought/watershed")
+        if r.status_code == 404:
+            pytest.skip("no catchment outline configured in this test deployment")
+        points = len(r.json()["geometry"]["coordinates"][0])
+        assert points < 1000, f"{points} points is too many to send to a phone"
+        assert points > 20, "simplified past the point of being the right shape"
+
+    def test_map_cells_say_whether_they_are_in_the_catchment(self, client):
+        cells = client.get("/api/v1/drought/map").json()["cells"]
+        assert all("in_watershed" in c for c in cells)
+        watershed = client.get("/api/v1/drought/watershed")
+        if watershed.status_code == 200:
+            grid = watershed.json()["grid"]
+            assert sum(1 for c in cells if c["in_watershed"]) == grid["cells_inside"], (
+                "the map and the mask must agree on which cells are in the basin"
+            )
+
+
+class TestDataSourceInventory:
+    """What the forecast is built from, reported from disk rather than from a fixed list."""
+
+    def test_it_reports_the_study_s_five_inputs(self, client, minister_headers):
+        body = client.get("/api/v1/system/data-sources", headers=minister_headers).json()
+        keys = [s["key"] for s in body["sources"]]
+        assert keys == ["nino34", "era5", "chirps_emi", "csa_crops", "scpdsi"]
+        assert body["total"] == 5
+        assert body["connected"] == sum(1 for s in body["sources"] if s["status"] == "connected")
+
+    def test_synthetic_training_data_is_declared_not_hidden(self, client, minister_headers):
+        body = client.get("/api/v1/system/data-sources", headers=minister_headers).json()
+        assert body["data_source"] == "synthetic"
+        assert body["caveat"] and "not a statement about real drought risk" in body["caveat"]
+        for key in ("nino34", "era5"):
+            entry = next(s for s in body["sources"] if s["key"] == key)
+            assert entry["status"] == "synthetic", f"{key} must not claim to be observed data"
+
+    def test_unwired_sources_say_so_rather_than_implying_coverage(self, client, minister_headers):
+        body = client.get("/api/v1/system/data-sources", headers=minister_headers).json()
+        for key in ("chirps_emi", "csa_crops"):
+            entry = next(s for s in body["sources"] if s["key"] == key)
+            assert entry["status"] == "not_connected"
+            assert entry["detail"]
+
+    def test_scpdsi_is_connected_because_mean_temperature_is_present(self, client, minister_headers):
+        entry = next(
+            s
+            for s in client.get("/api/v1/system/data-sources", headers=minister_headers).json()["sources"]
+            if s["key"] == "scpdsi"
+        )
+        assert entry["status"] == "connected"
+        # The study lists the water-balance terms; the detail should name them.
+        for term in ("evapotranspiration", "recharge", "runoff", "loss"):
+            assert term in entry["detail"]
+
+    def test_a_farmer_cannot_read_the_inventory(self, client, farmer_headers):
+        assert client.get("/api/v1/system/data-sources", headers=farmer_headers).status_code == 403

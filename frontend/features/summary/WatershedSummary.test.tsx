@@ -6,13 +6,20 @@ import messages from '@/messages/en.json'
 import { ProvenanceBanner } from '@/features/summary/ProvenanceBanner'
 import { WatershedSummary } from '@/features/summary/WatershedSummary'
 
-const cell = (row: number, col: number, probability: number, risk_level: DroughtMapResponse['cells'][number]['risk_level']) => ({
+const cell = (
+  row: number,
+  col: number,
+  probability: number,
+  risk_level: DroughtMapResponse['cells'][number]['risk_level'],
+  in_watershed = true,
+) => ({
   row,
   col,
   latitude: 11 - row * 0.1,
   longitude: 37.6 + col * 0.1,
   probability,
   risk_level,
+  in_watershed,
 })
 
 const base: DroughtMapResponse = {
@@ -41,6 +48,19 @@ describe('WatershedSummary', () => {
     expect(screen.getByText('70%')).toBeInTheDocument()
     expect(screen.getByText('of 4 grid cells')).toBeInTheDocument()
     expect(screen.getByText('2')).toBeInTheDocument()
+  })
+
+  it('ignores cells outside the catchment in the counts and the highest-risk cell', () => {
+    // The worst reading in the bounding box sits outside the basin, so it is not this
+    // watershed's highest-risk cell and it must not be counted as one of its cells.
+    const masked: DroughtMapResponse = {
+      ...base,
+      cells: [cell(0, 0, 0.1, 'Low'), cell(0, 1, 0.2, 'Low'), cell(1, 0, 0.5, 'High'), cell(1, 1, 0.7, 'Severe', false)],
+    }
+    wrap(<WatershedSummary mapData={masked} isLoading={false} selectedLead={1} />)
+    expect(screen.getByText('of 3 grid cells')).toBeInTheDocument()
+    expect(screen.getByText('50%')).toBeInTheDocument()
+    expect(screen.queryByText('70%')).not.toBeInTheDocument()
   })
 
   it('selects the highest-risk cell when its tile is clicked', () => {

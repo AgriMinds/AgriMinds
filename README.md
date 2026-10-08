@@ -147,6 +147,50 @@ Errors are `{ "error": { "code", "message" } }`. Changing a schema → `make api
   attaches the bearer header when it proxies to the API.
 - `AGRIMINDS_API_KEYS` remains for machine clients (the mobile app, the web proxy's unauthenticated calls).
 
+## Where the data comes from
+
+`GET /api/v1/system/data-sources` reports what the running deployment is actually built from,
+derived from the files and model metadata present rather than from a fixed list. Today that is
+**one of five inputs**:
+
+| Input | Provider | Status |
+|---|---|---|
+| Niño 3.4 index | NOAA | synthetic stand-in |
+| Temperature, rainfall, soil moisture, evaporation | ERA5 | synthetic stand-in |
+| Rainfall and temperature for validation | CHIRPS, Ethiopian Meteorological Institute | not connected |
+| Crop statistics for tef, wheat and maize | Central Statistical Agency | not connected |
+| Sc-PDSI drought index | computed here | connected |
+
+Sc-PDSI is computed from the full Palmer water balance — evapotranspiration, recharge, runoff and
+loss, each against its potential — so its dry bands drive drought warning and its wet bands flood
+warning. The catchment outline is the surveyed one: 18,948 km², from
+`cmw_max_boundary_wgs` (see [`docs/research`](docs/research/README.md)). Because the forecast grid
+is a rectangle over a catchment that is not one, 15 of its 64 cells fall outside the basin and are
+marked rather than reported as readings.
+
+## Analytics and Power BI
+
+Alongside the operational dashboards there is a read-only `analytics` schema: a star schema of
+views built for business-intelligence tools, plus an `agriminds_bi` role that can read those views
+and nothing else — no accounts, no password hashes, no phone numbers.
+
+```bash
+make bi-role password="$(openssl rand -base64 24)"   # enable the read-only login
+make snapshot                                        # persist the current forecast for reporting
+```
+
+Then connect Power BI Desktop with **Get Data → PostgreSQL**, or embed a published report in the app
+by setting `AGRIMINDS_POWERBI_*`. Without those variables the API returns `503
+powerbi_not_configured` and the web app shows setup instructions rather than a broken frame.
+
+Forecasts live in the model, not the database, so `make snapshot` writes each run to
+`risk_snapshots`; `make train` does it automatically. See [`docs/powerbi.md`](docs/powerbi.md) for
+the data model, the relationships to create, and how to scope a development agent to their own
+woreda with row-level security.
+
+The farmer dashboard stays native on purpose: farmers use a phone, in Amharic or Afaan Oromoo, often
+on a weak connection, and should never need a Microsoft licence to be told whether to plant.
+
 ## Database
 
 PostgreSQL holds accounts, the Ethiopian administrative hierarchy (region → zone → woreda), farm plots,
@@ -155,6 +199,8 @@ and one row per advisory actually shown to a farmer.
 ```
 regions ─< zones ─< woredas ─< users ─< farms ─< advisory_records
                                   └─< refresh_tokens
+risk_snapshots          one row per grid cell, lead and model run
+analytics.*             read-only star-schema views for BI tools
 ```
 
 Migrations are Alembic revisions in `backend/alembic/versions/`, applied with `make migrate` as a

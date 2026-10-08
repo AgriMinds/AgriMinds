@@ -368,6 +368,56 @@
         }
       }
     },
+    "/api/v1/drought/watershed": {
+      "get": {
+        "tags": [
+          "Drought Early Warning"
+        ],
+        "summary": "The surveyed catchment outline and which grid cells fall inside it",
+        "description": "Lets a map draw the real catchment instead of a bare rectangle, and grey out the cells that are not part of it. The outline is simplified for display; the server keeps the full-precision version for deciding whether a plot is inside.",
+        "operationId": "watershed_api_v1_drought_watershed_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatershedBoundary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Model unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/drought/cell": {
       "get": {
         "tags": [
@@ -1450,6 +1500,257 @@
           }
         }
       }
+    },
+    "/api/v1/analytics/powerbi/status": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Whether Power BI embedding is configured on this deployment",
+        "description": "Lets the client show the analytics tab only when it will work, instead of rendering a broken frame. Never returns any credential.",
+        "operationId": "powerbi_status_api_v1_analytics_powerbi_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PowerBiStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/analytics/powerbi/embed-token": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Short-lived token for rendering the report in the browser",
+        "description": "Issued per viewer. Where the dataset defines row-level security, a development agent's token is scoped to their own woreda by Power BI, not by the client.",
+        "operationId": "powerbi_embed_token_api_v1_analytics_powerbi_embed_token_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmbedConfig"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Power BI did not respond",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Embedding is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/analytics/connection": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Direct SQL connection details for building your own reports (administrators)",
+        "description": "Returns where the read-only `analytics` schema lives and which views it offers. Credentials are issued separately: this endpoint never returns a password.",
+        "operationId": "analytics_connection_api_v1_analytics_connection_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsConnection"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/analytics/connection.pbids": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Power BI Desktop connection file (administrators)",
+        "description": "Opens Power BI Desktop straight onto the analytics schema. Contains no credentials.",
+        "operationId": "analytics_pbids_api_v1_analytics_connection_pbids_get",
+        "responses": {
+          "200": {
+            "description": "A .pbids file",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/system/data-sources": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Which inputs are actually supplying this deployment",
+        "description": "Derived from the files and model metadata present, not from a fixed list, so a source cannot be reported as connected once it has been removed.",
+        "operationId": "data_sources_api_v1_system_data_sources_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataInventory"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -1736,6 +2037,54 @@
         ],
         "title": "AdvisoryResponse"
       },
+      "AnalyticsConnection": {
+        "properties": {
+          "protocol": {
+            "type": "string",
+            "const": "postgresql",
+            "title": "Protocol",
+            "default": "postgresql"
+          },
+          "server": {
+            "type": "string",
+            "title": "Server"
+          },
+          "database": {
+            "type": "string",
+            "title": "Database"
+          },
+          "schema": {
+            "type": "string",
+            "title": "Schema",
+            "default": "analytics"
+          },
+          "read_only_role": {
+            "type": "string",
+            "title": "Read Only Role"
+          },
+          "views": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Views"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "server",
+          "database",
+          "read_only_role",
+          "views",
+          "note"
+        ],
+        "title": "AnalyticsConnection",
+        "description": "A direct SQL connection for analysts who build their own reports."
+      },
       "CacheStatus": {
         "properties": {
           "backend": {
@@ -1885,6 +2234,12 @@
             "title": "Pdsi Category",
             "description": "Drought intensity band for `pdsi` (Table 2)"
           },
+          "in_watershed": {
+            "type": "boolean",
+            "title": "In Watershed",
+            "description": "Whether this cell's centre falls inside the surveyed catchment. The grid is a rectangle over a catchment that is not one, so some cells are outside it.",
+            "default": true
+          },
           "lead_month": {
             "type": "integer",
             "title": "Lead Month"
@@ -2004,6 +2359,128 @@
           "farms_at_risk"
         ],
         "title": "CropMixEntry"
+      },
+      "DataInventory": {
+        "properties": {
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "data_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Source",
+            "description": "'real' or 'synthetic', from the trained model"
+          },
+          "issued_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued Date"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/DataSource"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "connected": {
+            "type": "integer",
+            "title": "Connected"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "caveat": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caveat",
+            "description": "Set whenever the forecast is not from real data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_version",
+          "data_source",
+          "issued_date",
+          "sources",
+          "connected",
+          "total"
+        ],
+        "title": "DataInventory",
+        "description": "What the current forecast is actually built from.\n\nReported from what is on disk and in the model metadata, never from a fixed list, so the\npage cannot claim a source is connected after it has been removed."
+      },
+      "DataSource": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "feeds": {
+            "type": "string",
+            "title": "Feeds",
+            "description": "What this input is used for"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "connected",
+              "synthetic",
+              "not_connected"
+            ],
+            "title": "Status",
+            "description": "connected: real observations in use. synthetic: a stand-in is filling this slot. not_connected: nothing is supplying it yet."
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "provider",
+          "feeds",
+          "status",
+          "detail"
+        ],
+        "title": "DataSource",
+        "description": "One input the platform depends on, and whether it is actually wired up."
       },
       "DatabaseStatus": {
         "properties": {
@@ -2133,6 +2610,48 @@
           "provenance"
         ],
         "title": "DroughtMapResponse"
+      },
+      "EmbedConfig": {
+        "properties": {
+          "report_id": {
+            "type": "string",
+            "title": "Report Id"
+          },
+          "embed_url": {
+            "type": "string",
+            "title": "Embed Url"
+          },
+          "access_token": {
+            "type": "string",
+            "title": "Access Token",
+            "description": "Short-lived embed token, not an AAD token"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "description": "Which rows this token may read, in plain words"
+          },
+          "rls_applied": {
+            "type": "boolean",
+            "title": "Rls Applied"
+          }
+        },
+        "type": "object",
+        "required": [
+          "report_id",
+          "embed_url",
+          "access_token",
+          "expires_at",
+          "scope",
+          "rls_applied"
+        ],
+        "title": "EmbedConfig",
+        "description": "Everything the browser needs to render a Power BI report, and nothing more.\n\nThe client secret stays on the server; what goes out is a short-lived token scoped to one\nreport and, where row-level security is configured, to one viewer's district."
       },
       "EnsoOutlookResponse": {
         "properties": {
@@ -2581,7 +3100,8 @@
             "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
-            "title": "Probability"
+            "title": "Probability",
+            "description": "Chance of seasonal drought at the target month"
           },
           "risk_level": {
             "type": "string",
@@ -2592,6 +3112,39 @@
               "Severe"
             ],
             "title": "Risk Level"
+          },
+          "pdsi": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdsi",
+            "description": "Observed Sc-PDSI for the issue month"
+          },
+          "pdsi_category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "Extremely wet",
+                  "Very wet",
+                  "Moderately wet",
+                  "Normal",
+                  "Moderately dry",
+                  "Very dry",
+                  "Extremely dry"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdsi Category",
+            "description": "Drought intensity band (Table 2)"
           }
         },
         "type": "object",
@@ -2600,7 +3153,8 @@
           "probability",
           "risk_level"
         ],
-        "title": "FarmRisk"
+        "title": "FarmRisk",
+        "description": "Forecast risk for the plot's cell, plus how dry that ground already is.\n\nThe two are different quantities: ``probability`` is a likelihood for the target month,\n``pdsi`` is a measurement for the issue month. Clients must label them separately."
       },
       "FarmUpdate": {
         "properties": {
@@ -2758,7 +3312,27 @@
                 "type": "null"
               }
             ],
-            "title": "Enso State"
+            "title": "Enso State",
+            "description": "Coarse phase right now"
+          },
+          "enso_category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "High El Ni\u00f1o",
+                  "Moderate El Ni\u00f1o",
+                  "Neutral",
+                  "Moderate La Ni\u00f1a",
+                  "High La Ni\u00f1a"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enso Category",
+            "description": "Five-way band right now; the advisory's own band refers to its target month"
           },
           "enso_summary": {
             "anyOf": [
@@ -2892,6 +3466,12 @@
             ],
             "title": "Pdsi Category",
             "description": "Drought intensity band for `pdsi` (Table 2)"
+          },
+          "in_watershed": {
+            "type": "boolean",
+            "title": "In Watershed",
+            "description": "Whether this cell's centre falls inside the surveyed catchment. The grid is a rectangle over a catchment that is not one, so some cells are outside it.",
+            "default": true
           }
         },
         "type": "object",
@@ -3199,6 +3779,64 @@
         "title": "ObservedConditions",
         "description": "How dry the ground already is, as opposed to how likely drought is next season."
       },
+      "PowerBiStatus": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Why embedding is unavailable, when it is"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          },
+          "report_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Id"
+          },
+          "rls_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rls Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured"
+        ],
+        "title": "PowerBiStatus"
+      },
       "RefreshRequest": {
         "properties": {
           "refresh_token": {
@@ -3490,6 +4128,107 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WatershedBoundary": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "description": "File the outline was surveyed from"
+          },
+          "area_km2": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area Km2"
+          },
+          "bbox": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Bbox",
+            "description": "lon_min, lat_min, lon_max, lat_max"
+          },
+          "geometry": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Geometry",
+            "description": "GeoJSON Polygon, simplified for display"
+          },
+          "grid": {
+            "$ref": "#/components/schemas/WatershedGrid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "source",
+          "area_km2",
+          "bbox",
+          "geometry",
+          "grid"
+        ],
+        "title": "WatershedBoundary",
+        "description": "The surveyed catchment outline, for drawing the real shape instead of a rectangle."
+      },
+      "WatershedGrid": {
+        "properties": {
+          "rows": {
+            "type": "integer",
+            "title": "Rows"
+          },
+          "cols": {
+            "type": "integer",
+            "title": "Cols"
+          },
+          "cells_inside": {
+            "type": "integer",
+            "title": "Cells Inside"
+          },
+          "inside": {
+            "items": {
+              "items": {
+                "type": "boolean"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Inside",
+            "description": "Row-major, row 0 northern-most"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rows",
+          "cols",
+          "cells_inside",
+          "inside"
+        ],
+        "title": "WatershedGrid",
+        "description": "Which cells of the forecast grid fall inside the catchment."
       },
       "WoredaOut": {
         "properties": {

@@ -91,7 +91,13 @@
     "moderateRisk": "25–45% (Moderate)",
     "highRisk": "45–65% (High)",
     "severeRisk": ">65% (Severe)",
-    "bbox": "BBox: 37.6°E – 38.4°E, 10.4°N – 11.2°N",
+    "bbox": "BBox: {west}°E – {east}°E, {south}°N – {north}°N",
+    "outlineAria": "Surveyed outline of the {name}",
+    "outsideBasin": "Outside the watershed",
+    "cellAriaOutside": "Row {row}, column {col}, outside the watershed — no reading",
+    "outsideSelected": "This cell lies outside the watershed, so no forecast is published for it.",
+    "basinCells": "{inside} of {total} cells lie inside the watershed",
+    "basinArea": "catchment area {area} km²",
     "probabilityOfDrought": "Probability of seasonal drought (SPI-3 ≤ −1.0) per 10 km cell",
     "north": "North",
     "south": "South",
@@ -199,7 +205,13 @@
     "section": "Navigation",
     "farm": "My farm",
     "ministry": "National overview",
-    "watershed": "Watershed forecast"
+    "watershed": "Watershed forecast",
+    "analytics": "Analytics",
+    "dataSources": "Data sources",
+    "onThisPage": "On this page",
+    "advice": "What to do",
+    "plots": "My land",
+    "season": "The season"
   },
   "roles": {
     "farmer": "Farmer",
@@ -259,7 +271,6 @@
     "riskUnavailable": "Risk not available",
     "noPlotsTitle": "No plots registered yet",
     "noPlotsBody": "Add your land to see the drought outlook and advice for it.",
-    "ensoNow": "Pacific Ocean: {state}",
     "errors": {
       "nameRequired": "Give the plot a name.",
       "latitude": "Enter a latitude between -90 and 90.",
@@ -270,7 +281,7 @@
     "landRisk": "Risk for this land",
     "groundNow": "Ground now: {band}",
     "groundUnavailable": "Ground reading not available",
-    "ensoBandLine": "Pacific Ocean, {month}: {band}"
+    "ensoNowBand": "Pacific Ocean now: {band}"
   },
   "ministry": {
     "eyebrow": "National overview",
@@ -348,5 +359,55 @@
     "explain": "The forecast above answers how likely drought is next season. This answers how dry the ground already is, from the Palmer index.",
     "methodLabel": "Method",
     "sourceLabel": "Thresholds"
+  },
+  "analytics": {
+    "eyebrow": "Ministry analytics",
+    "title": "Explore the data",
+    "intro": "Build your own view of the registered farms, the advisories delivered and the forecast history.",
+    "notConfiguredTitle": "Power BI reports will appear here",
+    "notConfiguredLead": "This deployment is not connected to Power BI yet.",
+    "notConfiguredNative": "Until then nothing is missing from day-to-day work. The national overview and the watershed forecast already cover it, in all three languages, on any phone.",
+    "adminSetupTitle": "What an administrator needs to do",
+    "adminSetupBody": "Embedding needs a Microsoft Entra service principal and a paid Power BI capacity. Register an application in Entra ID, give it access to the Power BI workspace, then set the Power BI variables and restart the service. Until then, an analyst can connect Power BI Desktop straight to the read-only schema below.",
+    "connectionTitle": "Connect Power BI Desktop",
+    "connectionLead": "A read-only schema an analyst can build reports against today.",
+    "downloadPbids": "Download connection file",
+    "server": "Server",
+    "database": "Database",
+    "schema": "Schema",
+    "readOnlyRole": "Read-only role",
+    "viewsAvailable": "Tables available",
+    "connectionUnavailable": "Connection details could not be read.",
+    "showing": "Showing: {scope}",
+    "rlsApplied": "Restricted by the server",
+    "renewing": "Renewing access…",
+    "embedFailed": "The report could not be displayed. Try reloading the page.",
+    "tokenRenewFailed": "The viewing session could not be renewed. Reload the page to continue.",
+    "whereInstead": "Where to look instead",
+    "openMinistry": "National overview",
+    "openWatershed": "Watershed forecast",
+    "willShowTitle": "What you will see once it is connected",
+    "willShowFarms": "Registered farmers, plots and hectares, broken down by woreda",
+    "willShowAdvisories": "Advisories delivered to farmers, and how many were read",
+    "willShowHistory": "Forecast history month by month, alongside the observed ground conditions",
+    "willShowCrops": "The crop mix across registered land"
+  },
+  "sidebar": {
+    "plotsCount": "{count, plural, =0 {No land registered} one {# plot} other {# plots}}",
+    "language": "Language"
+  },
+  "dataSources": {
+    "eyebrow": "Provenance",
+    "title": "Where the data comes from",
+    "intro": "What this forecast is actually built from, read from the files on this deployment rather than a fixed list.",
+    "headline": "{connected} of {total} inputs are supplying real data",
+    "modelLine": "Model {version}, issued from data ending {issued}",
+    "feeds": "Feeds",
+    "provider": "Provider",
+    "statusConnected": "Connected",
+    "statusSynthetic": "Stand-in data",
+    "statusNotConnected": "Not connected",
+    "legend": "Each input is shown with what it feeds and whether anything real is supplying it.",
+    "empty": "No inventory is available from this deployment."
   }
 }

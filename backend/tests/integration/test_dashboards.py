@@ -108,6 +108,17 @@ class TestFarmerDashboard:
         assert d["advisory_farm_id"] == worst["id"]
         assert d["advisory"]["crop"] == worst["primary_crop"]
         assert d["enso_state"] in {"El Niño", "La Niña", "Neutral"}
+        assert d["enso_category"] in {
+            "High El Niño",
+            "Moderate El Niño",
+            "Neutral",
+            "Moderate La Niña",
+            "High La Niña",
+        }
+        # The dashboard's band describes now; the advisory's describes its target month, and the
+        # two legitimately differ. Keeping both means the client need not conflate them.
+        outlook = client.get("/api/v1/enso/outlook", headers=sign_in(population["a"].phone)["headers"]).json()
+        assert d["enso_category"] == outlook["current_category"]
 
     async def test_a_farmer_with_no_plots_gets_an_empty_dashboard_not_an_error(
         self, client, make_user, sign_in

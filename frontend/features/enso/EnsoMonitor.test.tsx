@@ -56,6 +56,11 @@ describe('EnsoMonitor', () => {
     expect(screen.queryByText('Extreme phase')).not.toBeInTheDocument()
   })
 
+  it('drops the coarse phase when it only repeats the band', () => {
+    wrap({ ...base, current_nino34: -0.2, current_state: 'Neutral', current_category: 'Neutral' })
+    expect(screen.queryByText('(Neutral)')).not.toBeInTheDocument()
+  })
+
   it('flags a High band as extreme', () => {
     wrap({ ...base, current_nino34: -1.6, current_category: 'High La Niña', is_extreme: true })
     expect(screen.getByText('Extreme phase')).toBeInTheDocument()

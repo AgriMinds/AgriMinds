@@ -21,6 +21,86 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/connection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Direct SQL connection details for building your own reports (administrators)
+         * @description Returns where the read-only `analytics` schema lives and which views it offers. Credentials are issued separately: this endpoint never returns a password.
+         */
+        get: operations["analytics_connection_api_v1_analytics_connection_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/connection.pbids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Power BI Desktop connection file (administrators)
+         * @description Opens Power BI Desktop straight onto the analytics schema. Contains no credentials.
+         */
+        get: operations["analytics_pbids_api_v1_analytics_connection_pbids_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/powerbi/embed-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Short-lived token for rendering the report in the browser
+         * @description Issued per viewer. Where the dataset defines row-level security, a development agent's token is scoped to their own woreda by Power BI, not by the client.
+         */
+        get: operations["powerbi_embed_token_api_v1_analytics_powerbi_embed_token_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/powerbi/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Whether Power BI embedding is configured on this deployment
+         * @description Lets the client show the analytics tab only when it will work, instead of rendering a broken frame. Never returns any credential.
+         */
+        get: operations["powerbi_status_api_v1_analytics_powerbi_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login": {
         parameters: {
             query?: never;
@@ -196,6 +276,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/drought/watershed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The surveyed catchment outline and which grid cells fall inside it
+         * @description Lets a map draw the real catchment instead of a bare rectangle, and grey out the cells that are not part of it. The outline is simplified for display; the server keeps the full-precision version for deciding whether a plot is inside.
+         */
+        get: operations["watershed_api_v1_drought_watershed_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/enso/outlook": {
         parameters: {
             query?: never;
@@ -293,6 +393,26 @@ export type paths = {
         };
         /** Readiness: 503 until forecasts can be served */
         get: operations["ready_api_v1_health_ready_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/data-sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Which inputs are actually supplying this deployment
+         * @description Derived from the files and model metadata present, not from a fixed list, so a source cannot be reported as connected once it has been removed.
+         */
+        get: operations["data_sources_api_v1_system_data_sources_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -430,6 +550,33 @@ export type components = {
             /** Water Management */
             water_management: string;
         };
+        /**
+         * AnalyticsConnection
+         * @description A direct SQL connection for analysts who build their own reports.
+         */
+        AnalyticsConnection: {
+            /** Database */
+            database: string;
+            /** Note */
+            note: string;
+            /**
+             * Protocol
+             * @default postgresql
+             * @constant
+             */
+            protocol: "postgresql";
+            /** Read Only Role */
+            read_only_role: string;
+            /**
+             * Schema
+             * @default analytics
+             */
+            schema: string;
+            /** Server */
+            server: string;
+            /** Views */
+            views: string[];
+        };
         /** CacheStatus */
         CacheStatus: {
             /** Backend */
@@ -460,6 +607,12 @@ export type components = {
         CellRiskResponse: {
             /** Col */
             col: number;
+            /**
+             * In Watershed
+             * @description Whether this cell's centre falls inside the surveyed catchment. The grid is a rectangle over a catchment that is not one, so some cells are outside it.
+             * @default true
+             */
+            in_watershed: boolean;
             /** Latitude */
             latitude: number;
             /** Lead Month */
@@ -535,6 +688,60 @@ export type components = {
             /** Reachable */
             reachable: boolean;
         };
+        /**
+         * DataInventory
+         * @description What the current forecast is actually built from.
+         *
+         *     Reported from what is on disk and in the model metadata, never from a fixed list, so the
+         *     page cannot claim a source is connected after it has been removed.
+         */
+        DataInventory: {
+            /**
+             * Caveat
+             * @description Set whenever the forecast is not from real data
+             */
+            caveat?: string | null;
+            /** Connected */
+            connected: number;
+            /**
+             * Data Source
+             * @description 'real' or 'synthetic', from the trained model
+             */
+            data_source: string | null;
+            /** Issued Date */
+            issued_date: string | null;
+            /** Model Version */
+            model_version: string | null;
+            /** Sources */
+            sources: components["schemas"]["DataSource"][];
+            /** Total */
+            total: number;
+        };
+        /**
+         * DataSource
+         * @description One input the platform depends on, and whether it is actually wired up.
+         */
+        DataSource: {
+            /** Detail */
+            detail: string;
+            /**
+             * Feeds
+             * @description What this input is used for
+             */
+            feeds: string;
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Provider */
+            provider: string;
+            /**
+             * Status
+             * @description connected: real observations in use. synthetic: a stand-in is filling this slot. not_connected: nothing is supplying it yet.
+             * @enum {string}
+             */
+            status: "connected" | "synthetic" | "not_connected";
+        };
         /** DroughtMapResponse */
         DroughtMapResponse: {
             /**
@@ -577,6 +784,36 @@ export type components = {
              * @description Target month, e.g. 'July 2026'
              */
             target_date: string;
+        };
+        /**
+         * EmbedConfig
+         * @description Everything the browser needs to render a Power BI report, and nothing more.
+         *
+         *     The client secret stays on the server; what goes out is a short-lived token scoped to one
+         *     report and, where row-level security is configured, to one viewer's district.
+         */
+        EmbedConfig: {
+            /**
+             * Access Token
+             * @description Short-lived embed token, not an AAD token
+             */
+            access_token: string;
+            /** Embed Url */
+            embed_url: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Report Id */
+            report_id: string;
+            /** Rls Applied */
+            rls_applied: boolean;
+            /**
+             * Scope
+             * @description Which rows this token may read, in plain words
+             */
+            scope: string;
         };
         /** EnsoOutlookResponse */
         EnsoOutlookResponse: {
@@ -746,7 +983,15 @@ export type components = {
              * @description Delivery record for this advisory; POST it to .../acknowledge
              */
             advisory_record_id?: string | null;
-            /** Enso State */
+            /**
+             * Enso Category
+             * @description Five-way band right now; the advisory's own band refers to its target month
+             */
+            enso_category?: ("High El Niño" | "Moderate El Niño" | "Neutral" | "Moderate La Niña" | "High La Niña") | null;
+            /**
+             * Enso State
+             * @description Coarse phase right now
+             */
             enso_state?: string | null;
             /** Enso Summary */
             enso_summary?: string | null;
@@ -788,11 +1033,30 @@ export type components = {
             risk?: components["schemas"]["FarmRisk"] | null;
             woreda?: components["schemas"]["WoredaOut"] | null;
         };
-        /** FarmRisk */
+        /**
+         * FarmRisk
+         * @description Forecast risk for the plot's cell, plus how dry that ground already is.
+         *
+         *     The two are different quantities: ``probability`` is a likelihood for the target month,
+         *     ``pdsi`` is a measurement for the issue month. Clients must label them separately.
+         */
         FarmRisk: {
             /** Lead Month */
             lead_month: number;
-            /** Probability */
+            /**
+             * Pdsi
+             * @description Observed Sc-PDSI for the issue month
+             */
+            pdsi?: number | null;
+            /**
+             * Pdsi Category
+             * @description Drought intensity band (Table 2)
+             */
+            pdsi_category?: ("Extremely wet" | "Very wet" | "Moderately wet" | "Normal" | "Moderately dry" | "Very dry" | "Extremely dry") | null;
+            /**
+             * Probability
+             * @description Chance of seasonal drought at the target month
+             */
             probability: number;
             /**
              * Risk Level
@@ -846,6 +1110,12 @@ export type components = {
         GridCellRisk: {
             /** Col */
             col: number;
+            /**
+             * In Watershed
+             * @description Whether this cell's centre falls inside the surveyed catchment. The grid is a rectangle over a catchment that is not one, so some cells are outside it.
+             * @default true
+             */
+            in_watershed: boolean;
             /** Latitude */
             latitude: number;
             /** Longitude */
@@ -994,6 +1264,22 @@ export type components = {
             /** Method Note */
             method_note: string;
         };
+        /** PowerBiStatus */
+        PowerBiStatus: {
+            /** Configured */
+            configured: boolean;
+            /**
+             * Reason
+             * @description Why embedding is unavailable, when it is
+             */
+            reason?: string | null;
+            /** Report Id */
+            report_id?: string | null;
+            /** Rls Role */
+            rls_role?: string | null;
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
         /** RefreshRequest */
         RefreshRequest: {
             /** Refresh Token */
@@ -1099,6 +1385,56 @@ export type components = {
             /** Error Type */
             type: string;
         };
+        /**
+         * WatershedBoundary
+         * @description The surveyed catchment outline, for drawing the real shape instead of a rectangle.
+         */
+        WatershedBoundary: {
+            /** Area Km2 */
+            area_km2: number | null;
+            /**
+             * Bbox
+             * @description lon_min, lat_min, lon_max, lat_max
+             */
+            bbox: [
+                number,
+                number,
+                number,
+                number
+            ];
+            /**
+             * Geometry
+             * @description GeoJSON Polygon, simplified for display
+             */
+            geometry: {
+                [key: string]: unknown;
+            };
+            grid: components["schemas"]["WatershedGrid"];
+            /** Name */
+            name: string;
+            /**
+             * Source
+             * @description File the outline was surveyed from
+             */
+            source: string;
+        };
+        /**
+         * WatershedGrid
+         * @description Which cells of the forecast grid fall inside the catchment.
+         */
+        WatershedGrid: {
+            /** Cells Inside */
+            cells_inside: number;
+            /** Cols */
+            cols: number;
+            /**
+             * Inside
+             * @description Row-major, row 0 northern-most
+             */
+            inside: boolean[][];
+            /** Rows */
+            rows: number;
+        };
         /** WoredaOut */
         WoredaOut: {
             /** Code */
@@ -1203,6 +1539,176 @@ export interface operations {
             };
             /** @description Model unavailable */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    analytics_connection_api_v1_analytics_connection_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsConnection"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    analytics_pbids_api_v1_analytics_connection_pbids_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A .pbids file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    powerbi_embed_token_api_v1_analytics_powerbi_embed_token_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmbedConfig"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Power BI did not respond */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Embedding is not configured */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    powerbi_status_api_v1_analytics_powerbi_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PowerBiStatus"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1722,6 +2228,44 @@ export interface operations {
             };
         };
     };
+    watershed_api_v1_drought_watershed_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatershedBoundary"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Model unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     outlook_api_v1_enso_outlook_get: {
         parameters: {
             query?: never;
@@ -2154,6 +2698,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    data_sources_api_v1_system_data_sources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DataInventory"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

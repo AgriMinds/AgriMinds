@@ -7,13 +7,21 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from agriminds_api.schemas.advisory import AdvisoryResponse
 from agriminds_api.schemas.auth import WoredaOut
-from agriminds_api.schemas.common import CropName, RiskLevelName
+from agriminds_api.schemas.common import CropName, PdsiCategoryName, RiskLevelName
 
 
 class FarmRisk(BaseModel):
+    """Forecast risk for the plot's cell, plus how dry that ground already is.
+
+    The two are different quantities: ``probability`` is a likelihood for the target month,
+    ``pdsi`` is a measurement for the issue month. Clients must label them separately.
+    """
+
     lead_month: int
-    probability: float = Field(ge=0, le=1)
+    probability: float = Field(ge=0, le=1, description="Chance of seasonal drought at the target month")
     risk_level: RiskLevelName
+    pdsi: float | None = Field(None, description="Observed Sc-PDSI for the issue month")
+    pdsi_category: PdsiCategoryName | None = Field(None, description="Drought intensity band (Table 2)")
 
 
 class FarmOut(BaseModel):

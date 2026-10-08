@@ -6,7 +6,7 @@ import type { AdvisoryResponse, PdsiCategory, RiskLevel } from '@agriminds/api-t
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardIcon } from '@/components/ui/card'
-import { PDSI_DOT_CLASS, PDSI_ICON, pdsiKey } from '@/lib/classification'
+import { PDSI_DOT_CLASS, PDSI_ICON, ensoKey, pdsiKey } from '@/lib/classification'
 import { RISK_ACCENT_BORDER, RISK_SOFT_CLASS, RISK_TEXT_CLASS } from '@/lib/risk'
 import { cn, formatPercent } from '@/lib/utils'
 
@@ -57,6 +57,7 @@ export function AdvisoryActionCard({
   const ta = useTranslations('advisory')
   const tr = useTranslations('risk')
   const tp = useTranslations('pdsi')
+  const tb = useTranslations('ensoBand')
   const level = advisory.risk_level as RiskLevel
   const GroundIcon = ground ? PDSI_ICON[ground] : null
   const Icon = RISK_ICON[level]
@@ -91,6 +92,12 @@ export function AdvisoryActionCard({
               <span>{advisory.target_date}</span>
               <span className="text-border-strong">·</span>
               <span>{advisory.season}</span>
+              {advisory.enso_category && (
+                <>
+                  <span className="text-border-strong">·</span>
+                  <span>{tb(ensoKey(advisory.enso_category))}</span>
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -100,10 +107,12 @@ export function AdvisoryActionCard({
           {/* Today's measured soil state, separated by a rule so it cannot be read as part of
               the forecast figure above it. */}
           {ground && GroundIcon && (
-            <p className="mt-2 flex items-center gap-1.5 border-t border-fg/10 pt-2 text-xs text-fg-muted sm:justify-end">
-              <span className={cn('size-2 shrink-0 rounded-full', PDSI_DOT_CLASS[ground])} aria-hidden />
-              <GroundIcon className="size-3.5 shrink-0 text-fg-subtle" aria-hidden />
-              {t('groundNow', { band: tp(pdsiKey(ground)) })}
+            <p className="mt-2.5 border-t border-fg/10 pt-2.5 sm:flex sm:justify-end">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-raised px-2.5 py-1 text-sm font-medium text-fg">
+                <span className={cn('size-2.5 shrink-0 rounded-full', PDSI_DOT_CLASS[ground])} aria-hidden />
+                <GroundIcon className="size-4 shrink-0 text-fg-muted" aria-hidden />
+                {t('groundNow', { band: tp(pdsiKey(ground)) })}
+              </span>
             </p>
           )}
         </div>

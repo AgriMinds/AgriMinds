@@ -5,8 +5,11 @@ export { homePathFor, isStaff }
 export type { Role }
 
 /** Paths that require a signed-in person. Everything else is public. */
-export const PROTECTED_PREFIXES = ['/farm', '/ministry', '/watershed'] as const
+export const PROTECTED_PREFIXES = ['/farm', '/ministry', '/watershed', '/analytics'] as const
 export const LOGIN_PATH = '/login'
+
+/** Protected paths a farmer must never reach; they are bounced to their own home. */
+export const STAFF_PREFIXES = ['/ministry', '/watershed', '/analytics'] as const
 
 export function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
@@ -23,6 +26,6 @@ export function redirectForRole(role: Role, pathname: string): string | null {
   const home = homePathFor(role)
   if (pathname === '/' || pathname === LOGIN_PATH) return home
   if (pathname.startsWith('/farm') && role !== 'farmer') return home
-  if ((pathname.startsWith('/ministry') || pathname.startsWith('/watershed')) && !isStaff(role)) return home
+  if (STAFF_PREFIXES.some((p) => pathname.startsWith(p)) && !isStaff(role)) return home
   return null
 }

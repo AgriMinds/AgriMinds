@@ -9,6 +9,7 @@ import { useAdvisory } from '@/features/advisory/useAdvisory'
 import { ForecastControls } from '@/features/dashboard/ForecastControls'
 import { WatershedGridMap, type Cell } from '@/features/drought/WatershedGridMap'
 import { useDroughtMap } from '@/features/drought/useDroughtMap'
+import { useWatershed } from '@/features/drought/useWatershed'
 import { EnsoMonitor } from '@/features/enso/EnsoMonitor'
 import { useEnsoOutlook } from '@/features/enso/useEnsoOutlook'
 import { ProvenanceBanner } from '@/features/summary/ProvenanceBanner'
@@ -29,6 +30,8 @@ export function Dashboard() {
   const map = useDroughtMap(lead)
   const advisory = useAdvisory({ crop, lead_month: lead, row: cell.row, col: cell.col, iek_agrees: iekAgrees })
   const enso = useEnsoOutlook()
+  // The surveyed outline. A deployment without one answers 404 and the grid draws plain.
+  const watershed = useWatershed()
 
   return (
     <>
@@ -63,6 +66,7 @@ export function Dashboard() {
           <section id="drought" aria-label={tn('drought')} className="reveal scroll-mt-20 xl:col-span-6 2xl:col-span-5" style={delay(220)}>
             <WatershedGridMap
               mapData={map.data}
+              boundary={watershed.data}
               isLoading={map.isPending}
               isFetching={map.isFetching}
               error={map.error}

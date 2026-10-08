@@ -1,8 +1,11 @@
 import type {
   AdvisoryRequest,
+  AnalyticsConnection,
   AdvisoryResponse,
   CellRiskResponse,
+  DataInventory,
   DroughtMapResponse,
+  EmbedConfig,
   EnsoOutlookResponse,
   ErrorResponse,
   Farm,
@@ -13,7 +16,9 @@ import type {
   HealthResponse,
   LeadMonth,
   MinistryDashboard,
+  PowerBiStatus,
   User,
+  WatershedBoundary,
 } from '@agriminds/api-types'
 import { API_V1_PREFIX } from '@agriminds/api-types'
 
@@ -103,6 +108,8 @@ export const api = {
   evaluateAdvisory: (payload: AdvisoryRequest) =>
     request<AdvisoryResponse>('/advisories/evaluate', { method: 'POST', body: JSON.stringify(payload) }),
   ensoOutlook: () => request<EnsoOutlookResponse>('/enso/outlook'),
+  /** Surveyed catchment outline and which grid cells fall inside it. 404 when none is configured. */
+  watershed: () => request<WatershedBoundary>('/drought/watershed'),
 
   // ---- account ------------------------------------------------------------------------
   me: () => request<User>('/auth/me'),
@@ -125,7 +132,19 @@ export const api = {
   // ---- ministry -----------------------------------------------------------------------
   ministryDashboard: (leadMonth: LeadMonth) =>
     request<MinistryDashboard>(`/dashboard/ministry${lead(leadMonth)}`),
+
+  // ---- analytics ----------------------------------------------------------------------
+  powerbiStatus: () => request<PowerBiStatus>('/analytics/powerbi/status'),
+  /** A fresh embed token. Minted server-side per viewer; the browser never calls Microsoft. */
+  powerbiEmbedToken: () => request<EmbedConfig>('/analytics/powerbi/embed-token'),
+  analyticsConnection: () => request<AnalyticsConnection>('/analytics/connection'),
+
+  // ---- provenance ---------------------------------------------------------------------
+  dataSources: () => request<DataInventory>('/system/data-sources'),
 }
+
+/** Direct download, so the browser saves the file rather than the client parsing it. */
+export const PBIDS_PATH = `${API_V1_PREFIX}/analytics/connection.pbids`
 
 /** Sign-in and sign-out go through dedicated route handlers so tokens stay server-side. */
 export const authApi = {

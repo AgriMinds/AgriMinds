@@ -118,6 +118,29 @@ def create_user(
     _run(work)
 
 
+@app.command("snapshot-risk")
+def snapshot_risk() -> None:
+    """Persist the current forecast to `risk_snapshots` so SQL and BI tools can read it.
+
+    Run this after every pipeline run. It is idempotent for a given issue month and model.
+    """
+
+    async def work(session, settings) -> None:
+        from starlette.concurrency import run_in_threadpool
+
+        from agriminds_api.core.cache import build_cache
+        from agriminds_api.domain.geo import GridSpec
+        from agriminds_api.services.inference import InferenceService
+        from agriminds_api.services.snapshot import write_risk_snapshot
+
+        inference = InferenceService(settings, build_cache(None))
+        await run_in_threadpool(inference.load)
+        grid = GridSpec.from_bbox(settings.grid_rows, settings.grid_cols, settings.bbox)
+        typer.echo(await write_risk_snapshot(session, inference, grid))
+
+    _run(work)
+
+
 @app.command("list-users")
 def list_users(limit: int = 50) -> None:
     """List accounts, newest first."""

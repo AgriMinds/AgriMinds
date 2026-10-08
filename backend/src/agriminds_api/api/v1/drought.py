@@ -3,7 +3,13 @@
 from fastapi import APIRouter, Depends, Query
 
 from agriminds_api.api.deps import get_drought
-from agriminds_api.schemas.drought import CellRiskQuery, CellRiskResponse, DroughtMapResponse
+from agriminds_api.core.exceptions import NotFoundError
+from agriminds_api.schemas.drought import (
+    CellRiskQuery,
+    CellRiskResponse,
+    DroughtMapResponse,
+    WatershedBoundary,
+)
 from agriminds_api.services.drought import DroughtService
 
 router = APIRouter(prefix="/drought", tags=["Drought Early Warning"])
@@ -16,6 +22,23 @@ def drought_map(
     lead_month: int = LeadMonth, service: DroughtService = Depends(get_drought)
 ) -> DroughtMapResponse:
     return service.map(lead_month)
+
+
+@router.get(
+    "/watershed",
+    response_model=WatershedBoundary,
+    summary="The surveyed catchment outline and which grid cells fall inside it",
+    description=(
+        "Lets a map draw the real catchment instead of a bare rectangle, and grey out the cells "
+        "that are not part of it. The outline is simplified for display; the server keeps the "
+        "full-precision version for deciding whether a plot is inside."
+    ),
+)
+def watershed(service: DroughtService = Depends(get_drought)) -> WatershedBoundary:
+    outline = service.boundary()
+    if outline is None:
+        raise NotFoundError("No surveyed catchment boundary is configured on this deployment.")
+    return outline
 
 
 @router.get("/cell", response_model=CellRiskResponse, summary="Risk for one cell by row/col or GPS")

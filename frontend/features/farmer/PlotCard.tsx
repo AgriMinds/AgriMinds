@@ -71,9 +71,9 @@ export function PlotCard({ farm, selected, onSelect, onEdit, ground }: Props) {
 
       {/* Measured now, not forecast: kept on its own line with its own wording. */}
       {ground && GroundIcon && (
-        <p className="flex items-center gap-1.5 border-t border-border pt-2.5 text-xs text-fg-muted">
-          <span className={cn('size-2 shrink-0 rounded-full', PDSI_DOT_CLASS[ground])} aria-hidden />
-          <GroundIcon className="size-3.5 shrink-0 text-fg-subtle" aria-hidden />
+        <p className="flex items-center gap-1.5 border-t border-border pt-2.5 text-sm text-fg">
+          <span className={cn('size-2.5 shrink-0 rounded-full', PDSI_DOT_CLASS[ground])} aria-hidden />
+          <GroundIcon className="size-4 shrink-0 text-fg-muted" aria-hidden />
           {t('groundNow', { band: tp(pdsiKey(ground)) })}
         </p>
       )}

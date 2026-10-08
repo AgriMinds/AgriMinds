@@ -189,6 +189,12 @@ importers:
       next-intl:
         specifier: ^4.3.0
         version: 4.14.9(@swc/helpers@0.5.23)(@types/react@19.3.0)(next@16.3.3(@babel/core@7.29.7(supports-color@10.2.2))(@types/node@24.19.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
+      powerbi-client:
+        specifier: ^2.25.0
+        version: 2.25.0
+      powerbi-client-react:
+        specifier: ^2.0.2
+        version: 2.0.2(react@19.3.0)
       react:
         specifier: ^19
         version: 19.3.0
@@ -3660,6 +3666,9 @@ packages:
   es-toolkit@1.52.0:
     resolution: {integrity: sha512-XTNEJQh1tY1ZJVcf6ayP/2n4ZPyaHlW2FWs7xvw5ddPuhUVjLD3olQVQS7kf58JbAB48iL0uL/jerTrjtV3lDA==}
 
+  es6-promise@3.3.1:
+    resolution: {integrity: sha512-SOp9Phqvqn7jtEUxPWdWfWoLmyt2VaJ6MpvP9Comy1MceMXqE6bxvaTu4iaxpYYPzhny28Lc+M87/c2cPK6lDg==}
+
   esbuild@0.28.2:
     resolution: {integrity: sha512-HKVLS8dvII+xoKW9kmqxbRKrnWEXfJJr/FZhhJmiqIB0e053QNYFqOBouTMO/k5sID4MvCiUCvv8b9M4h32wIA==}
     engines: {node: '>=18'}
@@ -4298,6 +4307,9 @@ packages:
     resolution: {integrity: sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==}
     engines: {node: '>= 0.8'}
 
+  http-post-message@0.3.0:
+    resolution: {integrity: sha512-tfn1ca5RcRKdejbFanY2ydN4pXB+youdgtNz1GSKtWvzbaf63sGQWyRjo5bnqlebTjG85wY0GUADDD0tAVpmkQ==}
+
   http-proxy-agent@5.0.0:
     resolution: {integrity: sha512-n2hY8YdoRE1i7r6M0w9DIw5GgZN0G25P8zLCRQ8rjXtTU3vsNFBI/vWK/UIeE6g5MUUz6avwAPXmL6Fy9D/90w==}
     engines: {node: '>= 6'}
@@ -4926,6 +4938,10 @@ packages:
 
   lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
+
+  lodash.isequal@4.5.0:
+    resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
+    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
 
   lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
@@ -5562,6 +5578,20 @@ packages:
     resolution: {integrity: sha512-49cGhUbXj8Qenv0iTMxA1cFBzxXoctpC9Ujd77t1WcbJIr6nF/eI7g/8MgxrYldFRuAXvja7xQRwavoW7kgrxQ==}
     engines: {node: ^10 || ^12 || >=14}
 
+  powerbi-client-react@2.0.2:
+    resolution: {integrity: sha512-NXn2gAQlktKQTyMeOkH8dEUUN79MTiyq6HKWG72WyayDcvcIb9mTFtlYK9CyD8efUeWa4QsiYMOg2xrkAFd4JQ==}
+    peerDependencies:
+      react: '>= 18'
+
+  powerbi-client@2.25.0:
+    resolution: {integrity: sha512-h6jMorFGRiptWiuJ8O0ZCavLf3d1IaBdxEFP34YTx830yiUPnOJWGJrUbdY0fnyAPFO3GJz1BhqjkN9Q3CB7hg==}
+
+  powerbi-models@2.2.0:
+    resolution: {integrity: sha512-L8HcBLQQP1+y1382jnf6RoC6OtOB25TCdDpEkLTXeg4d2Uku8cUUVG0b8JyZ3j5yATohFBuj8oWstkQoCJJvoA==}
+
+  powerbi-router@0.1.5:
+    resolution: {integrity: sha512-DFJCKxwh/DqMZXtHSo6xZl87mbRviZGn4P7Oi2rT0L4HMI4AjnWIrwg0JCSM7ymBzYnNe5UmrsCaf2Upur5RQA==}
+
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
@@ -5899,6 +5929,9 @@ packages:
     resolution: {integrity: sha512-gjA/kFeDfffII8COoPsvLPvE16hWDTEc1+0QKQNKUkuV8iJjqsC4xXs8/FzuL0v9EV39kuxTbAgcFoTRyy2TGQ==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
+
+  route-recognizer@0.1.11:
+    resolution: {integrity: sha512-7JNu5mXQVa39zxmUKyk/bfpeF2WyEC5JKVTJO5HATcoUQpcQsI3eLzhwGU69xeOagQxfOQ+yr2sSv0G8xy+vQA==}
 
   rrweb-cssom@0.8.0:
     resolution: {integrity: sha512-guoltQEx+9aMf2gDZ0s62EcV8lsXR+0w8915TC3ITdn2YueuNjdAYh/levpU9nFaoChh9RUS5ZdQMrKfVEN9tw==}
@@ -6697,6 +6730,9 @@ packages:
     resolution: {integrity: sha512-hUrmaWBdVDcxvYqnyh09zunKzROWjbZTiNy8dBEjkS7ehEDQibXJ7XvlmtbwuTclUiIyN+CyXQD4Vmko8fNm8w==}
     engines: {node: '>=8'}
     hasBin: true
+
+  window-post-message-proxy@0.3.0:
+    resolution: {integrity: sha512-dEpItkLX97djHvWzcbVmyelEPoq2Oglx2y5EYt+mCC0bwKvwbtE3ro3Zsg9heHAUir/3dHUBtV2Rr8DQQjwyPg==}
 
   word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
@@ -10486,6 +10522,8 @@ snapshots:
 
   es-toolkit@1.52.0: {}
 
+  es6-promise@3.3.1: {}
+
   esbuild@0.28.2:
     optionalDependencies:
       '@esbuild/aix-ppc64': 0.28.2
@@ -11391,6 +11429,10 @@ snapshots:
       statuses: 2.0.2
       toidentifier: 1.0.1
 
+  http-post-message@0.3.0:
+    dependencies:
+      es6-promise: 3.3.1
+
   http-proxy-agent@5.0.0(supports-color@10.2.2):
     dependencies:
       '@tootallnate/once': 2.0.1
@@ -12249,6 +12291,8 @@ snapshots:
       p-locate: 5.0.0
 
   lodash.debounce@4.0.8: {}
+
+  lodash.isequal@4.5.0: {}
 
   lodash.merge@4.6.2: {}
 
@@ -13186,6 +13230,26 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.2
 
+  powerbi-client-react@2.0.2(react@19.3.0):
+    dependencies:
+      lodash.isequal: 4.5.0
+      powerbi-client: 2.25.0
+      react: 19.3.0
+
+  powerbi-client@2.25.0:
+    dependencies:
+      http-post-message: 0.3.0
+      powerbi-models: 2.2.0
+      powerbi-router: 0.1.5
+      window-post-message-proxy: 0.3.0
+
+  powerbi-models@2.2.0: {}
+
+  powerbi-router@0.1.5:
+    dependencies:
+      es6-promise: 3.3.1
+      route-recognizer: 0.1.11
+
   prelude-ls@1.2.1: {}
 
   prettier@3.9.9: {}
@@ -13610,6 +13674,8 @@ snapshots:
       '@rollup/rollup-win32-x64-gnu': 4.64.0
       '@rollup/rollup-win32-x64-msvc': 4.64.0
       fsevents: 2.3.3
+
+  route-recognizer@0.1.11: {}
 
   rrweb-cssom@0.8.0: {}
 
@@ -14497,6 +14563,10 @@ snapshots:
     dependencies:
       siginfo: 2.0.0
       stackback: 0.0.2
+
+  window-post-message-proxy@0.3.0:
+    dependencies:
+      es6-promise: 3.3.1
 
   word-wrap@1.2.5: {}
 

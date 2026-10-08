@@ -5,7 +5,7 @@ PY           ?= .venv/bin/python
 
 .PHONY: help up up-dev up-mobile down build restart ps logs logs-backend logs-web health train \
         api-types setup test test-py test-js lint fmt typecheck clean \
-        migrate migration seed seed-demo db-shell db-reset
+        migrate migration seed seed-demo db-shell db-reset snapshot bi-role
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -46,8 +46,9 @@ health: ## Check API and web health through the published ports
 	@echo -n "backend: "; curl -fsS http://localhost:$${BACKEND_PORT:-8000}/api/v1/health | $(PY) -c 'import sys,json; d=json.load(sys.stdin); print(d["status"], "| model:", d["model"]["source"], d["model"].get("model_version"), "| data:", d["model"].get("data_source"), "| db:", "up" if d["database"]["reachable"] else "DOWN")' || echo "DOWN"
 	@echo -n "web:     "; curl -s -o /dev/null -w "%{http_code}\n" http://localhost:$${WEB_PORT:-3000}/login || echo "DOWN"
 
-train: ## Run the ML pipeline inside the backend image, writing to ./data (synthetic unless real raw files exist)
+train: ## Run the ML pipeline inside the backend image, then persist the forecast for reporting
 	$(COMPOSE) run --rm backend ai-drews run-all
+	@$(MAKE) --no-print-directory snapshot
 
 # ---------------------------------------------------------------- database
 migrate: ## Apply database migrations (safe to re-run)
@@ -65,6 +66,15 @@ seed-demo: ## Load geography plus demonstration accounts and plots (never in pro
 
 db-shell: ## Open psql against the running database
 	$(COMPOSE) exec postgres psql -U $${POSTGRES_USER:-agriminds} -d $${POSTGRES_DB:-agriminds}
+
+snapshot: ## Persist the current forecast to risk_snapshots so BI tools can read it
+	$(COMPOSE) run --rm backend agriminds snapshot-risk
+
+bi-role: ## Enable the read-only analytics login for Power BI (prints the password once)
+	@test -n "$(password)" || (echo 'usage: make bi-role password="$$(openssl rand -base64 24)"' && exit 1)
+	$(COMPOSE) exec -T postgres psql -U $${POSTGRES_USER:-agriminds} -d $${POSTGRES_DB:-agriminds} -c \
+	  "ALTER ROLE agriminds_bi WITH LOGIN PASSWORD '$(password)';"
+	@echo "agriminds_bi can now sign in. It can read schema 'analytics' and nothing else."
 
 db-reset: ## Drop and recreate the schema, then migrate and seed demo data (destroys all rows)
 	$(COMPOSE) run --rm backend alembic downgrade base
