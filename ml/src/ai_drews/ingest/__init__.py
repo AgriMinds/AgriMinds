@@ -17,21 +17,21 @@ from ai_drews.ingest import build, chirps, crops, era5, ndvi, nino34, validate, 
 from ai_drews.ingest.base import INGEST_START, IngestError, Manifest, read_manifest, read_manifests
 
 #: Download order. ERA5 and CHIRPS must both land before the validation step can compare them.
+#: Wind runs last: it is the longest download (hourly ERA5 for the full grid), is resumable, and
+#: does not block the other connectors. Assemble runs after all of these.
 CONNECTORS: dict[str, Callable[[DataPaths, PipelineConfig], Manifest]] = {
     "nino34": lambda paths, cfg: nino34.fetch(paths),
     "era5": lambda paths, cfg: era5.fetch(paths, cfg, start=INGEST_START),
     "chirps": lambda paths, cfg: chirps.fetch(paths, cfg, start=INGEST_START),
     "crops": lambda paths, cfg: crops.fetch(paths),
     "validation": lambda paths, cfg: validate.run(paths, cfg),
+    "wind": lambda paths, cfg: wind.fetch(paths, cfg, start=INGEST_START),
 }
 
 #: Not in `all`. MODIS is the one input that takes hours rather than minutes, and no source the
 #: study names supplies a vegetation index, so it is requested by name or not at all.
 OPT_IN_CONNECTORS: dict[str, Callable[[DataPaths, PipelineConfig], Manifest]] = {
     "ndvi": lambda paths, cfg: ndvi.fetch(paths, cfg, start=INGEST_START),
-    # Hourly for the whole grid is hours of a rate-limited archive, so it is asked for by name.
-    # It is resumable: a run that stops keeps every completed request.
-    "wind": lambda paths, cfg: wind.fetch(paths, cfg, start=INGEST_START),
 }
 
 #: Everything `ai-drews ingest <source>` accepts.
@@ -39,10 +39,11 @@ ALL_CONNECTORS = CONNECTORS | OPT_IN_CONNECTORS
 
 
 def fetch_all(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG) -> dict[str, Manifest]:
-    """Run every quick connector, then assemble the dataset.
+    """Run every connector, then assemble the dataset.
 
     Raises on the first source that fails, so a half-connected deployment is visible rather than
-    silently partial. MODIS is left out; see ``OPT_IN_CONNECTORS``.
+    silently partial. Wind runs last; it is the longest connector (resumable hourly ERA5 download)
+    but is part of the standard ingest. MODIS is left out; see ``OPT_IN_CONNECTORS``.
     """
     results = {name: connector(paths, cfg) for name, connector in CONNECTORS.items()}
     results[build.KEY] = build.assemble(paths, cfg)

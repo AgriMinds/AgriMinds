@@ -24,8 +24,11 @@ log = logging.getLogger(__name__)
 #: Nothing is retried forever: a connector that cannot reach its provider must fail loudly so the
 #: operator sees it, rather than quietly leaving the previous month's file in place.
 _RETRIES = 5
-_BACKOFF = 2.0
+_BACKOFF = 3.0
 _TIMEOUT = 120.0
+#: Hourly wind responses can be ~1 MB per cell-window; the archive is slower under load.
+#: 420 s (7 min) gives a genuine slow response time to complete without burning a retry.
+_WIND_TIMEOUT = 420.0
 #: A 429 means the provider wants us to slow down, not that the request was malformed. Backing
 #: off by seconds does not help: the archives meter by the hour, so waiting out the window is the
 #: only thing that works. Rate limits do not count against the retry budget — a transport failure
@@ -140,15 +143,21 @@ def fetch_bytes(url: str, *, params: dict[str, Any] | None = None) -> bytes:
     return _fetch(url, params=params, headers=None).content
 
 
-def fetch_json(url: str, *, params: dict[str, Any] | None = None) -> Any:
-    response = _fetch(url, params=params, headers={"Accept": "application/json"})
+def fetch_json(url: str, *, params: dict[str, Any] | None = None, timeout: float = _TIMEOUT) -> Any:
+    response = _fetch(url, params=params, headers={"Accept": "application/json"}, timeout=timeout)
     try:
         return response.json()
     except ValueError as exc:  # a provider returning HTML on error is common
         raise IngestError(f"{url} did not return JSON: {response.text[:200]}") from exc
 
 
-def _fetch(url: str, *, params: dict[str, Any] | None, headers: dict[str, str] | None) -> Any:
+def _fetch(
+    url: str,
+    *,
+    params: dict[str, Any] | None,
+    headers: dict[str, str] | None,
+    timeout: float = _TIMEOUT,
+) -> Any:
     try:
         import httpx
     except ModuleNotFoundError as exc:  # pragma: no cover - dependency is declared
@@ -159,7 +168,7 @@ def _fetch(url: str, *, params: dict[str, Any] | None, headers: dict[str, str] |
     waited_for_rate_limit = 0.0
     while attempt < _RETRIES:
         try:
-            response = httpx.get(url, params=params, headers=headers, timeout=_TIMEOUT, follow_redirects=True)
+            response = httpx.get(url, params=params, headers=headers, timeout=timeout, follow_redirects=True)
             response.raise_for_status()
             return response
         except Exception as exc:  # noqa: BLE001 - every transport failure is worth one more try
@@ -175,6 +184,9 @@ def _fetch(url: str, *, params: dict[str, Any] | None, headers: dict[str, str] |
                     waited_for_rate_limit / 60,
                 )
                 time.sleep(_RATE_LIMIT_WAIT)
+                # Reset the transport-failure counter: the 429 backoff already served as the
+                # pause, so the next attempt should get a full retry budget.
+                attempt = 0
                 continue
             attempt += 1
             if attempt >= _RETRIES:

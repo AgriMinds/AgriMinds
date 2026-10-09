@@ -234,6 +234,6 @@ class ProvenanceService:
         return self._entry(
             5,
             "not_connected",
-            "Hourly ERA5 10 m u/v wind not yet ingested. Run `ai-drews ingest wind` "
-            "(opt-in: hours of download for the full grid, 1994 to present).",
+            "Hourly ERA5 10 m u/v wind not yet ingested. Run `make ingest` or "
+            "`ai-drews ingest wind` to download it (resumable; hours for the full grid).",
         )

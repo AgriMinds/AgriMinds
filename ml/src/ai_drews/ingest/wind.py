@@ -28,7 +28,7 @@ import pandas as pd
 
 from ai_drews.config import DEFAULT_CONFIG, DataPaths, PipelineConfig
 from ai_drews.geo.watershed import cell_centres
-from ai_drews.ingest.base import IngestError, Manifest, coverage_of, fetch_json, sources_dir, write_manifest
+from ai_drews.ingest.base import IngestError, Manifest, coverage_of, fetch_json, sources_dir, write_manifest, _WIND_TIMEOUT
 
 log = logging.getLogger(__name__)
 
@@ -49,10 +49,15 @@ VARIABLES = ("u10", "v10", "wind_speed", "wind_constancy")
 
 _KMH_TO_MS = 1 / 3.6
 _LAG_DAYS = 7
-#: One cell-decade per request. Hourly is bulky: a whole decade for one point is about 2 MB,
-#: which is near the useful limit for a single response.
-_CHUNK_YEARS = 10
-_PAUSE_SECONDS = 1.5
+#: One cell-half-decade per request. Hourly is bulky: a whole decade for one point is about 2 MB,
+#: which is near the useful limit for a single response. Five years keeps each response under 1 MB
+#: and reduces timeout risk on slow archive days.
+_CHUNK_YEARS = 5
+#: Wind fires one request per cell per window — no cell batching, because each hourly block is
+#: already ~1 MB. At 256 requests that is roughly one every four seconds, which keeps the burst
+#: rate well below Open-Meteo's free-tier throttle. The ERA5 connector batches four cells and
+#: only needs 1.5 s; wind cannot batch, so it must go slower.
+_PAUSE_SECONDS = 4.0
 _PARTS = "wind_parts"
 
 
@@ -137,6 +142,7 @@ def fetch(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG, start: str | N
                     "models": "era5",
                     "wind_speed_unit": "kmh",
                 },
+                timeout=_WIND_TIMEOUT,
             )
             block = payload[0] if isinstance(payload, list) else payload
             hourly = (block or {}).get("hourly") or {}

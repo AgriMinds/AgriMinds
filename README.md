@@ -98,7 +98,7 @@ make migration m="add x"   # autogenerate a migration from model changes
 make seed          # reference geography only (what a real deployment needs)
 make db-shell      # psql against the running database
 make db-reset      # drop, migrate and reseed demo data (destroys all rows)
-make ingest        # download the real inputs (NOAA, ERA5, CHIRPS, FAOSTAT) into data/
+make ingest        # download the real inputs (NOAA, ERA5, CHIRPS, ERA5-wind, FAOSTAT) into data/
 make ingest-one s=ndvi  # opt-in MODIS greenness (hours; not part of `make ingest`)
 make data-sources  # what this deployment is actually running on
 make train         # run the ML pipeline inside the backend image
@@ -158,7 +158,7 @@ Errors are `{ "error": { "code", "message" } }`. Changing a schema → `make api
 deployment is actually built from, derived from the ingest manifests and model metadata present
 rather than from a fixed list.
 
-`make ingest` connects all five. Every route below is public and needs **no credentials**, so a
+`make ingest` connects all six. Every route below is public and needs **no credentials**, so a
 fresh clone can reach real observations without an account anywhere:
 
 | Input | Provider | Route |
@@ -168,6 +168,7 @@ fresh clone can reach real observations without an account anywhere:
 | Rainfall for validation | CHIRPS v2.0 | SERVIR ClimateSERV zonal means |
 | Crop area, yield, production for tef, wheat, maize | FAOSTAT (Ethiopia's official statistics) | bulk CSV |
 | Sc-PDSI drought index | computed here | Palmer water balance |
+| 10 m wind (u/v components) | ERA5 (ECMWF) | Open-Meteo archive — hourly, resumable |
 
 Two honest caveats travel with the data rather than being smoothed over. FAO publishes no `teff`
 item: Ethiopian teff sits inside `Cereals n.e.c.`, which for Ethiopia is overwhelmingly teff, and

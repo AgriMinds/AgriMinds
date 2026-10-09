@@ -22,7 +22,7 @@
     0.1
   ],
   "model_version": "superhybrid-0.2.0",
-  "trained_at": "2026-10-09T06:18:26+00:00",
+  "trained_at": "2026-10-09T11:29:37+00:00",
   "training_data_end": "2026-06-01",
   "data_source": "real",
   "metrics": [
@@ -35,6 +35,15 @@
       "POD": 0.848,
       "FAR": 0.773,
       "threshold": 0.15,
+      "Accuracy": 0.527,
+      "Precision": 0.227,
+      "Recall": 0.848,
+      "F1": 0.358,
+      "PearsonR": 0.268,
+      "TP": 659,
+      "FP": 2245,
+      "TN": 1970,
+      "FN": 118,
       "skilful": true
     },
     {
@@ -46,6 +55,15 @@
       "POD": 0.943,
       "FAR": 0.819,
       "threshold": 0.1,
+      "Accuracy": 0.296,
+      "Precision": 0.181,
+      "Recall": 0.943,
+      "F1": 0.304,
+      "PearsonR": 0.11,
+      "TP": 766,
+      "FP": 3467,
+      "TN": 713,
+      "FN": 46,
       "skilful": false
     },
     {
@@ -57,6 +75,15 @@
       "POD": 0.993,
       "FAR": 0.838,
       "threshold": 0.05,
+      "Accuracy": 0.164,
+      "Precision": 0.162,
+      "Recall": 0.993,
+      "F1": 0.279,
+      "PearsonR": -0.023,
+      "TP": 808,
+      "FP": 4169,
+      "TN": 9,
+      "FN": 6,
       "skilful": false
     },
     {
@@ -68,6 +95,15 @@
       "POD": 0.977,
       "FAR": 0.838,
       "threshold": 0.05,
+      "Accuracy": 0.173,
+      "Precision": 0.162,
+      "Recall": 0.977,
+      "F1": 0.278,
+      "PearsonR": 0.005,
+      "TP": 795,
+      "FP": 4110,
+      "TN": 68,
+      "FN": 19,
       "skilful": false
     },
     {
@@ -79,6 +115,15 @@
       "POD": 0.617,
       "FAR": 0.845,
       "threshold": 0.1,
+      "Accuracy": 0.389,
+      "Precision": 0.155,
+      "Recall": 0.617,
+      "F1": 0.248,
+      "PearsonR": -0.015,
+      "TP": 502,
+      "FP": 2737,
+      "TN": 1441,
+      "FN": 312,
       "skilful": false
     },
     {
@@ -90,6 +135,15 @@
       "POD": 0.978,
       "FAR": 0.838,
       "threshold": 0.05,
+      "Accuracy": 0.167,
+      "Precision": 0.162,
+      "Recall": 0.978,
+      "F1": 0.278,
+      "PearsonR": -0.02,
+      "TP": 799,
+      "FP": 4141,
+      "TN": 34,
+      "FN": 18,
       "skilful": false
     },
     {
@@ -101,6 +155,15 @@
       "POD": 0.306,
       "FAR": 0.836,
       "threshold": 0.2,
+      "Accuracy": 0.611,
+      "Precision": 0.164,
+      "Recall": 0.306,
+      "F1": 0.214,
+      "PearsonR": -0.007,
+      "TP": 264,
+      "FP": 1346,
+      "TN": 2784,
+      "FN": 598,
       "skilful": false
     },
     {
@@ -112,6 +175,15 @@
       "POD": 1.0,
       "FAR": 0.825,
       "threshold": 0.05,
+      "Accuracy": 0.176,
+      "Precision": 0.175,
+      "Recall": 1.0,
+      "F1": 0.298,
+      "PearsonR": 0.048,
+      "TP": 873,
+      "FP": 4111,
+      "TN": 8,
+      "FN": 0,
       "skilful": false
     },
     {
@@ -123,6 +195,15 @@
       "POD": 0.553,
       "FAR": 0.812,
       "threshold": 0.15,
+      "Accuracy": 0.503,
+      "Precision": 0.188,
+      "Recall": 0.553,
+      "F1": 0.28,
+      "PearsonR": 0.036,
+      "TP": 483,
+      "FP": 2090,
+      "TN": 2029,
+      "FN": 390,
       "skilful": false
     },
     {
@@ -134,6 +215,15 @@
       "POD": 0.604,
       "FAR": 0.814,
       "threshold": 0.15,
+      "Accuracy": 0.468,
+      "Precision": 0.186,
+      "Recall": 0.604,
+      "F1": 0.284,
+      "PearsonR": 0.024,
+      "TP": 527,
+      "FP": 2311,
+      "TN": 1808,
+      "FN": 346,
       "skilful": false
     },
     {
@@ -145,6 +235,15 @@
       "POD": 0.991,
       "FAR": 0.826,
       "threshold": 0.05,
+      "Accuracy": 0.175,
+      "Precision": 0.174,
+      "Recall": 0.991,
+      "F1": 0.296,
+      "PearsonR": -0.03,
+      "TP": 865,
+      "FP": 4111,
+      "TN": 8,
+      "FN": 8,
       "skilful": false
     },
     {
@@ -156,6 +255,15 @@
       "POD": 0.897,
       "FAR": 0.816,
       "threshold": 0.1,
+      "Accuracy": 0.236,
+      "Precision": 0.184,
+      "Recall": 0.897,
+      "F1": 0.306,
+      "PearsonR": -0.098,
+      "TP": 840,
+      "FP": 3719,
+      "TN": 337,
+      "FN": 96,
       "skilful": false
     }
   ]

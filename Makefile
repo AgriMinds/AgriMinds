@@ -5,7 +5,7 @@ PY           ?= .venv/bin/python
 
 .PHONY: help up up-dev up-mobile down build restart ps logs logs-backend logs-web health train \
         api-types setup test test-py test-js lint fmt typecheck clean \
-        migrate migration seed seed-demo db-shell db-reset snapshot bi-role ingest-wind
+        migrate migration seed seed-demo db-shell db-reset snapshot bi-role ingest-wind train-wind
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -46,21 +46,25 @@ health: ## Check API and web health through the published ports
 	@echo -n "backend: "; curl -fsS http://localhost:$${BACKEND_PORT:-8000}/api/v1/health | $(PY) -c 'import sys,json; d=json.load(sys.stdin); print(d["status"], "| model:", d["model"]["source"], d["model"].get("model_version"), "| data:", d["model"].get("data_source"), "| db:", "up" if d["database"]["reachable"] else "DOWN")' || echo "DOWN"
 	@echo -n "web:     "; curl -s -o /dev/null -w "%{http_code}\n" http://localhost:$${WEB_PORT:-3000}/login || echo "DOWN"
 
-ingest: ## Download the study's observational inputs (NOAA, ERA5, CHIRPS, MODIS, FAOSTAT) into data/
-	$(COMPOSE) run --rm backend ai-drews ingest all
+ingest: ## Download the study's observational inputs (NOAA, ERA5, CHIRPS, ERA5-wind, FAOSTAT) into data/
+	$(COMPOSE) run --rm --user "$(shell id -u):$(shell id -g)" backend ai-drews ingest all
 
-ingest-one: ## Download one source: make ingest-one s=era5 (nino34|era5|ndvi|chirps|crops|validation|assemble)
+ingest-one: ## Download one source: make ingest-one s=era5 (nino34|era5|wind|ndvi|chirps|crops|validation|assemble)
 	@test -n "$(s)" || { echo "usage: make ingest-one s=<source>"; exit 2; }
-	$(COMPOSE) run --rm backend ai-drews ingest $(s)
+	$(COMPOSE) run --rm --user "$(shell id -u):$(shell id -g)" backend ai-drews ingest $(s)
 
-ingest-wind: ## Download hourly ERA5 10 m wind (u/v) 1994→present — opt-in, takes hours
-	$(COMPOSE) run --rm backend ai-drews ingest wind
+ingest-wind: ## Re-run the wind connector alone (resumable; already part of `make ingest`)
+	$(COMPOSE) run --rm --user "$(shell id -u):$(shell id -g)" backend ai-drews ingest wind
+
+train-wind: ingest-wind ## Re-ingest wind, reassemble the grid, retrain and snapshot
+	$(COMPOSE) run --rm --user "$(shell id -u):$(shell id -g)" backend ai-drews ingest assemble
+	@$(MAKE) --no-print-directory train
 
 data-sources: ## Show what is currently supplying this deployment
 	$(COMPOSE) run --rm backend ai-drews data-sources
 
 train: ## Run the ML pipeline inside the backend image, then persist the forecast for reporting
-	$(COMPOSE) run --rm backend ai-drews run-all
+	$(COMPOSE) run --rm --user "$(shell id -u):$(shell id -g)" backend ai-drews run-all --no-plot
 	@$(MAKE) --no-print-directory snapshot
 
 train-real: ingest train ## Download the observed record, then train on it
