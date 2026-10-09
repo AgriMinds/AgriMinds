@@ -46,9 +46,21 @@ health: ## Check API and web health through the published ports
 	@echo -n "backend: "; curl -fsS http://localhost:$${BACKEND_PORT:-8000}/api/v1/health | $(PY) -c 'import sys,json; d=json.load(sys.stdin); print(d["status"], "| model:", d["model"]["source"], d["model"].get("model_version"), "| data:", d["model"].get("data_source"), "| db:", "up" if d["database"]["reachable"] else "DOWN")' || echo "DOWN"
 	@echo -n "web:     "; curl -s -o /dev/null -w "%{http_code}\n" http://localhost:$${WEB_PORT:-3000}/login || echo "DOWN"
 
+ingest: ## Download the study's observational inputs (NOAA, ERA5, CHIRPS, MODIS, FAOSTAT) into data/
+	$(COMPOSE) run --rm backend ai-drews ingest all
+
+ingest-one: ## Download one source: make ingest-one s=era5 (nino34|era5|ndvi|chirps|crops|validation|assemble)
+	@test -n "$(s)" || { echo "usage: make ingest-one s=<source>"; exit 2; }
+	$(COMPOSE) run --rm backend ai-drews ingest $(s)
+
+data-sources: ## Show what is currently supplying this deployment
+	$(COMPOSE) run --rm backend ai-drews data-sources
+
 train: ## Run the ML pipeline inside the backend image, then persist the forecast for reporting
 	$(COMPOSE) run --rm backend ai-drews run-all
 	@$(MAKE) --no-print-directory snapshot
+
+train-real: ingest train ## Download the observed record, then train on it
 
 # ---------------------------------------------------------------- database
 migrate: ## Apply database migrations (safe to re-run)
@@ -70,11 +82,25 @@ db-shell: ## Open psql against the running database
 snapshot: ## Persist the current forecast to risk_snapshots so BI tools can read it
 	$(COMPOSE) run --rm backend agriminds snapshot-risk
 
-bi-role: ## Enable the read-only analytics login for Power BI (prints the password once)
+bi-role: ## Enable the read-only analytics login for BI tools (prints the password once)
 	@test -n "$(password)" || (echo 'usage: make bi-role password="$$(openssl rand -base64 24)"' && exit 1)
 	$(COMPOSE) exec -T postgres psql -U $${POSTGRES_USER:-agriminds} -d $${POSTGRES_DB:-agriminds} -c \
 	  "ALTER ROLE agriminds_bi WITH LOGIN PASSWORD '$(password)';"
 	@echo "agriminds_bi can now sign in. It can read schema 'analytics' and nothing else."
+
+analytics: ## Start Metabase (open source, no licence) on http://localhost:3001
+	$(COMPOSE) --profile analytics up -d metabase
+	@echo "Metabase starting on http://localhost:$${METABASE_PORT:-3001} (first boot takes a minute)."
+	@echo "Connect it to postgres/agriminds as 'agriminds_bi' -- see docs/analytics.md."
+
+analytics-setup: ## Provision Metabase: admin, read-only database, embedding and a starter dashboard
+	@test -n "$(password)" || (echo 'usage: make analytics-setup password="<agriminds_bi password>" admin_password="<metabase admin password>"' && exit 1)
+	@test -n "$(admin_password)" || (echo 'usage: make analytics-setup password="<agriminds_bi password>" admin_password="<metabase admin password>"' && exit 1)
+	METABASE_PG_PASSWORD='$(password)' METABASE_ADMIN_PASSWORD='$(admin_password)' \
+	  METABASE_URL=http://localhost:$${METABASE_PORT:-3001} $(PY) scripts/metabase_setup.py
+
+analytics-down: ## Stop Metabase, leaving the rest of the stack running
+	$(COMPOSE) --profile analytics stop metabase
 
 db-reset: ## Drop and recreate the schema, then migrate and seed demo data (destroys all rows)
 	$(COMPOSE) run --rm backend alembic downgrade base

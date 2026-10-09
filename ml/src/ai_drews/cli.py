@@ -9,7 +9,7 @@ from typing import Annotated
 
 import typer
 
-from ai_drews.config import DataPaths
+from ai_drews.config import DEFAULT_CONFIG, DataPaths
 
 app = typer.Typer(
     help="AI-DREWS pipeline: data -> features -> ENSO model -> drought model -> risk maps.",
@@ -26,6 +26,58 @@ DataDir = Annotated[
 def _paths(data_dir: Path | None) -> DataPaths:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     return DataPaths.from_env(data_dir).ensure()
+
+
+@app.command()
+def ingest(
+    source: Annotated[
+        str,
+        typer.Argument(
+            help="One of: nino34, era5, ndvi, chirps, crops, validation, assemble, all",
+        ),
+    ] = "all",
+    data_dir: DataDir = None,
+) -> None:
+    """Step 0: download the study's observational inputs into raw/.
+
+    Every source is public and needs no credentials. `all` downloads each in turn and then
+    assembles raw/grids.npz and raw/nino_indices.csv from them.
+    """
+    from ai_drews.ingest import ALL_CONNECTORS, build, fetch_all
+
+    paths = _paths(data_dir)
+    if source == "all":
+        results = fetch_all(paths)
+    elif source == "assemble":
+        results = {build.KEY: build.assemble(paths)}
+    elif source in ALL_CONNECTORS:
+        results = {source: ALL_CONNECTORS[source](paths, DEFAULT_CONFIG)}
+    else:
+        choices = ", ".join([*ALL_CONNECTORS, "assemble", "all"])
+        raise typer.BadParameter(f"unknown source {source!r}; choose one of: {choices}")
+
+    for key, manifest in results.items():
+        typer.echo(
+            f"{key:11} {manifest.records:>6} records  "
+            f"{manifest.coverage_start or '-'}..{manifest.coverage_end or '-'}  {manifest.provider}"
+        )
+
+
+@app.command("data-sources")
+def data_sources(data_dir: DataDir = None) -> None:
+    """What is currently supplying this deployment, read from the ingest manifests."""
+    from ai_drews.ingest import read_manifests
+
+    manifests = read_manifests(_paths(data_dir))
+    if not manifests:
+        typer.echo("no sources ingested; run `ai-drews ingest all`")
+        raise typer.Exit(code=1)
+    for key, manifest in sorted(manifests.items()):
+        typer.echo(
+            f"{key:11} {manifest.records:>6} records  "
+            f"{manifest.coverage_start or '-'}..{manifest.coverage_end or '-'}  "
+            f"retrieved {manifest.retrieved_at}"
+        )
 
 
 @app.command("build-data")

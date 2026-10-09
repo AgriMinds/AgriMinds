@@ -27,7 +27,7 @@ from agriminds_api.services.drought import DroughtService
 from agriminds_api.services.enso import EnsoService
 from agriminds_api.services.farm import FarmService
 from agriminds_api.services.inference import InferenceService
-from agriminds_api.services.powerbi import PowerBiService
+from agriminds_api.services.metabase import MetabaseService
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 bearer_scheme = HTTPBearer(auto_error=False, description="JWT access token from POST /auth/login")
@@ -58,8 +58,8 @@ def get_enso(request: Request) -> EnsoService:
     return request.app.state.enso
 
 
-def get_powerbi(request: Request) -> PowerBiService:
-    return request.app.state.powerbi
+def get_metabase(request: Request) -> MetabaseService:
+    return request.app.state.metabase
 
 
 # ------------------------------------------------------------------ database session

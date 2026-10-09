@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t('analytics') }
 }
 
-/** Power BI analysis for ministry staff. Farmers are sent back to their own dashboard. */
+/** The analytics dashboard for ministry staff. Farmers are sent back to their own dashboard. */
 export default async function Analytics() {
   const session = await getSession()
   if (!session) redirect('/login')

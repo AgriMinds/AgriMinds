@@ -174,6 +174,24 @@ class GridMask:
         }
 
 
+def cell_centres(
+    rows: int, cols: int, bbox: tuple[float, float, float, float]
+) -> list[list[tuple[float, float]]]:
+    """Centre (latitude, longitude) of every cell, row 0 northern-most.
+
+    The data connectors download observations at these points, so the geometry lives here rather
+    than in each connector: a grid whose cells were sampled somewhere other than where the mask
+    says they are would mislocate every reading.
+    """
+    lon_min, lat_min, lon_max, lat_max = bbox
+    lat_step = (lat_max - lat_min) / rows
+    lon_step = (lon_max - lon_min) / cols
+    return [
+        [(lat_max - (r + 0.5) * lat_step, lon_min + (c + 0.5) * lon_step) for c in range(cols)]
+        for r in range(rows)
+    ]
+
+
 def grid_mask(
     boundary: Boundary, rows: int, cols: int, bbox: tuple[float, float, float, float] | None = None
 ) -> GridMask:
@@ -181,20 +199,9 @@ def grid_mask(
 
     Row 0 is the northern-most, matching the forecast grid's own ordering.
     """
-    lon_min, lat_min, lon_max, lat_max = bbox or boundary.bbox
-    lat_step = (lat_max - lat_min) / rows
-    lon_step = (lon_max - lon_min) / cols
-    inside = [
-        [
-            boundary.contains(
-                lon_min + (c + 0.5) * lon_step,
-                lat_max - (r + 0.5) * lat_step,
-            )
-            for c in range(cols)
-        ]
-        for r in range(rows)
-    ]
-    return GridMask(rows=rows, cols=cols, bbox=(lon_min, lat_min, lon_max, lat_max), inside=inside)
+    box = bbox or boundary.bbox
+    inside = [[boundary.contains(lon, lat) for lat, lon in row] for row in cell_centres(rows, cols, box)]
+    return GridMask(rows=rows, cols=cols, bbox=box, inside=inside)
 
 
 # ------------------------------------------------------------------ I/O

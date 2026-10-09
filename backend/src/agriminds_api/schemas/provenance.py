@@ -21,6 +21,11 @@ class DataSource(BaseModel):
         )
     )
     detail: str
+    records: int | None = Field(None, description="How many observations were retrieved")
+    coverage_start: str | None = Field(None, description="First period the source covers")
+    coverage_end: str | None = Field(None, description="Last period the source covers")
+    retrieved_at: str | None = Field(None, description="When this source was last downloaded")
+    citation: str | None = Field(None, description="How to cite the upstream dataset")
 
 
 class DataInventory(BaseModel):

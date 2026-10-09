@@ -1,22 +1,21 @@
-import { useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { AnalyticsConnection, EmbedConfig, PowerBiStatus } from '@agriminds/api-types'
+import type { AnalyticsConnection, EmbedConfig, MetabaseStatus } from '@agriminds/api-types'
 import messages from '@/messages/en.json'
 
-const powerbiStatus = vi.fn<() => Promise<PowerBiStatus>>()
-const powerbiEmbedToken = vi.fn<() => Promise<EmbedConfig>>()
+const metabaseStatus = vi.fn<() => Promise<MetabaseStatus>>()
+const metabaseEmbed = vi.fn<() => Promise<EmbedConfig>>()
 const analyticsConnection = vi.fn<() => Promise<AnalyticsConnection>>()
 
 vi.mock('@/lib/api/client', () => ({
   api: {
-    get powerbiStatus() {
-      return powerbiStatus
+    get metabaseStatus() {
+      return metabaseStatus
     },
-    get powerbiEmbedToken() {
-      return powerbiEmbedToken
+    get metabaseEmbed() {
+      return metabaseEmbed
     },
     get analyticsConnection() {
       return analyticsConnection
@@ -25,25 +24,6 @@ vi.mock('@/lib/api/client', () => ({
   ApiError: class ApiError extends Error {
     status = 500
     code = 'x'
-  },
-  PBIDS_PATH: '/api/v1/analytics/connection.pbids',
-}))
-
-vi.mock('powerbi-client', () => ({
-  models: {
-    TokenType: { Embed: 1 },
-    BackgroundType: { Transparent: 1 },
-    LayoutType: { Custom: 2 },
-    DisplayOption: { FitToWidth: 1 },
-  },
-}))
-
-vi.mock('powerbi-client-react', () => ({
-  PowerBIEmbed: ({ getEmbeddedComponent }: { getEmbeddedComponent?: (o: unknown) => void }) => {
-    useEffect(() => {
-      getEmbeddedComponent?.({ setAccessToken: vi.fn().mockResolvedValue(undefined) })
-    }, [getEmbeddedComponent])
-    return <div data-testid="embed" />
   },
 }))
 
@@ -56,7 +36,7 @@ const connection: AnalyticsConnection = {
   schema: 'analytics',
   read_only_role: 'agriminds_bi',
   views: ['dim_woreda', 'fact_farm', 'fact_risk'],
-  note: 'Connect with Get Data > PostgreSQL.',
+  note: 'Point any SQL client at this database.',
 }
 
 const wrap = (ui: React.ReactNode) => {
@@ -69,56 +49,86 @@ const wrap = (ui: React.ReactNode) => {
 }
 
 beforeEach(() => {
-  powerbiStatus.mockReset()
-  powerbiEmbedToken.mockReset()
+  metabaseStatus.mockReset()
+  metabaseEmbed.mockReset()
   analyticsConnection.mockReset()
   analyticsConnection.mockResolvedValue(connection)
 })
 
-describe('AnalyticsPage when Power BI is configured', () => {
+describe('AnalyticsPage when the dashboard is configured', () => {
+  const embedUrl = 'http://localhost:3001/embed/dashboard/signed.jwt.token#bordered=false'
+
   beforeEach(() => {
-    powerbiStatus.mockResolvedValue({
+    metabaseStatus.mockResolvedValue({
       configured: true,
       reason: null,
-      workspace_id: 'ws',
-      report_id: 'report-1',
-      rls_role: null,
+      site_url: 'http://localhost:3001',
+      dashboard_id: 7,
+      woreda_param: null,
     })
-    powerbiEmbedToken.mockResolvedValue({
-      report_id: 'report-1',
-      embed_url: 'https://app.powerbi.com/reportEmbed',
-      access_token: 'token',
-      expires_at: new Date(Date.now() + 50 * 60_000).toISOString(),
-      scope: 'Whole watershed',
-      rls_applied: false,
+    metabaseEmbed.mockResolvedValue({
+      dashboard_id: 7,
+      embed_url: embedUrl,
+      expires_at: new Date(Date.now() + 60 * 60_000).toISOString(),
+      scope: 'the whole watershed',
+      scoped: false,
     })
   })
 
-  it('embeds the report', async () => {
+  it('embeds the dashboard at the signed URL', async () => {
     wrap(<AnalyticsPage role="minister" />)
-    expect(await screen.findByTestId('embed')).toBeInTheDocument()
-    expect(powerbiEmbedToken).toHaveBeenCalled()
-    expect(screen.queryByText(/Power BI reports will appear here/)).not.toBeInTheDocument()
+    const frame = await screen.findByTitle('Ministry analytics dashboard')
+    expect(frame).toHaveAttribute('src', embedUrl)
+    expect(metabaseEmbed).toHaveBeenCalled()
+    expect(screen.queryByText(/Your dashboard will appear here/)).not.toBeInTheDocument()
+  })
+
+  it('says which rows the viewer is seeing', async () => {
+    wrap(<AnalyticsPage role="minister" />)
+    expect(await screen.findByText(/the whole watershed/)).toBeInTheDocument()
+    expect(screen.queryByText('Restricted by the server')).not.toBeInTheDocument()
+  })
+
+  it('marks a viewer whose rows the server narrowed', async () => {
+    metabaseEmbed.mockResolvedValue({
+      dashboard_id: 7,
+      embed_url: embedUrl,
+      expires_at: new Date(Date.now() + 60 * 60_000).toISOString(),
+      scope: 'Sinan woreda only',
+      scoped: true,
+    })
+    wrap(<AnalyticsPage role="agent" />)
+    expect(await screen.findByText('Restricted by the server')).toBeInTheDocument()
+    expect(screen.getByText(/Sinan woreda only/)).toBeInTheDocument()
+  })
+
+  it('sandboxes the frame rather than trusting the embed', async () => {
+    wrap(<AnalyticsPage role="minister" />)
+    const frame = await screen.findByTitle('Ministry analytics dashboard')
+    const sandbox = frame.getAttribute('sandbox') ?? ''
+    expect(sandbox).toContain('allow-scripts')
+    expect(sandbox).not.toContain('allow-top-navigation')
+    expect(frame).toHaveAttribute('referrerPolicy', 'no-referrer')
   })
 })
 
-describe('AnalyticsPage when Power BI is not configured', () => {
-  const reason = 'not set: AGRIMINDS_POWERBI_TENANT_ID, AGRIMINDS_POWERBI_CLIENT_ID'
+describe('AnalyticsPage when the dashboard is not configured', () => {
+  const reason = 'Not configured: AGRIMINDS_METABASE_SECRET_KEY, AGRIMINDS_METABASE_DASHBOARD_ID are unset.'
 
   beforeEach(() => {
-    powerbiStatus.mockResolvedValue({
+    metabaseStatus.mockResolvedValue({
       configured: false,
       reason,
-      workspace_id: null,
-      report_id: null,
-      rls_role: null,
+      site_url: null,
+      dashboard_id: null,
+      woreda_param: null,
     })
   })
 
   it('explains the situation instead of showing a broken frame', async () => {
     wrap(<AnalyticsPage role="minister" />)
-    expect(await screen.findByText(/Power BI reports will appear here/)).toBeInTheDocument()
-    expect(screen.queryByTestId('embed')).not.toBeInTheDocument()
+    expect(await screen.findByText(/Your dashboard will appear here/)).toBeInTheDocument()
+    expect(screen.queryByTitle('Ministry analytics dashboard')).not.toBeInTheDocument()
   })
 
   it('tells a reader what the tab will show once it is connected', async () => {
@@ -130,18 +140,17 @@ describe('AnalyticsPage when Power BI is not configured', () => {
     expect(screen.getByText(/crop mix across registered land/)).toBeInTheDocument()
   })
 
-  it('keeps the setup requirements out of a minister\'s way', async () => {
+  it("keeps the setup instructions out of a minister's way", async () => {
     wrap(<AnalyticsPage role="minister" />)
-    await screen.findByText(/Power BI reports will appear here/)
-    // "Entra service principal" and "paid capacity" are an administrator's problem.
-    expect(screen.queryByText(/Entra/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/capacity/i)).not.toBeInTheDocument()
+    await screen.findByText(/Your dashboard will appear here/)
+    expect(screen.queryByText(/docker compose/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/bi-role/)).not.toBeInTheDocument()
   })
 
-  it('never asks for a token it already knows will be refused', async () => {
+  it('never asks for a URL it already knows will be refused', async () => {
     wrap(<AnalyticsPage role="minister" />)
-    await screen.findByText(/Power BI reports will appear here/)
-    expect(powerbiEmbedToken).not.toHaveBeenCalled()
+    await screen.findByText(/Your dashboard will appear here/)
+    expect(metabaseEmbed).not.toHaveBeenCalled()
   })
 
   it('reassures the reader that the native dashboards still cover the work', async () => {
@@ -151,32 +160,29 @@ describe('AnalyticsPage when Power BI is not configured', () => {
 
   it('keeps the unset variables away from a minister', async () => {
     wrap(<AnalyticsPage role="minister" />)
-    await screen.findByText(/Power BI reports will appear here/)
-    expect(screen.queryByTestId('powerbi-reason')).not.toBeInTheDocument()
-    expect(screen.queryByText(/AGRIMINDS_POWERBI_TENANT_ID/)).not.toBeInTheDocument()
+    await screen.findByText(/Your dashboard will appear here/)
+    expect(screen.queryByTestId('metabase-reason')).not.toBeInTheDocument()
+    expect(screen.queryByText(/AGRIMINDS_METABASE_SECRET_KEY/)).not.toBeInTheDocument()
     expect(screen.queryByText('What an administrator needs to do')).not.toBeInTheDocument()
   })
 
   it('shows an administrator exactly which variables are missing', async () => {
     wrap(<AnalyticsPage role="admin" />)
-    expect(await screen.findByTestId('powerbi-reason')).toHaveTextContent(reason)
+    expect(await screen.findByTestId('metabase-reason')).toHaveTextContent(reason)
     expect(screen.getByText('What an administrator needs to do')).toBeInTheDocument()
   })
 
-  it('offers an administrator a way to connect Power BI Desktop today', async () => {
+  it('offers an administrator a schema they can query today', async () => {
     wrap(<AnalyticsPage role="admin" />)
     expect(await screen.findByTestId('analytics-connection')).toBeInTheDocument()
     expect(await screen.findByText('db.example:5432')).toBeInTheDocument()
     expect(screen.getByText('agriminds_bi')).toBeInTheDocument()
     expect(screen.getByText('fact_farm')).toBeInTheDocument()
-    const download = screen.getByRole('link', { name: /download connection file/i })
-    expect(download).toHaveAttribute('href', '/api/v1/analytics/connection.pbids')
-    expect(download).toHaveAttribute('download')
   })
 
   it('does not request connection details for staff who may not have them', async () => {
     wrap(<AnalyticsPage role="minister" />)
-    await screen.findByText(/Power BI reports will appear here/)
+    await screen.findByText(/Your dashboard will appear here/)
     expect(analyticsConnection).not.toHaveBeenCalled()
     expect(screen.queryByTestId('analytics-connection')).not.toBeInTheDocument()
   })
@@ -185,18 +191,6 @@ describe('AnalyticsPage when Power BI is not configured', () => {
     wrap(<AnalyticsPage role="admin" />)
     await screen.findByTestId('analytics-connection')
     expect(analyticsConnection).toHaveBeenCalled()
-  })
-})
-
-describe('the unconfigured page as a route forward', () => {
-  beforeEach(() => {
-    powerbiStatus.mockResolvedValue({
-      configured: false,
-      reason: 'not set: AGRIMINDS_POWERBI_TENANT_ID',
-      workspace_id: null,
-      report_id: null,
-      rls_role: null,
-    })
   })
 
   it('points the reader at the dashboards that do cover the work', async () => {

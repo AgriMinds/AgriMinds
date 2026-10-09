@@ -1,0 +1,16 @@
+{
+  "key": "crops",
+  "provider": "FAOSTAT, compiling Ethiopia's official agricultural statistics",
+  "source_url": "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_Africa.zip",
+  "citation": "FAO (2026), FAOSTAT Crops and livestock products, Ethiopia. https://www.fao.org/faostat/en/#data/QCL",
+  "retrieved_at": "2026-10-09T02:14:44+00:00",
+  "records": 96,
+  "coverage_start": "1993",
+  "coverage_end": "2024",
+  "variables": [
+    "area_ha",
+    "yield_kg_ha",
+    "production_t"
+  ],
+  "notes": "Ethiopia: maize, tef, wheat. FAO publishes no separate tef item, so those figures come from 'Cereals n.e.c.', an aggregate that is predominantly tef in Ethiopia."
+}

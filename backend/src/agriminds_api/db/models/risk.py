@@ -3,7 +3,7 @@
 Drought probabilities come from the model, not the database, so without this table a reporting
 tool can describe who is registered but not what they are exposed to. One row per grid cell per
 lead per model run makes the forecast joinable, keeps a history of what was issued when, and lets
-Power BI (or any SQL client) read risk without loading PyTorch.
+Metabase (or any SQL client) read risk without loading PyTorch.
 """
 
 from __future__ import annotations

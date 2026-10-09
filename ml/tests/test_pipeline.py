@@ -46,3 +46,36 @@ def test_full_pipeline_smoke(paths, test_cfg):
     P2 = render_risk_maps(paths, test_cfg, plot=False)
     np.testing.assert_allclose(P, P2)
     assert paths.latest_risk_npz.exists()
+
+
+def test_pipeline_runs_without_a_vegetation_index(paths, test_cfg):
+    """No source the study names supplies NDVI, and MODIS takes hours, so the pipeline must
+    train on what it has rather than refuse to start."""
+    from ai_drews.data.io import load_raw, save_raw
+
+    build_dataset(paths, test_cfg)
+    ind, grids = load_raw(paths)
+    assert "ndvi" in grids
+    save_raw(paths, ind, {k: v for k, v in grids.items() if k != "ndvi"})
+
+    feats = build_features(paths, test_cfg)
+    assert feats["train"] > 0
+
+    fields = np.load(paths.fields_npz, allow_pickle=True)
+    sp = [str(c) for c in fields["sp_channels"]]
+    tm = [str(c) for c in fields["tm_channels"]]
+    assert "ndvi" not in sp and "vci" not in sp
+    assert "ndvi" not in tm and "vci" not in tm
+    assert "vci" not in fields.files, "VCI must be absent, not zero-filled"
+    # The cubes must match the channel names they are stored with.
+    assert fields["S"].shape[1] == len(sp)
+    assert fields["TF"].shape[1] == len(tm)
+
+    train_enso(paths, test_cfg, plot=False)
+    metrics = train_drought(paths, test_cfg, data_source="synthetic")
+    assert len(metrics) == test_cfg.drought_leads
+
+    art = load_artifacts(paths, test_cfg)
+    risk = predict_risk(art)
+    assert risk.shape == (test_cfg.drought_leads, *test_cfg.grid)
+    assert np.all((risk >= 0) & (risk <= 1))

@@ -41,7 +41,7 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/analytics/connection.pbids": {
+    "/api/v1/analytics/metabase/embed": {
         parameters: {
             query?: never;
             header?: never;
@@ -49,10 +49,10 @@ export type paths = {
             cookie?: never;
         };
         /**
-         * Power BI Desktop connection file (administrators)
-         * @description Opens Power BI Desktop straight onto the analytics schema. Contains no credentials.
+         * Signed, short-lived URL for rendering the dashboard in the browser
+         * @description Signed per viewer. Where a locked woreda parameter is configured, a development agent's URL carries their own woreda inside the signature, so the scope cannot be edited client-side.
          */
-        get: operations["analytics_pbids_api_v1_analytics_connection_pbids_get"];
+        get: operations["metabase_embed_api_v1_analytics_metabase_embed_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -61,7 +61,7 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/analytics/powerbi/embed-token": {
+    "/api/v1/analytics/metabase/status": {
         parameters: {
             query?: never;
             header?: never;
@@ -69,30 +69,10 @@ export type paths = {
             cookie?: never;
         };
         /**
-         * Short-lived token for rendering the report in the browser
-         * @description Issued per viewer. Where the dataset defines row-level security, a development agent's token is scoped to their own woreda by Power BI, not by the client.
+         * Whether the Metabase dashboard is configured on this deployment
+         * @description Lets the client show the analytics tab only when it will work, instead of rendering a broken frame. Never returns the embedding secret.
          */
-        get: operations["powerbi_embed_token_api_v1_analytics_powerbi_embed_token_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/analytics/powerbi/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Whether Power BI embedding is configured on this deployment
-         * @description Lets the client show the analytics tab only when it will work, instead of rendering a broken frame. Never returns any credential.
-         */
-        get: operations["powerbi_status_api_v1_analytics_powerbi_status_get"];
+        get: operations["metabase_status_api_v1_analytics_metabase_status_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -722,6 +702,21 @@ export type components = {
          * @description One input the platform depends on, and whether it is actually wired up.
          */
         DataSource: {
+            /**
+             * Citation
+             * @description How to cite the upstream dataset
+             */
+            citation?: string | null;
+            /**
+             * Coverage End
+             * @description Last period the source covers
+             */
+            coverage_end?: string | null;
+            /**
+             * Coverage Start
+             * @description First period the source covers
+             */
+            coverage_start?: string | null;
             /** Detail */
             detail: string;
             /**
@@ -735,6 +730,16 @@ export type components = {
             name: string;
             /** Provider */
             provider: string;
+            /**
+             * Records
+             * @description How many observations were retrieved
+             */
+            records?: number | null;
+            /**
+             * Retrieved At
+             * @description When this source was last downloaded
+             */
+            retrieved_at?: string | null;
             /**
              * Status
              * @description connected: real observations in use. synthetic: a stand-in is filling this slot. not_connected: nothing is supplying it yet.
@@ -787,33 +792,35 @@ export type components = {
         };
         /**
          * EmbedConfig
-         * @description Everything the browser needs to render a Power BI report, and nothing more.
+         * @description Everything the browser needs to render the dashboard, and nothing more.
          *
-         *     The client secret stays on the server; what goes out is a short-lived token scoped to one
-         *     report and, where row-level security is configured, to one viewer's district.
+         *     The embedding secret stays on the server; what goes out is a signed URL valid for minutes,
+         *     scoped to one dashboard and — where a locked parameter is configured — to one viewer's
+         *     district. The scope is inside the signature, so it cannot be edited client-side.
          */
         EmbedConfig: {
+            /** Dashboard Id */
+            dashboard_id: number;
             /**
-             * Access Token
-             * @description Short-lived embed token, not an AAD token
+             * Embed Url
+             * @description Signed, short-lived; safe to put in an iframe
              */
-            access_token: string;
-            /** Embed Url */
             embed_url: string;
             /**
              * Expires At
              * Format: date-time
              */
             expires_at: string;
-            /** Report Id */
-            report_id: string;
-            /** Rls Applied */
-            rls_applied: boolean;
             /**
              * Scope
-             * @description Which rows this token may read, in plain words
+             * @description Which rows this URL may read, in plain words
              */
             scope: string;
+            /**
+             * Scoped
+             * @description True when a locked parameter narrows the viewer's rows
+             */
+            scoped: boolean;
         };
         /** EnsoOutlookResponse */
         EnsoOutlookResponse: {
@@ -1179,6 +1186,28 @@ export type components = {
             /** Password */
             password: string;
         };
+        /** MetabaseStatus */
+        MetabaseStatus: {
+            /** Configured */
+            configured: boolean;
+            /** Dashboard Id */
+            dashboard_id?: number | null;
+            /**
+             * Reason
+             * @description Why embedding is unavailable, when it is
+             */
+            reason?: string | null;
+            /**
+             * Site Url
+             * @description Where a browser reaches Metabase
+             */
+            site_url?: string | null;
+            /**
+             * Woreda Param
+             * @description Locked parameter used to scope an agent to their woreda, if any
+             */
+            woreda_param?: string | null;
+        };
         /** MinistryDashboard */
         MinistryDashboard: {
             advisories: components["schemas"]["AdvisoryDelivery"];
@@ -1263,22 +1292,6 @@ export type components = {
             mean: number;
             /** Method Note */
             method_note: string;
-        };
-        /** PowerBiStatus */
-        PowerBiStatus: {
-            /** Configured */
-            configured: boolean;
-            /**
-             * Reason
-             * @description Why embedding is unavailable, when it is
-             */
-            reason?: string | null;
-            /** Report Id */
-            report_id?: string | null;
-            /** Rls Role */
-            rls_role?: string | null;
-            /** Workspace Id */
-            workspace_id?: string | null;
         };
         /** RefreshRequest */
         RefreshRequest: {
@@ -1586,45 +1599,7 @@ export interface operations {
             };
         };
     };
-    analytics_pbids_api_v1_analytics_connection_pbids_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description A .pbids file */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Role not allowed */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    powerbi_embed_token_api_v1_analytics_powerbi_embed_token_get: {
+    metabase_embed_api_v1_analytics_metabase_embed_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1660,15 +1635,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Power BI did not respond */
-            502: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
             /** @description Embedding is not configured */
             503: {
                 headers: {
@@ -1680,7 +1646,7 @@ export interface operations {
             };
         };
     };
-    powerbi_status_api_v1_analytics_powerbi_status_get: {
+    metabase_status_api_v1_analytics_metabase_status_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1695,7 +1661,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PowerBiStatus"];
+                    "application/json": components["schemas"]["MetabaseStatus"];
                 };
             };
             /** @description Unauthorized */

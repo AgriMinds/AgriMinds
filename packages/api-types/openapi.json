@@ -1501,21 +1501,21 @@
         }
       }
     },
-    "/api/v1/analytics/powerbi/status": {
+    "/api/v1/analytics/metabase/status": {
       "get": {
         "tags": [
           "Analytics"
         ],
-        "summary": "Whether Power BI embedding is configured on this deployment",
-        "description": "Lets the client show the analytics tab only when it will work, instead of rendering a broken frame. Never returns any credential.",
-        "operationId": "powerbi_status_api_v1_analytics_powerbi_status_get",
+        "summary": "Whether the Metabase dashboard is configured on this deployment",
+        "description": "Lets the client show the analytics tab only when it will work, instead of rendering a broken frame. Never returns the embedding secret.",
+        "operationId": "metabase_status_api_v1_analytics_metabase_status_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PowerBiStatus"
+                  "$ref": "#/components/schemas/MetabaseStatus"
                 }
               }
             }
@@ -1548,14 +1548,14 @@
         ]
       }
     },
-    "/api/v1/analytics/powerbi/embed-token": {
+    "/api/v1/analytics/metabase/embed": {
       "get": {
         "tags": [
           "Analytics"
         ],
-        "summary": "Short-lived token for rendering the report in the browser",
-        "description": "Issued per viewer. Where the dataset defines row-level security, a development agent's token is scoped to their own woreda by Power BI, not by the client.",
-        "operationId": "powerbi_embed_token_api_v1_analytics_powerbi_embed_token_get",
+        "summary": "Signed, short-lived URL for rendering the dashboard in the browser",
+        "description": "Signed per viewer. Where a locked woreda parameter is configured, a development agent's URL carries their own woreda inside the signature, so the scope cannot be edited client-side.",
+        "operationId": "metabase_embed_api_v1_analytics_metabase_embed_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1579,16 +1579,6 @@
           },
           "403": {
             "description": "Role not allowed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "502": {
-            "description": "Power BI did not respond",
             "content": {
               "application/json": {
                 "schema": {
@@ -1632,49 +1622,6 @@
                   "$ref": "#/components/schemas/AnalyticsConnection"
                 }
               }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Role not allowed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
-    "/api/v1/analytics/connection.pbids": {
-      "get": {
-        "tags": [
-          "Analytics"
-        ],
-        "summary": "Power BI Desktop connection file (administrators)",
-        "description": "Opens Power BI Desktop straight onto the analytics schema. Contains no credentials.",
-        "operationId": "analytics_pbids_api_v1_analytics_connection_pbids_get",
-        "responses": {
-          "200": {
-            "description": "A .pbids file",
-            "content": {
-              "application/json": {}
             }
           },
           "401": {
@@ -2468,6 +2415,66 @@
           "detail": {
             "type": "string",
             "title": "Detail"
+          },
+          "records": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Records",
+            "description": "How many observations were retrieved"
+          },
+          "coverage_start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage Start",
+            "description": "First period the source covers"
+          },
+          "coverage_end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage End",
+            "description": "Last period the source covers"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At",
+            "description": "When this source was last downloaded"
+          },
+          "citation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Citation",
+            "description": "How to cite the upstream dataset"
           }
         },
         "type": "object",
@@ -2613,18 +2620,14 @@
       },
       "EmbedConfig": {
         "properties": {
-          "report_id": {
-            "type": "string",
-            "title": "Report Id"
+          "dashboard_id": {
+            "type": "integer",
+            "title": "Dashboard Id"
           },
           "embed_url": {
             "type": "string",
-            "title": "Embed Url"
-          },
-          "access_token": {
-            "type": "string",
-            "title": "Access Token",
-            "description": "Short-lived embed token, not an AAD token"
+            "title": "Embed Url",
+            "description": "Signed, short-lived; safe to put in an iframe"
           },
           "expires_at": {
             "type": "string",
@@ -2634,24 +2637,24 @@
           "scope": {
             "type": "string",
             "title": "Scope",
-            "description": "Which rows this token may read, in plain words"
+            "description": "Which rows this URL may read, in plain words"
           },
-          "rls_applied": {
+          "scoped": {
             "type": "boolean",
-            "title": "Rls Applied"
+            "title": "Scoped",
+            "description": "True when a locked parameter narrows the viewer's rows"
           }
         },
         "type": "object",
         "required": [
-          "report_id",
+          "dashboard_id",
           "embed_url",
-          "access_token",
           "expires_at",
           "scope",
-          "rls_applied"
+          "scoped"
         ],
         "title": "EmbedConfig",
-        "description": "Everything the browser needs to render a Power BI report, and nothing more.\n\nThe client secret stays on the server; what goes out is a short-lived token scoped to one\nreport and, where row-level security is configured, to one viewer's district."
+        "description": "Everything the browser needs to render the dashboard, and nothing more.\n\nThe embedding secret stays on the server; what goes out is a signed URL valid for minutes,\nscoped to one dashboard and \u2014 where a locked parameter is configured \u2014 to one viewer's\ndistrict. The scope is inside the signature, so it cannot be edited client-side."
       },
       "EnsoOutlookResponse": {
         "properties": {
@@ -3576,6 +3579,66 @@
         "title": "LoginRequest",
         "description": "Ministry staff sign in with email, farmers with their mobile number."
       },
+      "MetabaseStatus": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Why embedding is unavailable, when it is"
+          },
+          "site_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site Url",
+            "description": "Where a browser reaches Metabase"
+          },
+          "dashboard_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dashboard Id"
+          },
+          "woreda_param": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Woreda Param",
+            "description": "Locked parameter used to scope an agent to their woreda, if any"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured"
+        ],
+        "title": "MetabaseStatus"
+      },
       "MinistryDashboard": {
         "properties": {
           "generated_at": {
@@ -3778,64 +3841,6 @@
         ],
         "title": "ObservedConditions",
         "description": "How dry the ground already is, as opposed to how likely drought is next season."
-      },
-      "PowerBiStatus": {
-        "properties": {
-          "configured": {
-            "type": "boolean",
-            "title": "Configured"
-          },
-          "reason": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reason",
-            "description": "Why embedding is unavailable, when it is"
-          },
-          "workspace_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Workspace Id"
-          },
-          "report_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Report Id"
-          },
-          "rls_role": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rls Role"
-          }
-        },
-        "type": "object",
-        "required": [
-          "configured"
-        ],
-        "title": "PowerBiStatus"
       },
       "RefreshRequest": {
         "properties": {

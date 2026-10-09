@@ -1,4 +1,4 @@
-"""The BI layer: persisted forecasts, the read-only star schema, and Power BI embedding."""
+"""The BI layer: persisted forecasts, the read-only star schema, and Metabase embedding."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from agriminds_api.core.config import Settings
 from agriminds_api.db.models import Crop, UserRole
 from agriminds_api.domain.geo import GridSpec
 from agriminds_api.schemas.analytics import EmbedConfig
-from agriminds_api.services.powerbi import PowerBiNotConfiguredError, PowerBiService
+from agriminds_api.services.metabase import MetabaseNotConfiguredError, MetabaseService
 
 
 @pytest.fixture
@@ -197,136 +197,135 @@ class TestAnalyticsSchema:
             ), f"the BI role must not read public.{table}"
 
 
-# ====================================================================== Power BI
-class _FakeResponse:
-    def __init__(self, status_code: int, payload: dict):
-        self.status_code = status_code
-        self._payload = payload
-
-    def json(self) -> dict:
-        return self._payload
-
-
-class _FakePowerBi:
-    """Stands in for the Power BI REST API so the service logic can be exercised offline."""
-
-    def __init__(self, *, report_status=200, token_status=200):
-        self.report_status = report_status
-        self.token_status = token_status
-        self.generate_calls: list[dict] = []
-
-    def __call__(self, *args, **kwargs):
-        return self
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, *exc):
-        return False
-
-    async def get(self, url, headers=None):
-        return _FakeResponse(self.report_status, {"embedUrl": "https://app.powerbi.com/reportEmbed?x=1"})
-
-    async def post(self, url, headers=None, json=None):
-        self.generate_calls.append(json or {})
-        expiry = (datetime.now(UTC) + timedelta(minutes=50)).isoformat().replace("+00:00", "Z")
-        return _FakeResponse(self.token_status, {"token": "embed-token-value", "expiration": expiry})
+# ====================================================================== Metabase
+SECRET = "0123456789abcdef0123456789abcdef"
 
 
 def _configured(**overrides) -> Settings:
     base = dict(
         _env_file=None,
         env="test",
-        powerbi_tenant_id="tenant",
-        powerbi_client_id="client",
-        powerbi_client_secret="secret",
-        powerbi_workspace_id="workspace",
-        powerbi_report_id="report",
+        metabase_site_url="http://metabase:3000",
+        metabase_public_url="http://localhost:3001",
+        metabase_secret_key=SECRET,
+        metabase_dashboard_id=7,
     )
     base.update(overrides)
     return Settings(**base)
 
 
-class TestPowerBiService:
+def _payload(url: str) -> dict:
+    """Decode the JWT out of a signed embed URL, verifying it as Metabase would."""
+    import jwt
+
+    token = url.split("/embed/dashboard/")[1].split("#")[0]
+    return jwt.decode(token, SECRET, algorithms=["HS256"])
+
+
+class TestMetabaseService:
     def test_an_unconfigured_deployment_says_exactly_what_is_missing(self):
-        status = PowerBiService(Settings(_env_file=None, env="test")).status()
+        status = MetabaseService(Settings(_env_file=None, env="test")).status()
         assert status.configured is False
-        assert "AGRIMINDS_POWERBI_TENANT_ID" in status.reason
+        assert "AGRIMINDS_METABASE_SECRET_KEY" in status.reason
+        assert "AGRIMINDS_METABASE_DASHBOARD_ID" in status.reason
 
     async def test_an_unconfigured_deployment_refuses_rather_than_half_working(self, make_user):
         user = await make_user(UserRole.MINISTER, email="m@example.et")
-        with pytest.raises(PowerBiNotConfiguredError):
-            await PowerBiService(Settings(_env_file=None, env="test")).embed_config(user)
+        with pytest.raises(MetabaseNotConfiguredError):
+            MetabaseService(Settings(_env_file=None, env="test")).embed_config(user)
 
-    async def test_it_mints_a_token_without_leaking_the_secret(self, monkeypatch, make_user):
+    async def test_it_signs_a_url_without_leaking_the_secret(self, make_user):
         user = await make_user(UserRole.MINISTER, email="m2@example.et")
-        service = PowerBiService(_configured())
-        monkeypatch.setattr(service, "_acquire_aad_token", lambda: "aad-token")
-        fake = _FakePowerBi()
-        monkeypatch.setattr("agriminds_api.services.powerbi.httpx.AsyncClient", fake)
+        config = MetabaseService(_configured()).embed_config(user)
 
-        config = await service.embed_config(user)
         assert isinstance(config, EmbedConfig)
-        assert config.access_token == "embed-token-value"
-        assert config.embed_url.startswith("https://app.powerbi.com/")
         assert config.expires_at > datetime.now(UTC)
-        assert "secret" not in json.dumps(config.model_dump(), default=str)
+        assert SECRET not in json.dumps(config.model_dump(), default=str)
+        assert _payload(config.embed_url)["resource"] == {"dashboard": 7}
 
-    async def test_an_agent_is_scoped_to_their_woreda_by_the_server(self, monkeypatch, make_user):
+    async def test_the_url_points_at_the_address_a_browser_can_reach(self, make_user):
+        """Inside Compose the API knows Metabase as `metabase:3000`, which no laptop resolves."""
+        user = await make_user(UserRole.MINISTER, email="m5@example.et")
+        config = MetabaseService(_configured()).embed_config(user)
+        assert config.embed_url.startswith("http://localhost:3001/embed/dashboard/")
+
+    async def test_a_signed_url_expires(self, make_user):
+        user = await make_user(UserRole.MINISTER, email="m6@example.et")
+        config = MetabaseService(_configured(metabase_token_minutes=15)).embed_config(user)
+        claims = _payload(config.embed_url)
+        assert claims["exp"] == int(config.expires_at.timestamp())
+        assert config.expires_at < datetime.now(UTC) + timedelta(minutes=16)
+
+    async def test_an_agent_is_scoped_to_their_woreda_inside_the_signature(self, make_user):
+        """A locked parameter cannot be overridden from the query string, so the scope holds."""
         agent = await make_user(UserRole.AGENT, email="a@example.et", woreda_code="SNN")
-        service = PowerBiService(_configured(powerbi_rls_role="WoredaScope", powerbi_dataset_id="ds"))
-        monkeypatch.setattr(service, "_acquire_aad_token", lambda: "aad-token")
-        fake = _FakePowerBi()
-        monkeypatch.setattr("agriminds_api.services.powerbi.httpx.AsyncClient", fake)
+        service = MetabaseService(_configured(metabase_woreda_param="woreda_code"))
 
-        config = await service.embed_config(agent)
-        assert config.rls_applied is True
+        config = service.embed_config(agent)
+        assert config.scoped is True
         assert "Sinan" in config.scope
-        identity = fake.generate_calls[0]["identities"][0]
-        assert identity["roles"] == ["WoredaScope"]
-        assert identity["customData"] == "SNN", "the district filter must travel in the token"
+        assert _payload(config.embed_url)["params"] == {"woreda_code": "SNN"}
 
-    async def test_a_minister_is_not_narrowed_to_a_district(self, monkeypatch, make_user):
+    async def test_a_minister_is_not_narrowed_to_a_district(self, make_user):
         minister = await make_user(UserRole.MINISTER, email="m3@example.et")
-        service = PowerBiService(_configured(powerbi_rls_role="WoredaScope", powerbi_dataset_id="ds"))
-        monkeypatch.setattr(service, "_acquire_aad_token", lambda: "aad-token")
-        fake = _FakePowerBi()
-        monkeypatch.setattr("agriminds_api.services.powerbi.httpx.AsyncClient", fake)
+        service = MetabaseService(_configured(metabase_woreda_param="woreda_code"))
 
-        config = await service.embed_config(minister)
-        assert config.scope == "Whole watershed"
-        assert "customData" not in fake.generate_calls[0]["identities"][0]
+        config = service.embed_config(minister)
+        assert config.scoped is False
+        assert config.scope == "the whole watershed"
+        assert _payload(config.embed_url)["params"] == {}
 
-    async def test_an_upstream_failure_is_reported_without_internal_detail(self, monkeypatch, make_user):
-        from agriminds_api.services.powerbi import PowerBiUpstreamError
+    async def test_without_a_locked_parameter_nobody_is_scoped(self, make_user):
+        """Scoping that is configured nowhere must not be implied in the UI."""
+        agent = await make_user(UserRole.AGENT, email="a2@example.et", woreda_code="SNN")
+        config = MetabaseService(_configured()).embed_config(agent)
+        assert config.scoped is False
+        assert _payload(config.embed_url)["params"] == {}
 
-        user = await make_user(UserRole.MINISTER, email="m4@example.et")
-        service = PowerBiService(_configured())
-        monkeypatch.setattr(service, "_acquire_aad_token", lambda: "aad-token")
-        monkeypatch.setattr(
-            "agriminds_api.services.powerbi.httpx.AsyncClient", _FakePowerBi(report_status=404)
-        )
-        with pytest.raises(PowerBiUpstreamError) as caught:
-            await service.embed_config(user)
-        assert "404" not in str(caught.value)
+    async def test_a_url_signed_with_the_wrong_key_is_rejected(self, make_user):
+        """The signature is the whole authorisation; this is what stops a forged dashboard id."""
+        import jwt
+
+        user = await make_user(UserRole.MINISTER, email="m7@example.et")
+        config = MetabaseService(_configured()).embed_config(user)
+        token = config.embed_url.split("/embed/dashboard/")[1].split("#")[0]
+        with pytest.raises(jwt.InvalidSignatureError):
+            jwt.decode(token, "not-the-secret", algorithms=["HS256"])
 
 
 class TestAnalyticsEndpoints:
     def test_status_is_staff_only(self, client, staff, make_user, sign_in):
-        assert client.get("/api/v1/analytics/powerbi/status").status_code == 401
-        body = client.get("/api/v1/analytics/powerbi/status", headers=sign_in(staff.email)["headers"]).json()
+        assert client.get("/api/v1/analytics/metabase/status").status_code == 401
+        body = client.get("/api/v1/analytics/metabase/status", headers=sign_in(staff.email)["headers"]).json()
         assert body["configured"] is False and body["reason"]
 
     async def test_a_farmer_cannot_reach_the_analytics_layer(self, client, make_user, sign_in):
         farmer = await make_user(UserRole.FARMER, phone="+251911777002")
         headers = sign_in(farmer.phone)["headers"]
-        for path in ("/api/v1/analytics/powerbi/status", "/api/v1/analytics/powerbi/embed-token"):
+        for path in ("/api/v1/analytics/metabase/status", "/api/v1/analytics/metabase/embed"):
             assert client.get(path, headers=headers).status_code == 403
 
     def test_embedding_reports_503_when_not_configured(self, client, staff, sign_in):
-        r = client.get("/api/v1/analytics/powerbi/embed-token", headers=sign_in(staff.email)["headers"])
+        r = client.get("/api/v1/analytics/metabase/embed", headers=sign_in(staff.email)["headers"])
         assert r.status_code == 503
-        assert r.json()["error"]["code"] == "powerbi_not_configured"
+        assert r.json()["error"]["code"] == "metabase_not_configured"
+
+    def test_the_status_endpoint_never_returns_the_signing_secret(
+        self, artifacts_dir, db_engine, staff, sign_in
+    ):
+        from tests.conftest import _client, _settings
+
+        settings = _settings(
+            artifacts_dir.root,
+            metabase_site_url="http://metabase:3000",
+            metabase_secret_key=SECRET,
+            metabase_dashboard_id=7,
+        )
+        with _client(settings) as configured:
+            headers = sign_in(staff.email, c=configured)["headers"]
+            body = configured.get("/api/v1/analytics/metabase/status", headers=headers).json()
+        assert body["configured"] is True
+        assert SECRET not in json.dumps(body)
 
     def test_connection_details_are_administrator_only(self, client, staff, admin, sign_in):
         assert (
@@ -346,14 +345,6 @@ class TestAnalyticsEndpoints:
         assert secret not in json.dumps(body), "the connection string's credentials must be stripped"
         assert "@" not in body["server"], f"server should be host:port, got {body['server']}"
         assert ":" in body["server"], "server should carry the port"
-
-    def test_the_pbids_file_opens_power_bi_desktop_on_the_right_database(self, client, admin, sign_in):
-        r = client.get("/api/v1/analytics/connection.pbids", headers=sign_in(admin.email)["headers"])
-        assert r.status_code == 200
-        assert "attachment" in r.headers["content-disposition"]
-        payload = r.json()
-        assert payload["connections"][0]["details"]["protocol"] == "postgresql"
-        assert "password" not in r.text.lower()
 
 
 class TestConnectionReachability:
@@ -376,3 +367,32 @@ class TestConnectionReachability:
             body = public.get("/api/v1/analytics/connection", headers=headers).json()
         assert body["server"] == "db.example.et:5432"
         assert "will not resolve" not in body["note"]
+
+
+class TestBlankEnvironmentVariables:
+    """Compose substitutes an unset `${VAR:-}` to an empty string, and `.env.example` ships
+    these keys blank. Treating that as a value rather than as "unset" crash-loops the API."""
+
+    def test_a_blank_dashboard_id_does_not_stop_the_api_starting(self):
+        settings = Settings(
+            _env_file=None,
+            env="test",
+            metabase_site_url="",
+            metabase_public_url="",
+            metabase_secret_key="",
+            metabase_dashboard_id="",
+            metabase_woreda_param="",
+            analytics_public_host="",
+        )
+        assert settings.metabase_dashboard_id is None
+        assert settings.metabase_configured is False
+        assert settings.analytics_public_host is None
+
+    def test_a_blank_setting_reads_as_unconfigured_not_as_broken(self):
+        status = MetabaseService(Settings(_env_file=None, env="test", metabase_secret_key="")).status()
+        assert status.configured is False
+        assert "AGRIMINDS_METABASE_SECRET_KEY" in status.reason
+
+    def test_whitespace_is_not_a_configuration(self):
+        settings = Settings(_env_file=None, env="test", metabase_secret_key="   ")
+        assert settings.metabase_secret_key is None

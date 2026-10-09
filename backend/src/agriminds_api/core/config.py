@@ -62,29 +62,49 @@ class Settings(BaseSettings):
     login_max_attempts: int = 8
     login_lockout_minutes: int = 15
 
-    # ---- Power BI (optional analytics layer) ------------------------------------------------
-    # Embedding uses the "app owns data" model: one service principal holds the workspace
-    # licence and the server mints a short-lived token per viewer. Ministry staff therefore need
-    # no Power BI licence of their own, and farmers are never sent to it at all.
-    powerbi_tenant_id: str | None = None
-    powerbi_client_id: str | None = None
-    powerbi_client_secret: SecretStr | None = None
-    powerbi_workspace_id: str | None = None  # Power BI group id
-    powerbi_report_id: str | None = None
-    powerbi_dataset_id: str | None = None  # needed only when row-level security is in use
-    #: Name of the role defined inside the report's dataset, if it enforces row-level security.
-    powerbi_rls_role: str | None = None
-    powerbi_token_minutes: int = 50  # Power BI caps embed tokens at 60 minutes
-    powerbi_api_base: str = "https://api.powerbi.com/v1.0/myorg"
-    powerbi_authority: str = "https://login.microsoftonline.com"
-    powerbi_scope: str = "https://analysis.windows.net/powerbi/api/.default"
+    # ---- Metabase (optional analytics layer) ------------------------------------------------
+    # Self-hosted and open source, so a ministry needs no per-seat BI licence. The server signs
+    # a short-lived JWT for one dashboard; only that signed URL reaches the browser, and the
+    # embedding secret never leaves the server. Farmers are never sent here at all.
+    metabase_site_url: str | None = None  # how the API reaches Metabase, e.g. http://metabase:3000
+    #: How a browser reaches Metabase, when that differs from the server's own view of it.
+    #: Inside Compose the API knows it as `metabase:3000`, which no laptop can resolve.
+    metabase_public_url: str | None = None
+    metabase_secret_key: SecretStr | None = None  # Metabase admin > Embedding > secret key
+    metabase_dashboard_id: int | None = None
+    metabase_token_minutes: int = 10  # the signed URL is re-minted per view; keep it brief
+    #: Name of a *locked* dashboard parameter that filters by woreda code. When set, a
+    #: development agent's signed URL carries their own woreda and nothing else.
+    metabase_woreda_param: str | None = None
 
     #: Host:port an analyst's own machine should use to reach the database, for the connection
-    #: details and the .pbids file. Inside Compose the server knows itself as `postgres:5432`,
-    #: which resolves only on that network, so this must be set for Power BI Desktop to connect.
+    #: details handed to any BI tool. Inside Compose the server knows itself as `postgres:5432`,
+    #: which resolves only on that network, so this must be set for a desktop tool to connect.
     analytics_public_host: str | None = None
 
     allow_precomputed_fallback: bool = True  # serve outputs/latest_risk.npz when weights are missing
+
+    @field_validator(
+        "metabase_site_url",
+        "metabase_public_url",
+        "metabase_secret_key",
+        "metabase_dashboard_id",
+        "metabase_woreda_param",
+        "analytics_public_host",
+        "redis_url",
+        mode="before",
+    )
+    @classmethod
+    def _blank_means_unset(cls, v: object) -> object:
+        """An empty environment variable means "not configured", not "configured as empty".
+
+        Compose substitutes `${VAR:-}` to an empty string for anything the operator has not set,
+        and `.env.example` ships these keys blank. Without this the API refuses to start at all
+        on a perfectly ordinary deployment: an optional integer cannot parse `""`.
+        """
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v
 
     @field_validator("cors_origins", "api_keys", mode="before")
     @classmethod
@@ -110,17 +130,14 @@ class Settings(BaseSettings):
         return self
 
     @property
-    def powerbi_configured(self) -> bool:
-        """True only when every value needed to mint an embed token is present."""
-        return all(
-            (
-                self.powerbi_tenant_id,
-                self.powerbi_client_id,
-                self.powerbi_client_secret,
-                self.powerbi_workspace_id,
-                self.powerbi_report_id,
-            )
-        )
+    def metabase_configured(self) -> bool:
+        """True only when every value needed to sign an embed URL is present."""
+        return all((self.metabase_site_url, self.metabase_secret_key, self.metabase_dashboard_id))
+
+    @property
+    def metabase_browser_url(self) -> str | None:
+        """The address to put in an iframe, which is not always the one the API uses."""
+        return self.metabase_public_url or self.metabase_site_url
 
     @property
     def service_auth_enabled(self) -> bool:

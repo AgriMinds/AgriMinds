@@ -89,3 +89,58 @@ python -c "from ai_drews.geo.watershed import read_shapefile, write_geojson; \
 Everything downstream reads the GeoJSON, which is plain JSON and needs no geospatial library. An
 independent spherical-area calculation agrees with the shapefile's own `area_km2` attribute to
 0.4%, which is the check that the conversion did not distort the geometry.
+
+
+## The observational record
+
+`ai-drews ingest all` (or `make ingest`) downloads the inputs the study specifies. Every route is
+public and needs **no credentials**, which is deliberate: a reviewer should be able to reproduce
+the record from a fresh clone without applying for an account anywhere.
+
+| Input | Provider | Route | Notes |
+|---|---|---|---|
+| Niño 3.4, Niño 1+2, Niño 4, SOI | NOAA PSL | `psl.noaa.gov/data/correlation/*.data` | ERSST v6, anomalies against 1981–2010 |
+| Temperature, rainfall, soil moisture, evaporation | ERA5 (ECMWF) | Open-Meteo archive | daily values aggregated here, per grid cell |
+| Rainfall for validation | CHIRPS v2.0 | SERVIR ClimateSERV | zonal mean over the surveyed outline |
+| Crop area, yield, production | FAOSTAT | bulk CSV | Ethiopia's official statistics |
+| Greenness (opt-in) | MODIS MOD13Q1 | ORNL DAAC | not in `ingest all`; see below |
+
+Four points a reviewer should know, because each one is a place where a convenient shortcut would
+have produced a wrong or overstated result.
+
+**ERA5 is read through Open-Meteo, not the Copernicus CDS.** The CDS requires an API key, which
+would put an account between a fresh clone and a working pipeline. Open-Meteo serves the same
+reanalysis. It meters by data volume per hour, and one full 8×8 grid over 2000–2026 is close to
+the free hourly allowance, so a long ingest is expected to pause and resume rather than fail.
+Completed requests are cached under `data/raw/sources/era5_parts/`.
+
+**Daily values are aggregated here rather than requested as monthly means.** Rainfall and
+evapotranspiration must be summed while temperature and soil moisture must be averaged, and no
+single monthly endpoint does both correctly.
+
+**FAO has no `tef` item.** Ethiopian tef is reported inside `Cereals n.e.c.`, which for Ethiopia
+is overwhelmingly tef — the area and yield track the CSA tef series closely — but it remains an
+aggregate. The inventory labels the row as such rather than presenting it as a pure tef
+measurement, and the advisory rules should not treat it as one.
+
+**CHIRPS validates; it does not drive the forecast.** That is the role the study gives it, so the
+`chirps_emi` entry reports connected only once the ERA5–CHIRPS comparison has actually run, and
+its detail carries the correlation and bias that comparison found
+(`data/outputs/era5_chirps_validation.csv`). Until then the reanalysis is unvalidated here and the
+platform says so.
+
+**MODIS greenness is opt-in.** No source the study names supplies a vegetation index, and the
+ORNL DAAC caps a request at ten composites and extracts each on demand, so a full grid takes hours
+rather than minutes. It is therefore excluded from `ingest all`, which must stay a minutes-long
+command. Without it, VCI and the greenness channels are absent, `assemble` skips them, and the
+model trains on the remaining channels; `ai-drews ingest ndvi` adds them when the wait is
+acceptable.
+
+### Provenance is recorded, not inferred
+
+Each connector writes a manifest to `data/raw/manifests/` naming the provider, URL, citation,
+record count, coverage and retrieval time. **Whether the pipeline is running on observations is
+decided by `dataset.json`, never by the raw files existing** — the synthetic generator writes to
+exactly the same paths, so before this existed a second pipeline run would have loaded its own
+stand-in data and stamped the model `data_source: real`. `GET /api/v1/system/data-sources` and
+the `/data-sources` page read those manifests directly.

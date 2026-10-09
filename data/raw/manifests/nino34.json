@@ -1,0 +1,17 @@
+{
+  "key": "nino34",
+  "provider": "NOAA Physical Sciences Laboratory",
+  "source_url": "https://psl.noaa.gov/data/correlation/nina34.anom.data",
+  "citation": "NOAA PSL climate indices derived from ERSST v5/v6, anomalies against the 1981-2010 base period. https://psl.noaa.gov/data/climateindices/",
+  "retrieved_at": "2026-10-08T19:15:24+00:00",
+  "records": 945,
+  "coverage_start": "1948-01-01",
+  "coverage_end": "2026-09-01",
+  "variables": [
+    "nino34",
+    "nino12",
+    "nino4",
+    "soi"
+  ],
+  "notes": "Observed monthly anomalies for nino34, nino12, nino4, soi. Months missing a companion index: {'soi': 38}."
+}

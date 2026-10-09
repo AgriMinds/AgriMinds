@@ -16,7 +16,7 @@ import type {
   HealthResponse,
   LeadMonth,
   MinistryDashboard,
-  PowerBiStatus,
+  MetabaseStatus,
   User,
   WatershedBoundary,
 } from '@agriminds/api-types'
@@ -134,9 +134,9 @@ export const api = {
     request<MinistryDashboard>(`/dashboard/ministry${lead(leadMonth)}`),
 
   // ---- analytics ----------------------------------------------------------------------
-  powerbiStatus: () => request<PowerBiStatus>('/analytics/powerbi/status'),
-  /** A fresh embed token. Minted server-side per viewer; the browser never calls Microsoft. */
-  powerbiEmbedToken: () => request<EmbedConfig>('/analytics/powerbi/embed-token'),
+  metabaseStatus: () => request<MetabaseStatus>('/analytics/metabase/status'),
+  /** A freshly signed embed URL. Signed server-side per viewer; the secret never leaves it. */
+  metabaseEmbed: () => request<EmbedConfig>('/analytics/metabase/embed'),
   analyticsConnection: () => request<AnalyticsConnection>('/analytics/connection'),
 
   // ---- provenance ---------------------------------------------------------------------
@@ -144,7 +144,6 @@ export const api = {
 }
 
 /** Direct download, so the browser saves the file rather than the client parsing it. */
-export const PBIDS_PATH = `${API_V1_PREFIX}/analytics/connection.pbids`
 
 /** Sign-in and sign-out go through dedicated route handlers so tokens stay server-side. */
 export const authApi = {

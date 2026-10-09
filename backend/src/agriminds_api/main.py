@@ -22,7 +22,7 @@ from agriminds_api.services.advisory import AdvisoryService
 from agriminds_api.services.drought import DroughtService
 from agriminds_api.services.enso import EnsoService
 from agriminds_api.services.inference import InferenceService
-from agriminds_api.services.powerbi import PowerBiService
+from agriminds_api.services.metabase import MetabaseService
 
 log = logging.getLogger("agriminds")
 
@@ -90,7 +90,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.drought = drought
         app.state.advisory = AdvisoryService(inference, drought)
         app.state.enso = EnsoService(inference, settings)
-        app.state.powerbi = PowerBiService(settings)
+        app.state.metabase = MetabaseService(settings)
 
         if settings.is_production and not settings.service_auth_enabled:
             log.warning("AGRIMINDS_API_KEYS is empty in production: machine clients are unauthenticated")

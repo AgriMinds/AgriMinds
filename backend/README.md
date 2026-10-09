@@ -45,7 +45,7 @@ open http://localhost:8000/docs
 | `AGRIMINDS_ACCESS_TOKEN_TTL_MINUTES` | `15` | access-token lifetime |
 | `AGRIMINDS_REFRESH_TOKEN_TTL_DAYS` | `14` | refresh-token lifetime |
 | `AGRIMINDS_LOGIN_MAX_ATTEMPTS` / `_LOCKOUT_MINUTES` | `8` / `15` | brute-force lockout |
-| `AGRIMINDS_POWERBI_*` | unset | Power BI embedding; unset hides the analytics tab rather than breaking it |
+| `AGRIMINDS_METABASE_*` | unset | Metabase dashboard embedding; unset hides the analytics tab rather than breaking it |
 
 ## Behaviour guarantees
 

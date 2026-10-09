@@ -42,9 +42,9 @@ const ALLOWED: ReadonlyArray<{ method: Method; path: RegExp }> = [
   // dashboards
   { method: 'GET', path: /^dashboard\/(farmer|ministry)$/ },
   { method: 'POST', path: new RegExp(`^dashboard/farmer/advisories/${UUID}/acknowledge$`) },
-  // analytics (staff; the service enforces the role and, for Power BI, the row-level scope)
-  { method: 'GET', path: /^analytics\/powerbi\/(status|embed-token)$/ },
-  { method: 'GET', path: /^analytics\/connection(\.pbids)?$/ },
+  // analytics (staff; the service enforces the role and, where configured, the district scope)
+  { method: 'GET', path: /^analytics\/metabase\/(status|embed)$/ },
+  { method: 'GET', path: /^analytics\/connection$/ },
 ]
 
 function errorJson(status: number, code: string, message: string) {
@@ -59,7 +59,7 @@ async function toResponse(upstream: Response): Promise<NextResponse> {
   if (type) headers.set('Content-Type', type)
   const rid = upstream.headers.get('x-request-id')
   if (rid) headers.set('X-Request-ID', rid)
-  // Carried through so a file response (the .pbids connection file) still downloads by name.
+  // Carried through so any file response still downloads under its own name.
   const disposition = upstream.headers.get('content-disposition')
   if (disposition) headers.set('Content-Disposition', disposition)
   return new NextResponse(body, { status: upstream.status, headers })

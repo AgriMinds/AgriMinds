@@ -32,7 +32,8 @@ pip install -e "ml[dev]"          # from the repo root
 
 ```bash
 export AI_DREWS_DATA_DIR=./data   # default is ./data relative to the cwd
-ai-drews build-data               # step 1: real files in data/raw/ if present, else SYNTHETIC
+ai-drews ingest all               # step 0: download the observed record (see below)
+ai-drews build-data               # step 1: observed files in data/raw/ if present, else SYNTHETIC
 ai-drews build-features           # step 2
 ai-drews train enso               # step 3 (Objective 1)
 ai-drews train drought --data-source synthetic   # step 4 (Objective 2)
@@ -65,15 +66,51 @@ is kept out of the training pipeline on purpose:
 
 Inside Docker Compose: `docker compose run --rm backend ai-drews run-all`.
 
-## Plugging in real data (monthly, same grid for all layers)
+## Real data
 
-- `data/raw/nino_indices.csv` : `date,nino34,nino12,nino4,soi` (NOAA ONI / Nino indices, SOI)
-- `data/raw/grids.npz` : `rain` (CHIRPS), `tmax` (ERA5), `soilm` (ERA5), `ndvi` (MODIS), each `(T,H,W)`,
-  plus `dates` as `YYYY-MM-DD` strings. Resample everything to one grid (e.g. CHIRPS 0.05 deg) first.
-  Optional `tmean` (ERA5 monthly mean temperature, °C) enables Sc-PDSI. Without it the index is
-  **skipped rather than estimated from the maxima**, because deriving it would bias every
-  classification downstream.
-- Edit `grid`, `bbox` and the split dates in `PipelineConfig`.
+`ai-drews ingest all` downloads the study's inputs. Every source is public and needs **no
+credentials**, so a fresh clone can reach real observations without an account anywhere.
+
+| source | provider | route | typical size |
+|---|---|---|---|
+| Niño 3.4, Niño 1+2, Niño 4, SOI | NOAA PSL (ERSST v6) | fixed-width tables | seconds |
+| Temperature, rainfall, soil moisture, evaporation | ERA5 (ECMWF) | Open-Meteo archive | ~2 min, rate-limited |
+| Rainfall for validation | CHIRPS v2.0 | SERVIR ClimateSERV zonal means | ~2 min |
+| Crop area, yield, production | FAOSTAT (Ethiopia's official statistics) | bulk CSV | seconds |
+| Greenness (opt-in, not in `all`) | MODIS MOD13Q1 | ORNL DAAC | **hours** — see below |
+
+```bash
+ai-drews ingest all             # every quick source, then assemble the pipeline inputs
+ai-drews ingest era5            # or one at a time
+ai-drews ingest assemble        # rebuild grids.npz from what is already cached
+ai-drews ingest ndvi            # opt-in: MODIS greenness, hours rather than minutes
+ai-drews data-sources           # what this deployment is currently running on
+```
+
+Each connector writes a tidy table to `data/raw/sources/` and a manifest to
+`data/raw/manifests/`. **Provenance comes from the manifest, never from a file existing** — the
+synthetic generator writes to the same paths, so without the manifest a second run would load its
+own stand-in data and stamp the model "real".
+
+`assemble` intersects the sources on the months all of them observed and writes:
+
+- `data/raw/nino_indices.csv` : `date,nino34,nino12,nino4,soi`
+- `data/raw/grids.npz` : `rain`, `tmax`, `tmean`, `soilm`, `pet_fao` (ERA5) and `ndvi` (MODIS,
+  when present), each `(T,H,W)`, plus `dates` as `YYYY-MM-DD` strings.
+
+`tmean` enables Sc-PDSI. Without it the index is **skipped rather than estimated from the
+maxima**, because deriving it would bias every classification downstream. `ndvi` is optional for a
+different reason: no source the study names supplies a vegetation index, and MODIS is the one
+input that cannot be fetched quickly — the DAAC caps a request at ten composites and extracts
+each one on demand, so a full grid takes hours rather than minutes. It is therefore **left out of
+`ingest all`** and requested by name. Without it, VCI and the greenness channels are simply
+absent, `assemble` skips them, and the model trains on the remaining channels.
+
+Rate limits are real. The Open-Meteo archive meters by data volume per hour, and one full grid is
+close to the free hourly allowance: if a run stops with `429`, wait for the next hour rather than
+retrying immediately.
+
+To change the grid or the record, edit `grid`, `bbox` and the split dates in `PipelineConfig`.
 
 ## Drought indices
 

@@ -1,11 +1,14 @@
 from ai_drews.features.fields import (
     SP_CH,
+    SP_CH_NO_NDVI,
     TM_CH,
+    TM_CH_NO_NDVI,
     build_features,
     compute_fields,
     load_enso_fc,
     load_fields,
     save_fields,
+    tm_channel,
 )
 from ai_drews.features.indices import spi, vci, zanom
 from ai_drews.features.windows import (
@@ -19,7 +22,10 @@ from ai_drews.features.windows import (
 
 __all__ = [
     "SP_CH",
+    "SP_CH_NO_NDVI",
     "TM_CH",
+    "TM_CH_NO_NDVI",
+    "tm_channel",
     "apply_norm",
     "build_features",
     "compute_fields",

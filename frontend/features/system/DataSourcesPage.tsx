@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertTriangle, CheckCircle2, CircleDashed, Database, FlaskConical, type LucideIcon } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useFormatter, useTranslations } from 'next-intl'
 import type { DataInventory } from '@agriminds/api-types'
 import { Badge, type BadgeProps } from '@/components/ui/badge'
 import {
@@ -55,6 +55,7 @@ const TREATMENT: Record<Status, { icon: LucideIcon; badge: NonNullable<BadgeProp
 
 function SourceRow({ source }: { source: DataInventory['sources'][number] }) {
   const t = useTranslations('dataSources')
+  const format = useFormatter()
   const { icon: Icon, badge, label, row, mark } = TREATMENT[source.status]
   return (
     <li className={cn('flex items-start gap-3 rounded-xl border p-4 sm:gap-4', row)}>
@@ -74,7 +75,31 @@ function SourceRow({ source }: { source: DataInventory['sources'][number] }) {
             <dt className="text-fg-subtle">{t('feeds')}</dt>
             <dd className="font-medium text-fg">{source.feeds}</dd>
           </div>
+          {source.coverage_start && source.coverage_end && (
+            <div className="flex gap-1.5">
+              <dt className="text-fg-subtle">{t('covers')}</dt>
+              <dd className="font-mono font-medium text-fg">
+                {source.coverage_start} → {source.coverage_end}
+              </dd>
+            </div>
+          )}
+          {source.retrieved_at && (
+            <div className="flex gap-1.5">
+              <dt className="text-fg-subtle">{t('retrieved')}</dt>
+              <dd className="font-medium text-fg">
+                {format.dateTime(new Date(source.retrieved_at), 'date')}
+              </dd>
+            </div>
+          )}
         </dl>
+        {source.citation && (
+          <details className="group">
+            <summary className="w-fit cursor-pointer list-none text-xs font-medium text-fg-subtle underline-offset-2 hover:text-fg hover:underline focus-visible:ring-2 focus-visible:ring-ring">
+              {t('citation')}
+            </summary>
+            <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">{source.citation}</p>
+          </details>
+        )}
       </div>
     </li>
   )

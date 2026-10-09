@@ -63,6 +63,13 @@ services:
       AGRIMINDS_JWT_SECRET: ${AGRIMINDS_JWT_SECRET:?set AGRIMINDS_JWT_SECRET in .env (openssl rand -hex 32)}
       AGRIMINDS_CORS_ORIGINS: ${AGRIMINDS_CORS_ORIGINS:-http://localhost:3000}
       AGRIMINDS_API_KEYS: ${AGRIMINDS_API_KEYS:-}
+      # Analytics. The API signs embed URLs locally, so it only needs the secret and the id;
+      # the browser needs an address it can actually resolve, which is not `metabase:3000`.
+      AGRIMINDS_METABASE_SITE_URL: ${AGRIMINDS_METABASE_SITE_URL:-http://metabase:3000}
+      AGRIMINDS_METABASE_PUBLIC_URL: ${AGRIMINDS_METABASE_PUBLIC_URL:-http://localhost:${METABASE_PORT:-3001}}
+      AGRIMINDS_METABASE_SECRET_KEY: ${AGRIMINDS_METABASE_SECRET_KEY:-}
+      AGRIMINDS_METABASE_DASHBOARD_ID: ${AGRIMINDS_METABASE_DASHBOARD_ID:-}
+      AGRIMINDS_METABASE_WOREDA_PARAM: ${AGRIMINDS_METABASE_WOREDA_PARAM:-}
     volumes:
       - ./data:/app/data:z
     ports:
@@ -94,6 +101,39 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+
+  # Self-hosted analytics. Opt-in: docker compose --profile analytics up -d
+  # Open source, so no per-seat licence: staff read an embedded dashboard and analysts connect
+  # their own tools to the read-only `analytics` schema (make bi-role).
+  metabase:
+    profiles: ["analytics"]
+    image: metabase/metabase:v0.50.21
+    environment:
+      # Metabase keeps its own questions and dashboards here. A separate database on the same
+      # server, never the application schema: an analytics tool must not be able to write to
+      # the rows it reports on.
+      MB_DB_TYPE: postgres
+      MB_DB_HOST: postgres
+      MB_DB_PORT: 5432
+      MB_DB_DBNAME: ${METABASE_DB:-metabase}
+      MB_DB_USER: ${POSTGRES_USER:-agriminds}
+      MB_DB_PASS: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      MB_SITE_URL: ${AGRIMINDS_METABASE_PUBLIC_URL:-http://localhost:${METABASE_PORT:-3001}}
+      # Signing key for embedded dashboards. The API signs with the same value.
+      MB_EMBEDDING_SECRET_KEY: ${AGRIMINDS_METABASE_SECRET_KEY:-}
+      MB_ENABLE_EMBEDDING: "true"
+      JAVA_TIMEZONE: Africa/Addis_Ababa
+    ports:
+      - "${METABASE_PORT:-3001}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
 
   # Expo dev server for the field app. Opt-in: docker compose --profile mobile up
   mobile:

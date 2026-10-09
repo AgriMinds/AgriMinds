@@ -274,3 +274,111 @@ class TestDataSourceInventory:
 
     def test_a_farmer_cannot_read_the_inventory(self, client, farmer_headers):
         assert client.get("/api/v1/system/data-sources", headers=farmer_headers).status_code == 403
+
+
+class TestIngestedSourcesAreReported:
+    """Once a connector has run, its manifest — not the file's presence — makes it connected."""
+
+    @pytest.fixture
+    def ingested(self, artifacts_dir):
+        """Write manifests as the connectors would, then remove them again."""
+        from ai_drews.ingest.base import Manifest, manifests_dir, write_manifest
+
+        written = {
+            "nino34": Manifest.now(
+                key="nino34",
+                provider="NOAA Physical Sciences Laboratory",
+                source_url="https://psl.noaa.gov/data/correlation/nina34.anom.data",
+                citation="NOAA PSL climate indices",
+                records=945,
+                coverage=("1948-01-01", "2026-09-01"),
+                variables=("nino34", "nino12", "nino4", "soi"),
+            ),
+            "era5": Manifest.now(
+                key="era5",
+                provider="ERA5 reanalysis (ECMWF), served by the Open-Meteo archive",
+                source_url="https://archive-api.open-meteo.com/v1/archive",
+                citation="Hersbach et al. (2020)",
+                records=20224,
+                coverage=("2000-01-01", "2026-05-01"),
+                variables=("rain", "tmax", "tmean", "soilm", "pet_fao"),
+            ),
+            "validation": Manifest.now(
+                key="validation",
+                provider="CHIRPS v2.0 and the Ethiopian Meteorological Institute",
+                source_url="https://climateserv.servirglobal.net/",
+                citation="Funk et al. (2015)",
+                records=317,
+                coverage=("2000-01-01", "2026-05-01"),
+                variables=("correlation", "bias_mm", "mae_mm"),
+                notes="Over 317 months ERA5 tracks CHIRPS at r=0.91, running 8.0 mm/month wetter.",
+            ),
+            "crops": Manifest.now(
+                key="crops",
+                provider="FAOSTAT, compiling Ethiopia's official agricultural statistics",
+                source_url="https://bulks-faostat.fao.org/production/",
+                citation="FAO (2026), FAOSTAT Crops and livestock products",
+                records=96,
+                coverage=("1993", "2024"),
+                variables=("area_ha", "yield_kg_ha", "production_t"),
+                notes="Area, yield and production for maize, tef, wheat.",
+            ),
+        }
+        for manifest in written.values():
+            write_manifest(artifacts_dir, manifest)
+        yield written
+        for path in manifests_dir(artifacts_dir).glob("*.json"):
+            path.unlink()
+
+    def test_every_downloaded_source_is_reported_connected(self, client, minister_headers, ingested):
+        body = client.get("/api/v1/system/data-sources", headers=minister_headers).json()
+        statuses = {s["key"]: s["status"] for s in body["sources"]}
+        assert statuses == {
+            "nino34": "connected",
+            "era5": "connected",
+            "chirps_emi": "connected",
+            "csa_crops": "connected",
+            "scpdsi": "connected",
+        }
+        assert body["connected"] == 5
+
+    def test_coverage_and_retrieval_time_reach_the_client(self, client, minister_headers, ingested):
+        entry = next(
+            s
+            for s in client.get("/api/v1/system/data-sources", headers=minister_headers).json()["sources"]
+            if s["key"] == "nino34"
+        )
+        assert entry["records"] == 945
+        assert entry["coverage_start"] == "1948-01-01"
+        assert entry["coverage_end"] == "2026-09-01"
+        assert entry["retrieved_at"] and entry["citation"]
+        assert entry["provider"] == "NOAA Physical Sciences Laboratory"
+
+    def test_a_connected_source_does_not_clear_the_synthetic_model_caveat(
+        self, client, minister_headers, ingested
+    ):
+        """Downloading inputs is not the same as having retrained on them."""
+        body = client.get("/api/v1/system/data-sources", headers=minister_headers).json()
+        assert body["data_source"] == "synthetic"
+        assert body["caveat"] and "not a statement about real drought risk" in body["caveat"]
+
+    def test_the_validation_entry_states_what_the_comparison_found(self, client, minister_headers, ingested):
+        entry = next(
+            s
+            for s in client.get("/api/v1/system/data-sources", headers=minister_headers).json()["sources"]
+            if s["key"] == "chirps_emi"
+        )
+        assert "r=0.91" in entry["detail"]
+
+    def test_removing_a_manifest_takes_the_source_back_to_unconnected(
+        self, client, minister_headers, ingested, artifacts_dir
+    ):
+        from ai_drews.ingest.base import manifests_dir
+
+        (manifests_dir(artifacts_dir) / "crops.json").unlink()
+        entry = next(
+            s
+            for s in client.get("/api/v1/system/data-sources", headers=minister_headers).json()["sources"]
+            if s["key"] == "csa_crops"
+        )
+        assert entry["status"] == "not_connected"

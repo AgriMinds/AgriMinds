@@ -14,45 +14,73 @@ from ai_drews.features.pdsi import row_latitudes, scpdsi
 
 log = logging.getLogger(__name__)
 
+#: Channels when every input is present. Greenness is optional: the study's five data sources do
+#: not include a vegetation index, and MODIS is the one input that cannot be downloaded in
+#: minutes, so the pipeline must run without it rather than refuse to start. Whichever channels
+#: were actually built are recorded in fields.npz, so training and inference cannot disagree.
 SP_CH = ["rain_z", "ndvi", "vci", "soilm_z", "spi"]  # spatial channels (Xs)
 TM_CH = ["rain_z", "tmax", "soilm_z", "ndvi", "spi", "vci", "nino34"]  # temporal channels (Xt)
+SP_CH_NO_NDVI = ["rain_z", "soilm_z", "spi"]
+TM_CH_NO_NDVI = ["rain_z", "tmax", "soilm_z", "spi", "nino34"]
 
 Fields = dict[str, np.ndarray]
+
+
+def tm_channel(fields: Fields, name: str) -> np.ndarray:
+    """One temporal channel by name, since the channel list depends on what was ingested."""
+    channels = [str(c) for c in fields["tm_channels"]]
+    if name not in channels:
+        raise KeyError(f"no temporal channel {name!r}; have {channels}")
+    return fields["TF"][:, channels.index(name)]
 
 
 def compute_fields(ind: pd.DataFrame, g: dict, cfg: PipelineConfig = DEFAULT_CONFIG) -> Fields:
     dates = pd.to_datetime(g["dates"])
     mo = dates.month.values
     sp = spi(g["rain"], mo, cfg.spi_scale)
-    v = vci(g["ndvi"], mo)
     rz, sz = zanom(g["rain"], mo), zanom(g["soilm"], mo)
-    S = np.nan_to_num(np.stack([rz, g["ndvi"], v / 100, sz, sp], 1))  # (T,5,H,W)
     nino = ind["nino34"].to_numpy()
+    has_ndvi = "ndvi" in g
+    if not has_ndvi:
+        log.warning("raw data has no `ndvi`: VCI and the greenness channels are omitted")
+    v = vci(g["ndvi"], mo) if has_ndvi else None
+
+    spatial: dict[str, np.ndarray] = {"rain_z": rz}
+    if has_ndvi:
+        spatial["ndvi"] = g["ndvi"]
+        spatial["vci"] = v / 100
+    spatial["soilm_z"] = sz
+    spatial["spi"] = sp
+
     with np.errstate(all="ignore"):
-        TF = np.nan_to_num(
-            np.stack(
-                [
-                    rz.mean((1, 2)),
-                    g["tmax"].mean((1, 2)),
-                    sz.mean((1, 2)),
-                    g["ndvi"].mean((1, 2)),
-                    np.nanmean(sp, (1, 2)),
-                    v.mean((1, 2)) / 100,
-                    nino,
-                ],
-                1,
-            )
-        )  # (T,7)
+        temporal: dict[str, np.ndarray] = {
+            "rain_z": rz.mean((1, 2)),
+            "tmax": g["tmax"].mean((1, 2)),
+            "soilm_z": sz.mean((1, 2)),
+        }
+        if has_ndvi:
+            temporal["ndvi"] = g["ndvi"].mean((1, 2))
+        temporal["spi"] = np.nanmean(sp, (1, 2))
+        if has_ndvi:
+            temporal["vci"] = v.mean((1, 2)) / 100
+        temporal["nino34"] = nino
+
+        S = np.nan_to_num(np.stack(list(spatial.values()), 1))  # (T, C, H, W)
+        TF = np.nan_to_num(np.stack(list(temporal.values()), 1))  # (T, C)
+
     fields = dict(
         dates=dates.strftime("%Y-%m-%d").values,
         months=mo,
         spi=sp,
-        vci=v,
         S=S.astype("float32"),
         TF=TF.astype("float32"),
         nino=nino,
         nino_all=ind[["nino34", "nino12", "nino4", "soi"]].to_numpy().astype("float32"),
+        sp_channels=np.array(list(spatial), dtype=object),
+        tm_channels=np.array(list(temporal), dtype=object),
     )
+    if has_ndvi:
+        fields["vci"] = v
 
     # Sc-PDSI needs evapotranspiration, which needs mean temperature. Deriving it from the
     # maxima would bias every downstream classification, so the index is simply absent when
@@ -111,7 +139,7 @@ def build_features(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG) -> di
         val=len(va),
         test=len(te),
         base_rate_by_lead=[round(float(y[:, lead].mean()), 3) for lead in range(cfg.drought_leads)],
-        corr_nino_spi=round(float(np.corrcoef(F["nino"][2:], F["TF"][2:, 4])[0, 1]), 2),
+        corr_nino_spi=round(float(np.corrcoef(F["nino"][2:], tm_channel(F, "spi")[2:])[0, 1]), 2),
     )
 
     # Fig. 5 of the study: how closely ENSO tracks drought here, and at what lead time.

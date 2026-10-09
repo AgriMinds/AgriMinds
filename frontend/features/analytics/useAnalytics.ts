@@ -4,34 +4,34 @@ import { useQuery } from '@tanstack/react-query'
 import { api, ApiError } from '@/lib/api/client'
 
 export const analyticsKeys = {
-  status: ['analytics', 'powerbi', 'status'] as const,
-  embed: ['analytics', 'powerbi', 'embed'] as const,
+  status: ['analytics', 'metabase', 'status'] as const,
+  embed: ['analytics', 'metabase', 'embed'] as const,
   connection: ['analytics', 'connection'] as const,
 }
 
-/** Whether this deployment can embed a report at all. Cheap, and it gates everything else. */
-export function usePowerBiStatus() {
+/** Whether this deployment can embed a dashboard at all. Cheap, and it gates everything else. */
+export function useMetabaseStatus() {
   return useQuery({
     queryKey: analyticsKeys.status,
-    queryFn: api.powerbiStatus,
+    queryFn: api.metabaseStatus,
     staleTime: 5 * 60_000,
   })
 }
 
 /**
- * A viewing token for the report.
+ * A signed viewing URL for the dashboard.
  *
  * Only fetched once the status says embedding is configured, so an unconfigured deployment
- * never provokes a 503 it already knows is coming. Tokens are short-lived and the component
- * refreshes them on a timer rather than on an interval, so the schedule follows the token's
- * own `expires_at`.
+ * never provokes a 503 it already knows is coming. The URL is short-lived and the component
+ * renews it on a timer rather than on an interval, so the schedule follows its own
+ * `expires_at`.
  */
-export function useEmbedToken(enabled: boolean) {
+export function useEmbedUrl(enabled: boolean) {
   return useQuery({
     queryKey: analyticsKeys.embed,
-    queryFn: api.powerbiEmbedToken,
+    queryFn: api.metabaseEmbed,
     enabled,
-    // A token is useless once cached past its life; always ask for a fresh one.
+    // A signed URL is useless once cached past its life; always ask for a fresh one.
     gcTime: 0,
     staleTime: 0,
     refetchOnWindowFocus: false,
@@ -40,7 +40,7 @@ export function useEmbedToken(enabled: boolean) {
   })
 }
 
-/** Connection details for building a report in Power BI Desktop. Administrators only. */
+/** Connection details for pointing any BI tool at the read-only schema. Administrators only. */
 export function useAnalyticsConnection(enabled: boolean) {
   return useQuery({
     queryKey: analyticsKeys.connection,

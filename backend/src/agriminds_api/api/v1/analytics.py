@@ -1,15 +1,20 @@
-"""The analytics layer: Power BI embedding for staff, and a direct SQL connection for analysts."""
+"""The analytics layer: an embedded Metabase dashboard for staff, and a direct SQL connection
+for analysts who build their own views.
+
+Metabase is self-hosted and open source, so neither the ministry nor any individual viewer needs
+a BI licence. The same read-only `analytics` schema serves both routes.
+"""
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends
 from sqlalchemy import text
 
-from agriminds_api.api.deps import SessionDep, SettingsDep, StaffUser, get_powerbi, require_admin
+from agriminds_api.api.deps import SessionDep, SettingsDep, StaffUser, get_metabase, require_admin
 from agriminds_api.db.models import User
-from agriminds_api.schemas.analytics import AnalyticsConnection, EmbedConfig, PowerBiStatus
+from agriminds_api.schemas.analytics import AnalyticsConnection, EmbedConfig, MetabaseStatus
 from agriminds_api.schemas.common import ErrorResponse
-from agriminds_api.services.powerbi import PowerBiService
+from agriminds_api.services.metabase import MetabaseService
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
@@ -22,10 +27,10 @@ _INTERNAL_HOSTS = ("postgres", "localhost", "127.0.0.1", "db", "database")
 def _connection_target(settings) -> tuple[str, str, bool]:
     """(server, database, reachable_from_outside).
 
-    Inside Compose the API knows the database as `postgres:5432`, which an analyst running
-    Power BI Desktop on their own laptop cannot resolve. When an operator has set a public
-    address we hand that out instead, and otherwise we say plainly that the name is internal
-    rather than issuing a connection file that silently fails.
+    Inside Compose the API knows the database as `postgres:5432`, which a BI tool running on an
+    analyst's own laptop cannot resolve. When an operator has set a public address we hand that
+    out instead, and otherwise we say plainly that the name is internal rather than handing over
+    details that silently fail.
     """
     url = settings.database_url.rsplit("@", 1)[-1]  # drop any embedded credentials
     internal_server, _, database = url.partition("/")
@@ -37,33 +42,31 @@ def _connection_target(settings) -> tuple[str, str, bool]:
 
 
 @router.get(
-    "/powerbi/status",
-    response_model=PowerBiStatus,
-    summary="Whether Power BI embedding is configured on this deployment",
+    "/metabase/status",
+    response_model=MetabaseStatus,
+    summary="Whether the Metabase dashboard is configured on this deployment",
     description=(
         "Lets the client show the analytics tab only when it will work, instead of rendering a "
-        "broken frame. Never returns any credential."
+        "broken frame. Never returns the embedding secret."
     ),
 )
-def powerbi_status(user: StaffUser, service: PowerBiService = Depends(get_powerbi)) -> PowerBiStatus:
+def metabase_status(user: StaffUser, service: MetabaseService = Depends(get_metabase)) -> MetabaseStatus:
     return service.status()
 
 
 @router.get(
-    "/powerbi/embed-token",
+    "/metabase/embed",
     response_model=EmbedConfig,
-    responses={
-        502: {"model": ErrorResponse, "description": "Power BI did not respond"},
-        503: {"model": ErrorResponse, "description": "Embedding is not configured"},
-    },
-    summary="Short-lived token for rendering the report in the browser",
+    responses={503: {"model": ErrorResponse, "description": "Embedding is not configured"}},
+    summary="Signed, short-lived URL for rendering the dashboard in the browser",
     description=(
-        "Issued per viewer. Where the dataset defines row-level security, a development agent's "
-        "token is scoped to their own woreda by Power BI, not by the client."
+        "Signed per viewer. Where a locked woreda parameter is configured, a development agent's "
+        "URL carries their own woreda inside the signature, so the scope cannot be edited "
+        "client-side."
     ),
 )
-async def powerbi_embed_token(user: StaffUser, service: PowerBiService = Depends(get_powerbi)) -> EmbedConfig:
-    return await service.embed_config(user)
+def metabase_embed(user: StaffUser, service: MetabaseService = Depends(get_metabase)) -> EmbedConfig:
+    return service.embed_config(user)
 
 
 @router.get(
@@ -97,10 +100,9 @@ async def analytics_connection(
         read_only_role=BI_ROLE,
         views=views,
         note=(
-            "Connect Power BI Desktop with Get Data > PostgreSQL, using the "
-            f"'{BI_ROLE}' role. That role can read the analytics views and nothing else: it "
-            "cannot see accounts, passwords or contact details. Import mode is recommended for "
-            "a watershed of this size; DirectQuery keeps the figures live."
+            f"Point any SQL client or BI tool at this database with the '{BI_ROLE}' role — "
+            "Metabase, DBeaver, psql, R, pandas. That role can read the analytics views and "
+            "nothing else: it cannot see accounts, passwords or contact details."
             + (
                 ""
                 if reachable
@@ -109,36 +111,4 @@ async def analytics_connection(
                 "to the address the database answers on."
             )
         ),
-    )
-
-
-@router.get(
-    "/connection.pbids",
-    dependencies=[Depends(require_admin)],
-    summary="Power BI Desktop connection file (administrators)",
-    description="Opens Power BI Desktop straight onto the analytics schema. Contains no credentials.",
-    response_class=Response,
-    responses={200: {"content": {"application/json": {}}, "description": "A .pbids file"}},
-)
-async def analytics_pbids(settings: SettingsDep, _: User = Depends(require_admin)) -> Response:
-    server, database, _reachable = _connection_target(settings)
-    payload = {
-        "version": "0.1",
-        "connections": [
-            {
-                "details": {
-                    "protocol": "postgresql",
-                    "address": {"server": server, "database": database.split("?")[0]},
-                },
-                "options": {},
-                "mode": "DirectQuery",
-            }
-        ],
-    }
-    import json
-
-    return Response(
-        content=json.dumps(payload, indent=2),
-        media_type="application/json",
-        headers={"Content-Disposition": 'attachment; filename="agriminds-analytics.pbids"'},
     )

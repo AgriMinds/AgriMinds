@@ -20,8 +20,9 @@ Every ministry figure is counted from registered rows — farmers, plots, hectar
 that exist in the database. Risk is attached from the live model. Nothing on either dashboard is estimated.
 
 > **Status:** the committed model weights were trained on **synthetic** data to validate the pipeline.
-> Every API response carries `provenance` and both clients show a banner until real CHIRPS/ERA5/MODIS
-> data has been ingested and the models retrained.
+> `make ingest` downloads the study's real inputs — every source is public and needs no credentials —
+> and `make train` retrains on them. Until that has run, every API response carries `provenance`
+> and both clients show a banner, so a demonstration is never mistaken for a forecast.
 
 ---
 
@@ -97,7 +98,11 @@ make migration m="add x"   # autogenerate a migration from model changes
 make seed          # reference geography only (what a real deployment needs)
 make db-shell      # psql against the running database
 make db-reset      # drop, migrate and reseed demo data (destroys all rows)
-make train         # run the ML pipeline inside the backend image (synthetic unless real raw files exist)
+make ingest        # download the real inputs (NOAA, ERA5, CHIRPS, FAOSTAT) into data/
+make ingest-one s=ndvi  # opt-in MODIS greenness (hours; not part of `make ingest`)
+make data-sources  # what this deployment is actually running on
+make train         # run the ML pipeline inside the backend image
+make train-real    # ingest, then train on the observed record
 make logs          # tail everything
 make down          # stop
 make help          # everything else
@@ -149,17 +154,30 @@ Errors are `{ "error": { "code", "message" } }`. Changing a schema → `make api
 
 ## Where the data comes from
 
-`GET /api/v1/system/data-sources` reports what the running deployment is actually built from,
-derived from the files and model metadata present rather than from a fixed list. Today that is
-**one of five inputs**:
+`GET /api/v1/system/data-sources` — and the `/data-sources` page — report what the running
+deployment is actually built from, derived from the ingest manifests and model metadata present
+rather than from a fixed list.
 
-| Input | Provider | Status |
+`make ingest` connects all five. Every route below is public and needs **no credentials**, so a
+fresh clone can reach real observations without an account anywhere:
+
+| Input | Provider | Route |
 |---|---|---|
-| Niño 3.4 index | NOAA | synthetic stand-in |
-| Temperature, rainfall, soil moisture, evaporation | ERA5 | synthetic stand-in |
-| Rainfall and temperature for validation | CHIRPS, Ethiopian Meteorological Institute | not connected |
-| Crop statistics for tef, wheat and maize | Central Statistical Agency | not connected |
-| Sc-PDSI drought index | computed here | connected |
+| Niño 3.4, Niño 1+2, Niño 4, SOI | NOAA PSL (ERSST v6) | fixed-width index tables |
+| Temperature, rainfall, soil moisture, evaporation | ERA5 (ECMWF) | Open-Meteo archive |
+| Rainfall for validation | CHIRPS v2.0 | SERVIR ClimateSERV zonal means |
+| Crop area, yield, production for tef, wheat, maize | FAOSTAT (Ethiopia's official statistics) | bulk CSV |
+| Sc-PDSI drought index | computed here | Palmer water balance |
+
+Two honest caveats travel with the data rather than being smoothed over. FAO publishes no `teff`
+item: Ethiopian teff sits inside `Cereals n.e.c.`, which for Ethiopia is overwhelmingly teff, and
+the inventory says so. And CHIRPS is used for the job the study gives it — checking ERA5, not
+driving the forecast — so that entry only reports connected once the comparison has actually run,
+with the correlation and bias it found.
+
+**Provenance comes from the ingest manifest, never from a file existing.** The synthetic generator
+writes to the same paths as the connectors, so without that manifest a second pipeline run would
+load its own stand-in data and stamp the model "real".
 
 Sc-PDSI is computed from the full Palmer water balance — evapotranspiration, recharge, runoff and
 loss, each against its potential — so its dry bands drive drought warning and its wet bands flood
@@ -168,7 +186,7 @@ warning. The catchment outline is the surveyed one: 18,948 km², from
 is a rectangle over a catchment that is not one, 15 of its 64 cells fall outside the basin and are
 marked rather than reported as readings.
 
-## Analytics and Power BI
+## Analytics
 
 Alongside the operational dashboards there is a read-only `analytics` schema: a star schema of
 views built for business-intelligence tools, plus an `agriminds_bi` role that can read those views
@@ -177,19 +195,26 @@ and nothing else — no accounts, no password hashes, no phone numbers.
 ```bash
 make bi-role password="$(openssl rand -base64 24)"   # enable the read-only login
 make snapshot                                        # persist the current forecast for reporting
+make analytics                                       # start Metabase on :3001 (optional)
 ```
 
-Then connect Power BI Desktop with **Get Data → PostgreSQL**, or embed a published report in the app
-by setting `AGRIMINDS_POWERBI_*`. Without those variables the API returns `503
-powerbi_not_configured` and the web app shows setup instructions rather than a broken frame.
+Point any SQL client at that schema — Metabase, DBeaver, psql, R, pandas — or embed a Metabase
+dashboard in the app by setting `AGRIMINDS_METABASE_*`. Without those variables the API returns
+`503 metabase_not_configured` and the web app explains what is missing rather than rendering a
+broken frame.
+
+**Power BI was the original plan and was dropped.** App-owns-data embedding needs a paid Fabric or
+Power BI Embedded capacity — a recurring licence cost for a public agency. Metabase is open
+source, self-hosted and does the same job: a dashboard inside the app, scoped per viewer, with no
+figure leaving the deployment.
 
 Forecasts live in the model, not the database, so `make snapshot` writes each run to
-`risk_snapshots`; `make train` does it automatically. See [`docs/powerbi.md`](docs/powerbi.md) for
-the data model, the relationships to create, and how to scope a development agent to their own
-woreda with row-level security.
+`risk_snapshots`; `make train` does it automatically. See [`docs/analytics.md`](docs/analytics.md)
+for the data model, the joins, and how to scope a development agent to their own woreda with a
+locked parameter.
 
 The farmer dashboard stays native on purpose: farmers use a phone, in Amharic or Afaan Oromoo, often
-on a weak connection, and should never need a Microsoft licence to be told whether to plant.
+on a weak connection, and should never need a BI tool to be told whether to plant.
 
 ## Database
 

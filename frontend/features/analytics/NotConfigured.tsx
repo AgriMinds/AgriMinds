@@ -1,25 +1,25 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, BarChart3, Check, Database, Download, Leaf, Map, Table2 } from 'lucide-react'
+import { ArrowRight, BarChart3, Check, Database, Leaf, Map, Table2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import type { PowerBiStatus, Role } from '@agriminds/api-types'
+import type { MetabaseStatus, Role } from '@agriminds/api-types'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardHeading, CardIcon, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAnalyticsConnection } from '@/features/analytics/useAnalytics'
-import { PBIDS_PATH } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
 
 /**
- * What this page shows on a deployment with no Power BI capacity, which is the common case.
+ * What this page shows before the analytics dashboard has been set up, which is the state a
+ * fresh deployment starts in.
  *
  * It is written to be useful rather than apologetic: the native dashboards already answer the
- * day-to-day questions, and an analyst who wants their own report can connect Power BI Desktop
- * to the read-only analytics schema today. The raw list of unset variables goes only to an
- * administrator; a minister is told what it means, not which environment variables are blank.
+ * day-to-day questions, and an analyst who wants their own view can point any SQL tool at the
+ * read-only schema today. The raw list of unset variables goes only to an administrator; a
+ * minister is told what it means, not which environment variables are blank.
  */
-export function NotConfigured({ status, role }: { status: PowerBiStatus; role: Role }) {
+export function NotConfigured({ status, role }: { status: MetabaseStatus; role: Role }) {
   const t = useTranslations('analytics')
   const isAdmin = role === 'admin'
   const connection = useAnalyticsConnection(isAdmin)
@@ -82,7 +82,7 @@ export function NotConfigured({ status, role }: { status: PowerBiStatus; role: R
               <p className="text-sm font-semibold">{t('adminSetupTitle')}</p>
               <p className="mt-1 text-sm leading-relaxed text-fg-muted">{t('adminSetupBody')}</p>
               {status.reason && (
-                <p className="mt-2 font-mono text-[11px] break-words text-fg-subtle" data-testid="powerbi-reason">
+                <p className="mt-2 font-mono text-[11px] break-words text-fg-subtle" data-testid="metabase-reason">
                   {status.reason}
                 </p>
               )}
@@ -103,9 +103,6 @@ export function NotConfigured({ status, role }: { status: PowerBiStatus; role: R
                 <CardDescription>{t('connectionLead')}</CardDescription>
               </div>
             </CardHeading>
-            <a href={PBIDS_PATH} download className={buttonVariants({ variant: 'outline' })}>
-              <Download /> {t('downloadPbids')}
-            </a>
           </CardHeader>
           <CardContent>
             {connection.isPending ? (

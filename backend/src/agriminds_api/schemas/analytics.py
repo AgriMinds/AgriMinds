@@ -7,26 +7,28 @@ from pydantic import BaseModel, Field
 
 
 class EmbedConfig(BaseModel):
-    """Everything the browser needs to render a Power BI report, and nothing more.
+    """Everything the browser needs to render the dashboard, and nothing more.
 
-    The client secret stays on the server; what goes out is a short-lived token scoped to one
-    report and, where row-level security is configured, to one viewer's district.
+    The embedding secret stays on the server; what goes out is a signed URL valid for minutes,
+    scoped to one dashboard and — where a locked parameter is configured — to one viewer's
+    district. The scope is inside the signature, so it cannot be edited client-side.
     """
 
-    report_id: str
-    embed_url: str
-    access_token: str = Field(description="Short-lived embed token, not an AAD token")
+    dashboard_id: int
+    embed_url: str = Field(description="Signed, short-lived; safe to put in an iframe")
     expires_at: datetime
-    scope: str = Field(description="Which rows this token may read, in plain words")
-    rls_applied: bool
+    scope: str = Field(description="Which rows this URL may read, in plain words")
+    scoped: bool = Field(description="True when a locked parameter narrows the viewer's rows")
 
 
-class PowerBiStatus(BaseModel):
+class MetabaseStatus(BaseModel):
     configured: bool
     reason: str | None = Field(None, description="Why embedding is unavailable, when it is")
-    workspace_id: str | None = None
-    report_id: str | None = None
-    rls_role: str | None = None
+    site_url: str | None = Field(None, description="Where a browser reaches Metabase")
+    dashboard_id: int | None = None
+    woreda_param: str | None = Field(
+        None, description="Locked parameter used to scope an agent to their woreda, if any"
+    )
 
 
 class AnalyticsConnection(BaseModel):

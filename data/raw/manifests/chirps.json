@@ -1,0 +1,14 @@
+{
+  "key": "chirps",
+  "provider": "CHIRPS v2.0 (UC Santa Barbara Climate Hazards Center), via SERVIR ClimateSERV",
+  "source_url": "https://climateserv.servirglobal.net/api/submitDataRequest/",
+  "citation": "Funk et al. (2015), The climate hazards infrared precipitation with stations. Zonal means retrieved through https://climateserv.servirglobal.net/",
+  "retrieved_at": "2026-10-08T19:33:17+00:00",
+  "records": 317,
+  "coverage_start": "2000-01-01",
+  "coverage_end": "2026-05-01",
+  "variables": [
+    "rain_mm"
+  ],
+  "notes": "Catchment-average daily rainfall summed to 317 monthly totals, over the surveyed outline thinned to 89 points. Months with fewer than 20 reporting days are dropped."
+}

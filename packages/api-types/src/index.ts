@@ -122,7 +122,7 @@ export function homePathFor(role: Role): '/farm' | '/ministry' {
 }
 
 // ---- analytics (Power BI) ------------------------------------------------------------
-export type PowerBiStatus = Schemas['PowerBiStatus']
+export type MetabaseStatus = Schemas['MetabaseStatus']
 export type EmbedConfig = Schemas['EmbedConfig']
 export type AnalyticsConnection = Schemas['AnalyticsConnection']
 

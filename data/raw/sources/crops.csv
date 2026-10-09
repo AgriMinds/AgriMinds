@@ -1,0 +1,97 @@
+year,crop,item,is_exact_item,area_ha,yield_kg_ha,production_t
+1993,maize,Maize (corn),True,838450.0,1736.4,1455920.0
+1994,maize,Maize (corn),True,1242740.0,1123.5,1396230.0
+1995,maize,Maize (corn),True,1464080.0,1359.0,1989700.0
+1996,maize,Maize (corn),True,1880580.0,1682.6,3164180.0
+1997,maize,Maize (corn),True,1718270.0,1738.1,2986500.0
+1998,maize,Maize (corn),True,1449300.0,1617.5,2344300.0
+1999,maize,Maize (corn),True,1651350.0,1715.0,2832070.0
+2000,maize,Maize (corn),True,1655750.0,1620.4,2682940.0
+2001,maize,Maize (corn),True,1892690.0,1742.7,3298330.0
+2002,maize,Maize (corn),True,1506759.0,1875.3,2825555.0
+2003,maize,Maize (corn),True,1791115.0,1531.9,2743880.0
+2004,maize,Maize (corn),True,1801566.0,1613.2,2906314.0
+2005,maize,Maize (corn),True,1950115.0,2006.0,3911869.0
+2006,maize,Maize (corn),True,1526125.0,2640.4,4029630.0
+2007,maize,Maize (corn),True,2348154.0,1823.2,4281077.53
+2008,maize,Maize (corn),True,2374989.0,1883.4,4473011.03
+2009,maize,Maize (corn),True,2416619.0,1984.9,4796706.24
+2010,maize,Maize (corn),True,2499980.0,2192.6,5481405.9
+2011,maize,Maize (corn),True,2587240.0,2221.3,5747070.0
+2012,maize,Maize (corn),True,2583900.0,2593.3,6700800.7
+2013,maize,Maize (corn),True,2593066.0,2740.3,7105706.19
+2014,maize,Maize (corn),True,2620090.0,2950.2,7729849.74
+2015,maize,Maize (corn),True,2957510.0,2776.5,8211424.38
+2016,maize,Maize (corn),True,3002159.0,2946.8,8846787.38
+2017,maize,Maize (corn),True,3166792.0,3311.9,10488192.84
+2018,maize,Maize (corn),True,3255852.0,3336.8,10864092.0
+2019,maize,Maize (corn),True,3161370.0,3655.2,11555370.0
+2020,maize,Maize (corn),True,2949450.0,3711.2,10945980.0
+2021,maize,Maize (corn),True,3419008.0,3433.0,11737527.72
+2022,maize,Maize (corn),True,3397887.0,3488.5,11853521.14
+2023,maize,Maize (corn),True,3376888.0,3409.2,11512342.95
+2024,maize,Maize (corn),True,3397928.0,3443.6,11701130.61
+1993,tef,Cereals n.e.c.,False,1385930.0,978.5,1356090.0
+1994,tef,Cereals n.e.c.,False,1425140.0,880.3,1254620.0
+1995,tef,Cereals n.e.c.,False,1899070.0,707.0,1342730.0
+1996,tef,Cereals n.e.c.,False,2162890.0,828.8,1792620.0
+1997,tef,Cereals n.e.c.,False,2238890.0,909.9,2037170.0
+1998,tef,Cereals n.e.c.,False,1806920.0,735.4,1328730.0
+1999,tef,Cereals n.e.c.,False,2151260.0,773.4,1663720.0
+2000,tef,Cereals n.e.c.,False,2153970.0,801.9,1727200.0
+2001,tef,Cereals n.e.c.,False,2200330.0,789.4,1736920.0
+2002,tef,Cereals n.e.c.,False,1862833.0,882.4,1643824.0
+2003,tef,Cereals n.e.c.,False,2775618.0,699.9,1942550.0
+2004,tef,Cereals n.e.c.,False,2932430.0,722.2,2117727.0
+2005,tef,Cereals n.e.c.,False,3168077.0,972.8,3081856.0
+2006,tef,Cereals n.e.c.,False,2212500.0,1034.5,2288780.0
+2007,tef,Cereals n.e.c.,False,2437750.0,986.4,2404674.0
+2008,tef,Cereals n.e.c.,False,2992924.0,857.1,2565155.0
+2009,tef,Cereals n.e.c.,False,2588661.0,1228.2,3179374.0
+2010,tef,Cereals n.e.c.,False,2761190.0,1261.5,3483348.0
+2011,tef,Cereals n.e.c.,False,2838976.0,1242.3,3526718.0
+2012,tef,Cereals n.e.c.,False,2730277.0,1379.1,3765241.0
+2013,tef,Cereals n.e.c.,False,3016521.0,1464.8,4418642.0
+2014,tef,Cereals n.e.c.,False,3016062.0,1575.1,4750657.0
+2015,tef,Cereals n.e.c.,False,2866053.0,1719.7,4928849.89
+2016,tef,Cereals n.e.c.,False,3017914.0,1663.5,5020440.0
+2017,tef,Cereals n.e.c.,False,3023284.0,1747.6,5283401.16
+2018,tef,Cereals n.e.c.,False,3244667.0,1724.0,5593967.0
+2019,tef,Cereals n.e.c.,False,3316240.0,1811.5,6007380.0
+2020,tef,Cereals n.e.c.,False,3263240.0,1817.9,5932300.0
+2021,tef,Cereals n.e.c.,False,3069899.0,1837.4,5640686.94
+2022,tef,Cereals n.e.c.,False,3094002.0,1853.5,5734859.07
+2023,tef,Cereals n.e.c.,False,3173441.0,1896.7,6019040.01
+2024,tef,Cereals n.e.c.,False,3245192.0,1786.7,5798195.34
+1993,wheat,Wheat,True,578230.0,1548.7,895520.0
+1994,wheat,Wheat,True,746810.0,1074.9,802747.0
+1995,wheat,Wheat,True,826840.0,1310.6,1083680.0
+1996,wheat,Wheat,True,959450.0,1211.4,1162310.0
+1997,wheat,Wheat,True,846000.0,1291.7,1092820.0
+1998,wheat,Wheat,True,831770.0,1373.8,1142710.0
+1999,wheat,Wheat,True,1031140.0,1115.0,1149670.0
+2000,wheat,Wheat,True,1062010.0,1163.1,1235270.0
+2001,wheat,Wheat,True,1203720.0,1325.9,1596020.0
+2002,wheat,Wheat,True,1006271.0,1435.4,1444434.0
+2003,wheat,Wheat,True,1166237.0,1387.4,1618093.0
+2004,wheat,Wheat,True,1098907.0,1469.1,1614441.0
+2005,wheat,Wheat,True,1398215.0,1556.7,2176603.0
+2006,wheat,Wheat,True,1459540.0,1520.4,2219075.0
+2007,wheat,Wheat,True,1518135.0,1671.1,2536955.92
+2008,wheat,Wheat,True,1467461.0,1624.5,2383923.67
+2009,wheat,Wheat,True,1734072.0,1826.9,3167913.32
+2010,wheat,Wheat,True,1826400.0,1820.9,3325620.0
+2011,wheat,Wheat,True,1696330.0,1822.5,3091540.0
+2012,wheat,Wheat,True,1627647.0,2110.2,3434706.0
+2013,wheat,Wheat,True,1605654.0,2444.6,3925174.0
+2014,wheat,Wheat,True,1663845.0,2543.3,4231589.0
+2015,wheat,Wheat,True,1664565.0,2794.1,4650933.63
+2016,wheat,Wheat,True,1821924.0,2497.1,4549571.0
+2017,wheat,Wheat,True,1832390.0,2668.1,4888946.0
+2018,wheat,Wheat,True,1951423.0,2708.8,5285945.0
+2019,wheat,Wheat,True,1954610.0,2821.6,5515070.0
+2020,wheat,Wheat,True,2001130.0,2903.6,5810450.0
+2021,wheat,Wheat,True,2132922.0,2922.3,6232978.27
+2022,wheat,Wheat,True,2091694.0,2979.1,6231427.18
+2023,wheat,Wheat,True,2165239.0,2813.4,6091618.48
+2024,wheat,Wheat,True,2129952.0,2904.0,6185341.31

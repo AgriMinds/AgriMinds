@@ -8,26 +8,27 @@ import type { Role } from '@agriminds/api-types'
 import { QueryError } from '@/components/ui/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { NotConfigured } from '@/features/analytics/NotConfigured'
-import { useEmbedToken, usePowerBiStatus } from '@/features/analytics/useAnalytics'
+import { useEmbedUrl, useMetabaseStatus } from '@/features/analytics/useAnalytics'
 
-// The Power BI client reaches for `window` as it loads, so it is kept out of the server bundle.
-const PowerBiReport = dynamic(
-  () => import('@/features/analytics/PowerBiReport').then((m) => m.PowerBiReport),
+// The frame is only meaningful in a browser, and keeping it out of the server bundle means an
+// unconfigured deployment ships none of it.
+const MetabaseReport = dynamic(
+  () => import('@/features/analytics/MetabaseReport').then((m) => m.MetabaseReport),
   { ssr: false, loading: () => <Skeleton className="h-[70vh] min-h-[420px] rounded-2xl" /> },
 )
 
 /**
  * Deep analysis for ministry staff.
  *
- * This sits beside the native dashboards rather than replacing them: those are trilingual, work
- * on a cheap phone and need no Microsoft licence, which is what a development agent in a kebele
- * actually has. Power BI is for an analyst at a desk.
+ * This sits beside the native dashboards rather than replacing them: those are trilingual and
+ * work on a cheap phone, which is what a development agent in a kebele actually has. The
+ * embedded dashboard is for an analyst at a desk who wants to slice the data themselves.
  */
 export function AnalyticsPage({ role }: { role: Role }) {
   const t = useTranslations('analytics')
-  const status = usePowerBiStatus()
+  const status = useMetabaseStatus()
   const configured = status.data?.configured === true
-  const embed = useEmbedToken(configured)
+  const embed = useEmbedUrl(configured)
   const renew = useCallback(() => void embed.refetch(), [embed])
 
   return (
@@ -62,7 +63,7 @@ export function AnalyticsPage({ role }: { role: Role }) {
             isRetrying={embed.isFetching}
           />
         ) : (
-          <PowerBiReport config={embed.data} onRenew={renew} isRenewing={embed.isFetching} />
+          <MetabaseReport config={embed.data} onRenew={renew} isRenewing={embed.isFetching} />
         )}
       </div>
     </>

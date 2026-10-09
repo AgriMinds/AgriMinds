@@ -2,11 +2,16 @@
 
 Real-data format (monthly, start..end, one common grid):
   raw/nino_indices.csv : date,nino34,nino12,nino4,soi
-  raw/grids.npz        : rain (CHIRPS), tmax (ERA5), soilm (ERA5), ndvi (MODIS) -> each (T, H, W),
+  raw/grids.npz        : rain, tmax, soilm (ERA5), ndvi (MODIS) -> each (T, H, W),
                          plus `dates` as YYYY-MM-DD strings.
                          Optional: tmean (ERA5 monthly mean temperature, deg C). Without it the
                          Palmer water balance has no evapotranspiration term, so Sc-PDSI is
-                         skipped rather than estimated from the maxima.
+                         skipped rather than estimated from the maxima. Also optional: pet_fao
+                         (ERA5 FAO reference evapotranspiration, mm/month).
+
+These files are written either by `ai_drews.ingest.build.assemble` from downloaded observations,
+or by the synthetic generator. Which one is recorded in `raw/manifests/dataset.json`; nothing
+downstream may infer provenance from the files alone.
 """
 
 from __future__ import annotations
@@ -21,8 +26,11 @@ from ai_drews.data.synthetic import make_synthetic
 
 log = logging.getLogger(__name__)
 
-GRID_VARIABLES = ("rain", "tmax", "soilm", "ndvi")
-OPTIONAL_GRID_VARIABLES = ("tmean",)
+GRID_VARIABLES = ("rain", "tmax", "soilm")
+#: `ndvi` is optional because no source the study names supplies a vegetation index, and MODIS is
+#: slow enough to download that requiring it would block a deployment on hours of transfer.
+#: Without it, VCI and the greenness channels are simply absent.
+OPTIONAL_GRID_VARIABLES = ("tmean", "pet_fao", "ndvi")
 
 
 def save_raw(paths: DataPaths, ind: pd.DataFrame, grids: dict) -> None:
@@ -42,10 +50,23 @@ def load_raw(paths: DataPaths) -> tuple[pd.DataFrame, dict]:
 
 
 def build_dataset(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG) -> dict:
-    """Step 1: use real files if present in raw/, otherwise write synthetic data. Returns a summary."""
+    """Step 1: use observed files if present in raw/, otherwise write synthetic data.
+
+    Whether the data is real is decided by the ingest manifest, never by the files existing: the
+    synthetic generator writes to the same paths, so a second run would otherwise load its own
+    stand-ins and label the model "real".
+    """
+    from ai_drews.ingest.build import dataset_is_observed
+
+    observed = dataset_is_observed(paths)
     if paths.has_raw_data():
         ind, g = load_raw(paths)
-        source = "real"
+        source = "real" if observed else "synthetic"
+        if not observed:
+            log.warning(
+                "raw/ holds data with no ingest manifest; treating it as synthetic. "
+                "Run `ai-drews ingest all` to download the observed record."
+            )
     else:
         ind, g = make_synthetic(cfg)
         save_raw(paths, ind, g)
