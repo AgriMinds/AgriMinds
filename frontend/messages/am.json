@@ -206,6 +206,7 @@
     "farm": "የእኔ እርሻ",
     "ministry": "ብሔራዊ እይታ",
     "watershed": "የተፋሰስ ትንበያ",
+    "prediction": "ትንበያ",
     "analytics": "ትንታኔ",
     "dataSources": "የመረጃ ምንጮች",
     "onThisPage": "በዚህ ገጽ ላይ",
@@ -415,5 +416,32 @@
     "inputsTitle": "አምስቱ ግብዓቶች",
     "legend": "እያንዳንዱ ምንጭ ለምን እንደሚያገለግልና እውነተኛ መረጃ እያቀረበ መሆኑ ተመልክቷል።",
     "empty": "ከዚህ ሥርዓት ዝርዝር አልተገኘም።"
+  },
+  "prediction": {
+    "eyebrow": "የትንበያ ገደብ",
+    "title": "ምን ያህል ርቀት ድረስ እንተማመናለን",
+    "intro": "ሞዴሉ የሰለጠነባቸው ወራት በሙሉ፣ እና እያንዳንዱ በትክክል ምን ያህል ዋጋ እንዳለው። ትንበያ ዕድልን የሚይዘው ከረጅም ጊዜ አማካይ እንደሚበልጥ ሲለካ ብቻ ነው፤ ሌላው ሁሉ ወቅታዊ ዝንባሌ ነው።",
+    "headline": "ከ{trained} ወራት {skilful} ያህሉ ዕድል ይይዛሉ",
+    "monthByMonth": "ወር በወር",
+    "monthByMonthLead": "በተለየ በተቀመጠ መረጃ ላይ የተለካ እንጂ የተነገረ አይደለም።",
+    "forecast": "ትንበያ",
+    "outlook": "ዝንባሌ",
+    "inMonths": "{count, plural, one {ከ# ወር በኋላ} other {ከ# ወራት በኋላ}}",
+    "forecastDetail": "{cells, plural, =0 {ምንም ክፍል በአደጋ ላይ የለም} one {# ክፍል በአደጋ ላይ ነው} other {# ክፍሎች በአደጋ ላይ ናቸው}}፣ ከፍተኛው {max}% ነው።",
+    "noBasis": "ስለዚህ ወር ምንም ሊባል አይችልም።",
+    "skillLine": "BSS {bss} ከአማካይ ጋር · AUC {auc}",
+    "issued": "የወጣው መረጃ የሚያልቅበት",
+    "threshold": "የሚታተመው ከዚህ በላይ",
+    "teleconnection": "ENSO ከድርቅ ጋር",
+    "unavailable": "በዚህ ተከላ ላይ የሰለጠነ ሞዴል አልተጫነም።",
+    "direction": {
+      "drier": "ከወትሮው የበለጠ ደረቅ",
+      "wetter": "ከወትሮው የበለጠ እርጥብ",
+      "near normal": "ወደ መደበኛው ቅርብ"
+    },
+    "confidence": {
+      "low": "ዝቅተኛ እምነት",
+      "moderate": "መካከለኛ እምነት"
+    }
   }
 }

@@ -26,6 +26,7 @@ from agriminds_api.services.dashboard import DashboardService
 from agriminds_api.services.drought import DroughtService
 from agriminds_api.services.enso import EnsoService
 from agriminds_api.services.farm import FarmService
+from agriminds_api.services.horizon import HorizonService
 from agriminds_api.services.inference import InferenceService
 from agriminds_api.services.metabase import MetabaseService
 
@@ -60,6 +61,10 @@ def get_enso(request: Request) -> EnsoService:
 
 def get_metabase(request: Request) -> MetabaseService:
     return request.app.state.metabase
+
+
+def get_horizon(request: Request) -> HorizonService:
+    return HorizonService(get_app_settings(request), request.app.state.inference, request.app.state.grid)
 
 
 # ------------------------------------------------------------------ database session

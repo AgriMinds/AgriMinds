@@ -11,6 +11,7 @@ from agriminds_api.api.v1 import (
     farms,
     geo,
     health,
+    horizon,
     system,
 )
 from agriminds_api.schemas.common import ErrorResponse
@@ -32,6 +33,7 @@ _forecast = APIRouter(
     },
 )
 _forecast.include_router(drought.router)
+_forecast.include_router(horizon.router)
 _forecast.include_router(advisory.router)
 _forecast.include_router(enso.router)
 api_router.include_router(_forecast)

@@ -42,6 +42,16 @@ class Artifacts:
         return str(self.meta.get("model_version", "unversioned"))
 
     @property
+    def trained_at(self) -> str:
+        """When these weights were fitted.
+
+        The version and the issue month both stay the same across a retrain, so this is the only
+        thing that distinguishes one set of weights from the next. Anything caching a prediction
+        has to key on it or it will serve the old model indefinitely.
+        """
+        return str(self.meta.get("trained_at", "unknown"))
+
+    @property
     def data_source(self) -> str:
         return str(self.meta.get("data_source", "unknown"))
 

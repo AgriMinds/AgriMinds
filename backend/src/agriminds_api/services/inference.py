@@ -114,7 +114,10 @@ class InferenceService:
                 return self._precomputed
             raise ModelUnavailableError()
         art = self._artifacts
-        key = f"risk:{art.issued_date}:{art.model_version}"
+        # `trained_at` is in the key because neither the version nor the issue month changes
+        # when a model is refitted on the same record — without it a retrain is invisible and
+        # the old cube is served until the cache expires.
+        key = f"risk:{art.issued_date}:{art.model_version}:{art.trained_at}"
         cached = self._cache.get(key)
         if cached is not None:
             probs = np.load(io.BytesIO(cached), allow_pickle=False)

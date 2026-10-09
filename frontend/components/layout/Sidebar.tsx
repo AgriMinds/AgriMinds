@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   BarChart3,
+  CalendarRange,
   Database,
   ListChecks,
   Map,
@@ -33,6 +34,7 @@ export function navForRole(role: Role): NavItem[] {
   return [
     { href: '/ministry', key: 'ministry', icon: Map },
     { href: '/watershed', key: 'watershed', icon: Map },
+    { href: '/prediction', key: 'prediction', icon: CalendarRange },
     { href: '/analytics', key: 'analytics', icon: BarChart3 },
     { href: '/data-sources', key: 'dataSources', icon: Database },
   ]

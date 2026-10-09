@@ -239,6 +239,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/drought/horizon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The full forecast horizon, and what each lead is worth
+         * @description Every lead the model was trained for, each marked `forecast` or `outlook`. A forecast carries a probability and is published only where it was measured to beat climatology on held-out data; an outlook carries a direction and never a number. The measured skill travels with each lead so a client can show it rather than imply it.
+         */
+        get: operations["horizon_api_v1_drought_horizon_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/drought/map": {
         parameters: {
             query?: never;
@@ -339,6 +359,26 @@ export type paths = {
         };
         /** Crop advisory for one plot (recorded for delivery reporting) */
         get: operations["farm_advisory_api_v1_farms__farm_id__advisory_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/geo/{name}.geojson": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Map geometry (public)
+         * @description `watershed` is the surveyed catchment outline; `grid` is one polygon per forecast cell, keyed by `cell` (r{row}c{col}) so a BI tool can join it to a forecast. Geometry only: these carry no readings. Generate the grid with `ai-drews grid-geojson`.
+         */
+        get: operations["geometry_api_v1_geo__name__geojson_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1166,10 +1206,124 @@ export type components = {
             /** Version */
             version: string;
         };
+        /**
+         * HorizonResponse
+         * @description The full horizon: what can be forecast, what can only be leaned on, and why.
+         *
+         *     The split is the point. A forecast says how likely drought is and is published only where
+         *     that was measured to beat climatology. An outlook says which way the season leans and never
+         *     carries a number. Serving the second as the first is the failure this endpoint prevents.
+         */
+        HorizonResponse: {
+            /** Issued Date */
+            issued_date: string;
+            /** Leads */
+            leads: components["schemas"]["LeadHorizon"][];
+            /**
+             * Min Skilful Bss
+             * @description The margin a lead must clear to be published
+             */
+            min_skilful_bss: number;
+            /** Note */
+            note: string;
+            /**
+             * Skilful Leads
+             * @description Those that earned a probability
+             */
+            skilful_leads: number[];
+            /**
+             * Teleconnection R
+             * @description ENSO vs the drought index, measured on the loaded record
+             */
+            teleconnection_r?: number | null;
+            /**
+             * Trained Leads
+             * @description How many leads the model was trained for
+             */
+            trained_leads: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * LeadHorizon
+         * @description One month of the horizon.
+         */
+        LeadHorizon: {
+            /**
+             * Basis
+             * @description Why the season leans this way, in plain words
+             */
+            basis?: string | null;
+            /** Cells At Risk */
+            cells_at_risk?: number | null;
+            /** Confidence */
+            confidence?: ("low" | "moderate") | null;
+            /** Direction */
+            direction?: ("drier" | "near normal" | "wetter") | null;
+            /**
+             * Enso Anomaly
+             * @description Niño 3.4 expected for this month
+             */
+            enso_anomaly?: number | null;
+            /** Enso Category */
+            enso_category?: string | null;
+            /**
+             * Kind
+             * @description 'forecast' carries a probability measured to beat climatology. 'outlook' carries a direction only, because at this distance a probability would not be supported.
+             * @enum {string}
+             */
+            kind: "forecast" | "outlook";
+            /** Lead Month */
+            lead_month: number;
+            /** Max Probability */
+            max_probability?: number | null;
+            /**
+             * Probability
+             * @description Basin-mean drought probability
+             */
+            probability?: number | null;
+            skill: components["schemas"]["LeadSkill"];
+            /**
+             * Target Month
+             * @description The month being described, YYYY-MM-DD
+             */
+            target_month: string;
+        };
+        /**
+         * LeadSkill
+         * @description What this lead was measured to be worth on held-out data.
+         */
+        LeadSkill: {
+            /**
+             * Auc
+             * @description Ranking skill; 0.5 is a coin flip
+             */
+            auc?: number | null;
+            /**
+             * Auc Persistence
+             * @description The same for the naive baseline
+             */
+            auc_persistence?: number | null;
+            /** Brier */
+            brier?: number | null;
+            /**
+             * Bss Vs Climatology
+             * @description Brier Skill Score against climatology. Positive means the probabilities are better calibrated than quoting the long-run average; this is what decides publication.
+             */
+            bss_vs_climatology?: number | null;
+            /**
+             * Far
+             * @description False alarm ratio at the chosen threshold
+             */
+            far?: number | null;
+            /**
+             * Pod
+             * @description Probability of detection at the chosen threshold
+             */
+            pod?: number | null;
         };
         /**
          * LoginRequest
@@ -2144,6 +2298,44 @@ export interface operations {
             };
         };
     };
+    horizon_api_v1_drought_horizon_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HorizonResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description No trained model is loaded */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     drought_map_api_v1_drought_map_get: {
         parameters: {
             query?: {
@@ -2624,6 +2816,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    geometry_api_v1_geo__name__geojson_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A GeoJSON document */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/geo+json": unknown;
+                };
+            };
+            /** @description Unknown or ungenerated geometry */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

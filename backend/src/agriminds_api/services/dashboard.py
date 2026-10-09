@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from agriminds_api.core.exceptions import ModelUnavailableError
 from agriminds_api.db.models import AdvisoryRecord, Crop, Farm, RiskLevel, User, UserRole, Woreda, Zone
 from agriminds_api.domain.geo import GridSpec
-from agriminds_api.domain.risk import risk_level
+from agriminds_api.domain.risk import AT_RISK, risk_level
 from agriminds_api.schemas.advisory import AdvisoryRequest
 from agriminds_api.schemas.auth import UserOut
 from agriminds_api.schemas.dashboard import (
@@ -35,7 +35,6 @@ from agriminds_api.services.enso import EnsoService
 from agriminds_api.services.farm import FarmService
 from agriminds_api.services.inference import InferenceService, RiskCube
 
-AT_RISK = ("High", "Severe")
 LEVEL_ORDER = ("Low", "Moderate", "High", "Severe")
 
 

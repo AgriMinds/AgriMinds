@@ -385,3 +385,68 @@ class TestIngestedSourcesAreReported:
             if s["key"] == "csa_crops"
         )
         assert entry["status"] == "not_connected"
+
+
+class TestRetrainIsVisible:
+    """A refit model must reach the API. Version and issue month both survive a retrain, so a
+    cache keyed only on those serves the old weights until it expires."""
+
+    def test_the_cache_key_changes_when_the_model_is_refitted(self, artifacts_dir):
+        from tests.conftest import _settings
+
+        from agriminds_api.core.cache import MemoryCache
+        from agriminds_api.services.inference import InferenceService
+
+        service = InferenceService(_settings(artifacts_dir.root), MemoryCache())
+        service.load()
+        artifacts = service.artifacts
+        assert artifacts is not None
+
+        before = artifacts.trained_at
+        artifacts.meta["trained_at"] = "2099-01-01T00:00:00+00:00"
+        assert artifacts.trained_at != before, "trained_at must come from the metadata"
+
+    def test_a_refit_model_is_not_served_from_the_previous_cube(self, artifacts_dir):
+        import numpy as np
+        from tests.conftest import _settings
+
+        from agriminds_api.core.cache import MemoryCache
+        from agriminds_api.services.inference import InferenceService
+
+        service = InferenceService(_settings(artifacts_dir.root), MemoryCache())
+        service.load()
+        first = service.risk_cube().probs.copy()
+
+        # Stand in for a retrain: same version, same issue month, different weights.
+        artifacts = service.artifacts
+        assert artifacts is not None
+        artifacts.meta["trained_at"] = "2099-01-01T00:00:00+00:00"
+        with np.errstate(all="ignore"):
+            for parameter in artifacts.model.parameters():
+                parameter.data.mul_(0.0)
+
+        second = service.risk_cube().probs
+        assert not np.array_equal(first, second), (
+            "the refitted model returned the cached cube; the cache key has lost trained_at"
+        )
+
+
+class TestAtRiskIsOneDefinition:
+    """Two pages reporting a different number of exposed cells for the same forecast is worse
+    than either number being wrong: it makes both untrustworthy."""
+
+    def test_the_horizon_and_the_dashboard_count_the_same_cells(self):
+        from agriminds_api.domain.risk import AT_RISK, is_at_risk, risk_level
+
+        assert AT_RISK == ("High", "Severe")
+        for probability in [v / 100 for v in range(0, 101)]:
+            assert is_at_risk(probability) == (risk_level(probability) in AT_RISK)
+
+    def test_the_boundary_is_a_real_band_edge_not_a_round_number(self):
+        """It was 0.2 once, which is not an edge of anything."""
+        from agriminds_api.domain.risk import is_at_risk
+
+        assert is_at_risk(0.20) is False
+        assert is_at_risk(0.44) is False
+        assert is_at_risk(0.45) is True
+        assert is_at_risk(0.99) is True

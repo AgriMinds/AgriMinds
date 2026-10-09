@@ -206,6 +206,7 @@
     "farm": "Qonnaa koo",
     "ministry": "Ilaalcha biyyoolessaa",
     "watershed": "Tilmaama sululaa",
+    "prediction": "Tilmaama",
     "analytics": "Xiinxala",
     "dataSources": "Maddeewwan daataa",
     "onThisPage": "Fuula kana irratti",
@@ -415,5 +416,32 @@
     "inputsTitle": "Galteewwan shanan",
     "legend": "Maddi tokkoon tokkoon maaliif akka tajaajiluu fi daataa dhugaa dhiyeessuu isaa agarsiifameera.",
     "empty": "Sirna kana irraa tarreen hin argamne."
+  },
+  "prediction": {
+    "eyebrow": "Daangaa tilmaamaa",
+    "title": "Hamma meeqaatti fuulduratti waadaa seenna",
+    "intro": "Ji'oota moodeelichi irratti leenji'e hunda, akkasumas tokkoon tokkoon isaanii dhugumatti gatii maalii akka qaban. Tilmaamni carraa kan qabatu yommuu giddu-galeessa yeroo dheeraa caaluun safarame qofa; kan hafe hundi dabaa waqtiiti.",
+    "headline": "Ji'oota {trained} keessaa {skilful} carraa qabatu",
+    "monthByMonth": "Ji'a ji'aan",
+    "monthByMonthLead": "Deetaa addatti kaa'ame irratti kan safarame malee kan himame miti.",
+    "forecast": "Tilmaama",
+    "outlook": "Dabaa",
+    "inMonths": "{count, plural, one {ji'a # booda} other {ji'oota # booda}}",
+    "forecastDetail": "{cells, plural, =0 {Qaamni balaa irra jiru hin jiru} one {qaamni # balaa irra jira} other {qaamoleen # balaa irra jiru}}, olaanaan {max}%.",
+    "noBasis": "Waa'ee ji'a kanaa homaa jechuun hin danda'amu.",
+    "skillLine": "BSS {bss} giddu-galeessaan · AUC {auc}",
+    "issued": "Deetaa dhumu irraa kan baafame",
+    "threshold": "Kan maxxanfamu isaa ol",
+    "teleconnection": "ENSO fi hongee",
+    "unavailable": "Diriirsa kana irratti moodeelli leenji'e hin fe'amne.",
+    "direction": {
+      "drier": "Baay'ee goggogaa",
+      "wetter": "Baay'ee jiidhaa",
+      "near normal": "Gara idileetti dhiyaata"
+    },
+    "confidence": {
+      "low": "Amantaa gadi aanaa",
+      "moderate": "Amantaa giddu-galeessaa"
+    }
   }
 }

@@ -17,6 +17,16 @@ from ai_drews.advisory import (
     season_name,
 )
 
+#: What the platform counts as "at risk", everywhere it says so. The ministry dashboard, the
+#: forecast horizon and the maps all read this, because a page that used its own cut-off would
+#: quietly report a different number of exposed cells than the page beside it.
+AT_RISK: tuple[str, ...] = ("High", "Severe")
+
+
+def is_at_risk(probability: float) -> bool:
+    """Whether a probability lands in a band the platform treats as exposure."""
+    return risk_level(probability) in AT_RISK
+
 
 class RiskSource(StrEnum):
     """Where a served probability field came from. Clients must display anything other than MODEL."""
@@ -26,10 +36,12 @@ class RiskSource(StrEnum):
 
 
 __all__ = [
+    "AT_RISK",
     "CITATION",
     "CLASSIFICATION_VERSION",
     "ENSO_IS_EXTREME",
     "RiskSource",
+    "is_at_risk",
     "enso_category",
     "enso_state",
     "pdsi_category",

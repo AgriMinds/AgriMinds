@@ -293,6 +293,55 @@
         ]
       }
     },
+    "/api/v1/geo/{name}.geojson": {
+      "get": {
+        "tags": [
+          "Geography"
+        ],
+        "summary": "Map geometry (public)",
+        "description": "`watershed` is the surveyed catchment outline; `grid` is one polygon per forecast cell, keyed by `cell` (r{row}c{col}) so a BI tool can join it to a forecast. Geometry only: these carry no readings. Generate the grid with `ai-drews grid-geojson`.",
+        "operationId": "geometry_api_v1_geo__name__geojson_get",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A GeoJSON document",
+            "content": {
+              "application/geo+json": {}
+            }
+          },
+          "404": {
+            "description": "Unknown or ungenerated geometry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/drought/map": {
       "get": {
         "tags": [
@@ -628,6 +677,56 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/drought/horizon": {
+      "get": {
+        "tags": [
+          "Drought"
+        ],
+        "summary": "The full forecast horizon, and what each lead is worth",
+        "description": "Every lead the model was trained for, each marked `forecast` or `outlook`. A forecast carries a probability and is published only where it was measured to beat climatology on held-out data; an outlook carries a direction and never a number. The measured skill travels with each lead so a client can show it rather than imply it.",
+        "operationId": "horizon_api_v1_drought_horizon_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HorizonResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No trained model is loaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/api/v1/advisories/evaluate": {
@@ -3550,6 +3649,278 @@
           "database"
         ],
         "title": "HealthResponse"
+      },
+      "HorizonResponse": {
+        "properties": {
+          "issued_date": {
+            "type": "string",
+            "title": "Issued Date"
+          },
+          "trained_leads": {
+            "type": "integer",
+            "title": "Trained Leads",
+            "description": "How many leads the model was trained for"
+          },
+          "skilful_leads": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Skilful Leads",
+            "description": "Those that earned a probability"
+          },
+          "min_skilful_bss": {
+            "type": "number",
+            "title": "Min Skilful Bss",
+            "description": "The margin a lead must clear to be published"
+          },
+          "teleconnection_r": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Teleconnection R",
+            "description": "ENSO vs the drought index, measured on the loaded record"
+          },
+          "leads": {
+            "items": {
+              "$ref": "#/components/schemas/LeadHorizon"
+            },
+            "type": "array",
+            "title": "Leads"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "issued_date",
+          "trained_leads",
+          "skilful_leads",
+          "min_skilful_bss",
+          "leads",
+          "note"
+        ],
+        "title": "HorizonResponse",
+        "description": "The full horizon: what can be forecast, what can only be leaned on, and why.\n\nThe split is the point. A forecast says how likely drought is and is published only where\nthat was measured to beat climatology. An outlook says which way the season leans and never\ncarries a number. Serving the second as the first is the failure this endpoint prevents."
+      },
+      "LeadHorizon": {
+        "properties": {
+          "lead_month": {
+            "type": "integer",
+            "title": "Lead Month"
+          },
+          "target_month": {
+            "type": "string",
+            "title": "Target Month",
+            "description": "The month being described, YYYY-MM-DD"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "forecast",
+              "outlook"
+            ],
+            "title": "Kind",
+            "description": "'forecast' carries a probability measured to beat climatology. 'outlook' carries a direction only, because at this distance a probability would not be supported."
+          },
+          "skill": {
+            "$ref": "#/components/schemas/LeadSkill"
+          },
+          "probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probability",
+            "description": "Basin-mean drought probability"
+          },
+          "max_probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Probability"
+          },
+          "cells_at_risk": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cells At Risk"
+          },
+          "direction": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "drier",
+                  "near normal",
+                  "wetter"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Direction"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "low",
+                  "moderate"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basis",
+            "description": "Why the season leans this way, in plain words"
+          },
+          "enso_anomaly": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enso Anomaly",
+            "description": "Ni\u00f1o 3.4 expected for this month"
+          },
+          "enso_category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enso Category"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lead_month",
+          "target_month",
+          "kind",
+          "skill"
+        ],
+        "title": "LeadHorizon",
+        "description": "One month of the horizon."
+      },
+      "LeadSkill": {
+        "properties": {
+          "auc": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auc",
+            "description": "Ranking skill; 0.5 is a coin flip"
+          },
+          "auc_persistence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auc Persistence",
+            "description": "The same for the naive baseline"
+          },
+          "brier": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brier"
+          },
+          "bss_vs_climatology": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bss Vs Climatology",
+            "description": "Brier Skill Score against climatology. Positive means the probabilities are better calibrated than quoting the long-run average; this is what decides publication."
+          },
+          "pod": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pod",
+            "description": "Probability of detection at the chosen threshold"
+          },
+          "far": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Far",
+            "description": "False alarm ratio at the chosen threshold"
+          }
+        },
+        "type": "object",
+        "title": "LeadSkill",
+        "description": "What this lead was measured to be worth on held-out data."
       },
       "LoginRequest": {
         "properties": {

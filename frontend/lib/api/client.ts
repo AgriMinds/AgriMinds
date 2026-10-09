@@ -16,6 +16,7 @@ import type {
   HealthResponse,
   LeadMonth,
   MinistryDashboard,
+  HorizonResponse,
   MetabaseStatus,
   User,
   WatershedBoundary,
@@ -132,6 +133,9 @@ export const api = {
   // ---- ministry -----------------------------------------------------------------------
   ministryDashboard: (leadMonth: LeadMonth) =>
     request<MinistryDashboard>(`/dashboard/ministry${lead(leadMonth)}`),
+
+  /** How far ahead the forecast is trustworthy, lead by lead. */
+  horizon: () => request<HorizonResponse>('/drought/horizon'),
 
   // ---- analytics ----------------------------------------------------------------------
   metabaseStatus: () => request<MetabaseStatus>('/analytics/metabase/status'),

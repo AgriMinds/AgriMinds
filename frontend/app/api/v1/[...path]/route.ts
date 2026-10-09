@@ -22,7 +22,7 @@ type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE'
 
 const ALLOWED: ReadonlyArray<{ method: Method; path: RegExp }> = [
   { method: 'GET', path: /^health(\/ready)?$/ },
-  { method: 'GET', path: /^drought\/(map|cell|watershed)$/ },
+  { method: 'GET', path: /^drought\/(map|cell|watershed|horizon)$/ },
   { method: 'POST', path: /^drought\/cell$/ },
   { method: 'POST', path: /^advisories\/evaluate$/ },
   { method: 'GET', path: /^enso\/outlook$/ },

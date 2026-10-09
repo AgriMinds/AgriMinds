@@ -206,6 +206,7 @@
     "farm": "My farm",
     "ministry": "National overview",
     "watershed": "Watershed forecast",
+    "prediction": "Prediction",
     "analytics": "Analytics",
     "dataSources": "Data sources",
     "onThisPage": "On this page",
@@ -415,5 +416,32 @@
     "inputsTitle": "The five inputs",
     "legend": "Each input is shown with what it feeds and whether anything real is supplying it.",
     "empty": "No inventory is available from this deployment."
+  },
+  "prediction": {
+    "eyebrow": "Forecast horizon",
+    "title": "How far ahead we will commit",
+    "intro": "Every month the model was trained for, and what each one is actually worth. A forecast carries a probability only where it was measured to beat the long-run average; everything else is a seasonal lean.",
+    "headline": "{skilful} of {trained} months carry a probability",
+    "monthByMonth": "Month by month",
+    "monthByMonthLead": "Measured on held-out data, not asserted.",
+    "forecast": "Forecast",
+    "outlook": "Outlook",
+    "inMonths": "{count, plural, one {# month ahead} other {# months ahead}}",
+    "forecastDetail": "{cells, plural, =0 {No cells are at risk} one {# cell is at risk} other {# cells are at risk}}, peaking at {max}%.",
+    "noBasis": "Nothing can be said about this month.",
+    "skillLine": "BSS {bss} vs climatology · AUC {auc}",
+    "issued": "Issued from data ending",
+    "threshold": "Published above",
+    "teleconnection": "ENSO vs drought",
+    "unavailable": "No trained model is loaded on this deployment.",
+    "direction": {
+      "drier": "Drier than normal",
+      "wetter": "Wetter than normal",
+      "near normal": "Near normal"
+    },
+    "confidence": {
+      "low": "Low confidence",
+      "moderate": "Moderate confidence"
+    }
   }
 }
