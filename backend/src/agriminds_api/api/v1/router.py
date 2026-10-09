@@ -12,6 +12,7 @@ from agriminds_api.api.v1 import (
     geo,
     health,
     horizon,
+    metrics,
     system,
 )
 from agriminds_api.schemas.common import ErrorResponse

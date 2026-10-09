@@ -413,7 +413,7 @@
     "statusConnected": "Connected",
     "statusSynthetic": "Stand-in data",
     "statusNotConnected": "Not connected",
-    "inputsTitle": "The five inputs",
+    "inputsTitle": "The six inputs",
     "legend": "Each input is shown with what it feeds and whether anything real is supplying it.",
     "empty": "No inventory is available from this deployment."
   },

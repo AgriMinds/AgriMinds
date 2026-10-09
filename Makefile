@@ -5,7 +5,7 @@ PY           ?= .venv/bin/python
 
 .PHONY: help up up-dev up-mobile down build restart ps logs logs-backend logs-web health train \
         api-types setup test test-py test-js lint fmt typecheck clean \
-        migrate migration seed seed-demo db-shell db-reset snapshot bi-role
+        migrate migration seed seed-demo db-shell db-reset snapshot bi-role ingest-wind
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -52,6 +52,9 @@ ingest: ## Download the study's observational inputs (NOAA, ERA5, CHIRPS, MODIS,
 ingest-one: ## Download one source: make ingest-one s=era5 (nino34|era5|ndvi|chirps|crops|validation|assemble)
 	@test -n "$(s)" || { echo "usage: make ingest-one s=<source>"; exit 2; }
 	$(COMPOSE) run --rm backend ai-drews ingest $(s)
+
+ingest-wind: ## Download hourly ERA5 10 m wind (u/v) 1994→present — opt-in, takes hours
+	$(COMPOSE) run --rm backend ai-drews ingest wind
 
 data-sources: ## Show what is currently supplying this deployment
 	$(COMPOSE) run --rm backend ai-drews data-sources

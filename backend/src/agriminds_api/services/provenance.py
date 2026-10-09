@@ -44,6 +44,12 @@ _CATALOGUE = (
         "crops",
     ),
     ("scpdsi", "Sc-PDSI drought index", "Drought monitoring and flood warning", None),
+    (
+        "wind",
+        "10 m wind (u and v components)",
+        "Penman-Monteith evapotranspiration and flood-risk lodging advisory",
+        "wind",
+    ),
 )
 
 #: Shown when a source has never been ingested.
@@ -53,6 +59,7 @@ _FALLBACK_PROVIDER = {
     "chirps_emi": "CHIRPS and the Ethiopian Meteorological Institute",
     "csa_crops": "Central Statistical Agency",
     "scpdsi": "Computed here",
+    "wind": "ERA5 reanalysis (ECMWF), served by the Open-Meteo archive",
 }
 
 
@@ -74,6 +81,7 @@ class ProvenanceService:
             self._validation(manifests.get("validation")),
             self._crops(manifests.get("crops")),
             self._scpdsi(grids),
+            self._wind(manifests.get("wind"), grids),
         ]
         connected = sum(1 for s in sources if s.status == "connected")
         return DataInventory(
@@ -202,4 +210,30 @@ class ProvenanceService:
             "connected",
             "Computed from the water balance: evapotranspiration, recharge, runoff and loss, "
             "each against its potential. Dry bands drive drought warning, wet bands flood warning.",
+        )
+
+    def _wind(self, manifest: Manifest | None, grids: set[str]) -> DataSource:
+        wind_vars = {"u10", "v10", "wind_speed"}
+        if manifest:
+            detail = (
+                f"{manifest.records} cell-months ({manifest.coverage_start} to "
+                f"{manifest.coverage_end}). Hourly ERA5 10 m speed and direction converted to "
+                "u/v components per hour, then averaged — the vector mean the Climate Data "
+                "Store's u/v fields carry, not a scalar mean with a dominant direction."
+            )
+            missing = sorted(wind_vars - grids)
+            return self._entry(
+                5,
+                "connected",
+                detail + (f" Not yet in the grid: {', '.join(missing)}." if missing else ""),
+                manifest,
+            )
+        if wind_vars & grids:
+            present = sorted(wind_vars & grids)
+            return self._entry(5, "synthetic", f"Stand-in wind grids present: {', '.join(present)}.")
+        return self._entry(
+            5,
+            "not_connected",
+            "Hourly ERA5 10 m u/v wind not yet ingested. Run `ai-drews ingest wind` "
+            "(opt-in: hours of download for the full grid, 1994 to present).",
         )
