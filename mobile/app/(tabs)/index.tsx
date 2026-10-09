@@ -32,9 +32,32 @@ export default function AdvisoryScreen() {
   const data = advisory.data;
   const outside = advisory.error instanceof ApiError && advisory.error.code === 'invalid_location';
   const showOffline = advisory.isError && !!data && !outside;
+  const isMinister = sel.role === 'minister';
 
   return (
     <Screen title={t('advisory.title')} subtitle={t('subtitle')} refreshing={advisory.isFetching && !!data} onRefresh={() => advisory.refetch()}>
+      {isMinister ? (
+        <Card style={{ backgroundColor: colors.surfaceAlt, borderColor: colors.primary, borderWidth: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs }}>
+            <Ionicons name="stats-chart" size={20} color={colors.primary} />
+            <Text style={{ fontSize: 16, fontWeight: '800', color: colors.primary }}>
+              {t('ministerView.title')}
+            </Text>
+          </View>
+          <Text style={{ fontSize: 13, color: colors.text, lineHeight: 18, marginBottom: spacing.sm }}>
+            {t('ministerView.macroBrief')}
+          </Text>
+          <View style={{ backgroundColor: colors.warningBg, padding: spacing.md, borderRadius: radius.md, gap: 4 }}>
+            <Text style={{ fontWeight: '700', color: colors.warningFg, fontSize: 13 }}>
+              {t('ministerView.policyAction')}
+            </Text>
+            <Text style={{ color: colors.warningFg, fontSize: 12, lineHeight: 17 }}>
+              {t('ministerView.policyActionText')}
+            </Text>
+          </View>
+        </Card>
+      ) : null}
+
       <Card>
         <Label>{t('advisory.crop')}</Label>
         <SegmentedControl<Crop> options={CROPS.map((c) => ({ value: c, label: t(`crops.${c}`) }))} value={sel.crop} onChange={sel.setCrop} />

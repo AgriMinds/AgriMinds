@@ -1,7 +1,32 @@
 {
   "appName": "AgriMinds AI-DREWS",
   "subtitle": "Choke Mountain Watershed · Field Advisor",
+  "organization": "FDRE Ministry of Agriculture",
   "tabs": { "advisory": "Advisory", "grid": "Drought Grid", "enso": "Climate", "settings": "Settings" },
+  "roles": {
+    "title": "Portal Mode",
+    "farmer": "Farmer (አርሶ አደር)",
+    "minister": "Agricultural Minister (የግብርና ሚኒስቴር)",
+    "da": "Development Agent (ልማት ጣቢያ)",
+    "farmerDesc": "Direct farm advisory & localized crop guidance",
+    "ministerDesc": "Macro drought analytics & policy strategy for Ethiopia",
+    "daDesc": "Field validation, grid diagnostics & IEK collection"
+  },
+  "sidebar": {
+    "menu": "Navigation",
+    "quickActions": "Quick Actions",
+    "switchRole": "Switch Operating Mode",
+    "systemInfo": "AgriMinds Enterprise v1.1.0",
+    "ethiopiaBadge": "Choke Watershed Operations"
+  },
+  "ministerView": {
+    "title": "National & Watershed Policy Overview",
+    "droughtCoverage": "Basin Risk Index",
+    "highRiskCells": "Severe Risk Cells",
+    "policyAction": "Policy Action Required",
+    "policyActionText": "Initiate regional emergency water allocation and drought relief buffer for High-Risk grid sectors in Choke Watershed.",
+    "macroBrief": "Executive Strategic Brief"
+  },
   "common": {
     "retry": "Retry",
     "loading": "Loading…",

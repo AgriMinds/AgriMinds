@@ -5,6 +5,7 @@ import React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { SidebarDrawer } from '@/components/SidebarDrawer';
 import { I18nProvider } from '@/i18n';
 import { PERSIST_MAX_AGE, queryClient, queryPersister } from '@/services/queryClient';
 import { useTheme } from '@/theme';
@@ -27,6 +28,7 @@ export default function RootLayout() {
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
               <Stack.Screen name="(tabs)" />
             </Stack>
+            <SidebarDrawer />
           </I18nProvider>
         </PersistQueryClientProvider>
       </SafeAreaProvider>

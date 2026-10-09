@@ -25,9 +25,38 @@ export default function GridScreen() {
   const cell = sel.location.kind === 'cell' ? sel.location : DEFAULT_CELL;
   const [rows, cols] = data?.grid_shape ?? [8, 8];
   const p = data?.probabilities[cell.row]?.[cell.col];
+  const isMinister = sel.role === 'minister';
+
+  // Calculate severe/high risk cell metrics for minister summary
+  const severeCells = data
+    ? data.probabilities.flat().filter((val) => val >= 0.75).length
+    : 0;
 
   return (
     <Screen title={t('grid.title')} subtitle={t('grid.subtitle')} refreshing={map.isFetching && !!data} onRefresh={() => map.refetch()}>
+      {isMinister && data ? (
+        <Card style={{ backgroundColor: colors.surfaceAlt, borderColor: colors.primary, borderWidth: 1 }}>
+          <View style={{ gap: spacing.xs }}>
+            <Text style={{ fontSize: 11, fontWeight: '700', color: colors.primary, textTransform: 'uppercase' }}>
+              {t('ministerView.title')}
+            </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
+              <View>
+                <Text style={{ fontSize: 11, color: colors.textMuted }}>{t('ministerView.droughtCoverage')}</Text>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text }}>
+                  {Math.round(data.mean_probability * 100)}%
+                </Text>
+              </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={{ fontSize: 11, color: colors.textMuted }}>{t('ministerView.highRiskCells')}</Text>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: severeCells > 0 ? colors.dangerFg : colors.primary }}>
+                  {severeCells} / {rows * cols}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </Card>
+      ) : null}
       <Card>
         <Label>{t('advisory.lead')}</Label>
         <SegmentedControl<LeadMonth> options={LEAD_MONTHS.map((l) => ({ value: l, label: t(`advisory.lead${l}`) }))} value={sel.lead} onChange={sel.setLead} />

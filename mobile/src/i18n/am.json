@@ -1,7 +1,32 @@
 {
   "appName": "አግሪማይንድስ AI-DREWS",
   "subtitle": "የጮቄ ተራራ ተፋሰስ · የመስክ አማካሪ",
+  "organization": "የኢትዮጵያ ፌዴራላዊ ዲሞክራሲያዊ ሪፐብሊክ የግብርና ሚኒስቴር",
   "tabs": { "advisory": "ምክረ ሃሳብ", "grid": "የድርቅ ካርታ", "enso": "የአየር ንብረት", "settings": "ቅንብሮች" },
+  "roles": {
+    "title": "የተጠቃሚ ሚና",
+    "farmer": "አርሶ አደር",
+    "minister": "የግብርና ሚኒስቴር / ፖሊሲ አውጭ",
+    "da": "የልማት ጣቢያ ሠራተኛ",
+    "farmerDesc": "የቀጥታ ሰብል ምክረ ሃሳብ እና የአካባቢ እርሻ መመሪያ",
+    "ministerDesc": "የአገራዊ ድርቅ ትንተና እና የፖሊሲ ስትራቴጂ",
+    "daDesc": "የመስክ ማረጋገጫ፣ የካርታ ምርመራ እና IEK ሰነድ"
+  },
+  "sidebar": {
+    "menu": "ማውጫ",
+    "quickActions": "ፈጣን እርምጃዎች",
+    "switchRole": "የስራ ሚና ይቀይሩ",
+    "systemInfo": "አግሪማይንድስ ኢንተርፕራይዝ v1.1.0",
+    "ethiopiaBadge": "የጮቄ ተፋሰስ ስራዎች"
+  },
+  "ministerView": {
+    "title": "አገራዊ እና የተፋሰሱ ፖሊሲ እይታ",
+    "droughtCoverage": "የተፋሰሱ የአደጋ መለኪያ",
+    "highRiskCells": "ከፍተኛ አደጋ ያለባቸው ክፍሎች",
+    "policyAction": "የፖሊሲ እርምጃ ይፈለጋል",
+    "policyActionText": "በጮቄ ተፋሰስ ከፍተኛ አደጋ ባላቸው ክፍሎች ውስጥ ለአስቸኳይ ጊዜ የውሃ አጠቃቀም እና ድርቅ መቋቋሚያ ድጋፍ ይደረግ።",
+    "macroBrief": "የሚኒስትር ስትራቴጂካዊ መግለጫ"
+  },
   "common": {
     "retry": "እንደገና ሞክር",
     "loading": "በመጫን ላይ…",
