@@ -35,10 +35,11 @@ _RATE_LIMIT_WAIT = 65.0
 _RATE_LIMIT_TOTAL_WAIT = 75 * 60.0
 
 
-#: First month the connectors fetch. ERA5 reaches back to 1940 and CHIRPS to 1981, but MODIS
-#: begins in February 2000 and the model needs every channel for the same months, so a longer
-#: climate record would only be trimmed away when the grid is assembled.
-INGEST_START = "2000-01-01"
+#: First month the connectors fetch. ERA5 reaches back to 1940 and CHIRPS to 1981. The record
+#: used to start in 2000 because MODIS does, but greenness is opt-in and absent by default, so
+#: the limit no longer binds. 1994 roughly doubles the training record, which is the cheapest
+#: thing available to a model whose skill currently runs out after one month.
+INGEST_START = "1994-01-01"
 
 
 class IngestError(RuntimeError):

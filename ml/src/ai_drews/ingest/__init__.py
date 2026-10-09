@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from ai_drews.config import DEFAULT_CONFIG, DataPaths, PipelineConfig
-from ai_drews.ingest import build, chirps, crops, era5, ndvi, nino34, validate
+from ai_drews.ingest import build, chirps, crops, era5, ndvi, nino34, validate, wind
 from ai_drews.ingest.base import INGEST_START, IngestError, Manifest, read_manifest, read_manifests
 
 #: Download order. ERA5 and CHIRPS must both land before the validation step can compare them.
@@ -29,6 +29,9 @@ CONNECTORS: dict[str, Callable[[DataPaths, PipelineConfig], Manifest]] = {
 #: study names supplies a vegetation index, so it is requested by name or not at all.
 OPT_IN_CONNECTORS: dict[str, Callable[[DataPaths, PipelineConfig], Manifest]] = {
     "ndvi": lambda paths, cfg: ndvi.fetch(paths, cfg, start=INGEST_START),
+    # Hourly for the whole grid is hours of a rate-limited archive, so it is asked for by name.
+    # It is resumable: a run that stops keeps every completed request.
+    "wind": lambda paths, cfg: wind.fetch(paths, cfg, start=INGEST_START),
 }
 
 #: Everything `ai-drews ingest <source>` accepts.
@@ -63,4 +66,5 @@ __all__ = [
     "read_manifest",
     "read_manifests",
     "validate",
+    "wind",
 ]

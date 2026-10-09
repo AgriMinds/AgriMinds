@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 
 from ai_drews.config import DEFAULT_CONFIG, DataPaths, PipelineConfig
-from ai_drews.ingest import era5, ndvi, nino34
+from ai_drews.ingest import era5, ndvi, nino34, wind
 from ai_drews.ingest.base import IngestError, Manifest, coverage_of, read_manifests, write_manifest
 
 log = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ GRID_SOURCES = {
 #: Greenness is assembled when it has been ingested and skipped when it has not. No source the
 #: study names supplies a vegetation index, and MODIS takes hours to download, so requiring it
 #: would make `ingest all` an overnight job for a channel the study never asked for.
-OPTIONAL_GRID_SOURCES = {"ndvi": "ndvi"}
+OPTIONAL_GRID_SOURCES = {"ndvi": "ndvi", "u10": "wind", "v10": "wind", "wind_speed": "wind"}
 #: Index columns, in the order `io.load_raw` expects them.
 INDEX_COLUMNS = ("nino34", "nino12", "nino4", "soi")
 
@@ -51,17 +51,26 @@ def assemble(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG) -> Manifest
         ndvi_months, ndvi_cube = None, None
         log.info("no NDVI cache: assembling without greenness (run `ai-drews ingest ndvi` to add it)")
 
+    try:
+        wind_months, wind_grids = wind.load(paths, cfg)
+    except IngestError:
+        wind_months, wind_grids = None, {}
+        log.info("no wind cache: assembling without wind (run `ai-drews ingest wind` to add it)")
+
     index_months = {d.strftime("%Y-%m-%d") for d in indices.index}
     common_set = set(era5_months) & index_months
     if ndvi_months is not None:
         common_set &= set(ndvi_months)
+    if wind_months is not None:
+        common_set &= set(wind_months)
     common = sorted(common_set)
     if not common:
         raise IngestError("the sources share no months; check each connector's coverage")
     log.info(
-        "months: ERA5 %d, NDVI %s, indices %d -> %d in common (%s..%s)",
+        "months: ERA5 %d, NDVI %s, wind %s, indices %d -> %d in common (%s..%s)",
         len(era5_months),
         len(ndvi_months) if ndvi_months is not None else "absent",
+        len(wind_months) if wind_months is not None else "absent",
         len(index_months),
         len(common),
         common[0],
@@ -82,6 +91,13 @@ def assemble(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG) -> Manifest
     if ndvi_months is not None and ndvi_cube is not None:
         ndvi_at = {month: i for i, month in enumerate(ndvi_months)}
         grids["ndvi"] = ndvi_cube[[ndvi_at[m] for m in common]]
+
+    if wind_months is not None and wind_grids:
+        wind_at = {month: i for i, month in enumerate(wind_months)}
+        rows = [wind_at[m] for m in common]
+        for name in ("u10", "v10", "wind_speed"):
+            if name in wind_grids:
+                grids[name] = wind_grids[name][rows]
 
     holes = {k: int(np.isnan(v).sum()) for k, v in grids.items() if np.isnan(v).any()}
     if holes:
@@ -105,7 +121,8 @@ def assemble(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG) -> Manifest
     log.info("wrote %s and %s", paths.grids_npz, paths.nino_indices_csv)
 
     upstream = read_manifests(paths)
-    contributors = sorted(set(GRID_SOURCES.values()) | {"nino34"} | set(grids.keys() & {"ndvi"}))
+    extra = {OPTIONAL_GRID_SOURCES[k] for k in grids if k in OPTIONAL_GRID_SOURCES}
+    contributors = sorted(set(GRID_SOURCES.values()) | {"nino34"} | extra)
     manifest = Manifest.now(
         key=KEY,
         provider="; ".join(f"{k}: {upstream[k].provider}" for k in contributors if k in upstream)

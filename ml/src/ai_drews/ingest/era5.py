@@ -62,6 +62,25 @@ def _month_end(value: str) -> str:
     return (stamp + pd.offsets.MonthEnd(0)).strftime("%Y-%m-%d")
 
 
+def decade_windows(begin: str, finish: str) -> list[tuple[str, str]]:
+    """Split a span into requests on fixed decade boundaries.
+
+    Aligned to the calendar rather than counted forward from the start date, so extending the
+    record backwards adds a window instead of shifting every boundary. The cache keys on these
+    dates: a shifting boundary would silently invalidate every part already downloaded, which on
+    a rate-limited archive means hours of refetching for no new data.
+    """
+    first, last = pd.Timestamp(begin), pd.Timestamp(finish)
+    windows: list[tuple[str, str]] = []
+    cursor = first
+    while cursor <= last:
+        decade_end = pd.Timestamp(year=(cursor.year // _CHUNK_YEARS + 1) * _CHUNK_YEARS, month=1, day=1)
+        stop = min(decade_end - pd.Timedelta(days=1), last)
+        windows.append((cursor.strftime("%Y-%m-%d"), stop.strftime("%Y-%m-%d")))
+        cursor = stop + pd.Timedelta(days=1)
+    return windows
+
+
 def fetch(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG, start: str | None = None) -> Manifest:
     """Download every cell and write ``raw/sources/era5_cells.csv`` (one row per cell-month)."""
     centres = cell_centres(cfg.rows, cfg.cols, cfg.bbox)
@@ -72,12 +91,7 @@ def fetch(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG, start: str | N
     finish_str = finish.strftime("%Y-%m-%d")
     log.info("ERA5: %d cells, %s..%s", len(flat), begin, finish_str)
 
-    windows: list[tuple[str, str]] = []
-    cursor = pd.Timestamp(begin)
-    while cursor <= finish:
-        stop = min(cursor + pd.DateOffset(years=_CHUNK_YEARS) - pd.Timedelta(days=1), finish)
-        windows.append((cursor.strftime("%Y-%m-%d"), stop.strftime("%Y-%m-%d")))
-        cursor = stop + pd.Timedelta(days=1)
+    windows = decade_windows(begin, finish_str)
 
     batches = [flat[i : i + _BATCH] for i in range(0, len(flat), _BATCH)]
     total = len(batches) * len(windows)

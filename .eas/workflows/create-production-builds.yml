@@ -5,7 +5,12 @@ jobs:
     type: build
     params:
       platform: android
+      profile: production
+      working_directory: mobile
+
   build_ios:
     type: build
     params:
       platform: ios
+      profile: production
+      working_directory: mobile

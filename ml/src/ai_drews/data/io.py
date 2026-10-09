@@ -30,7 +30,7 @@ GRID_VARIABLES = ("rain", "tmax", "soilm")
 #: `ndvi` is optional because no source the study names supplies a vegetation index, and MODIS is
 #: slow enough to download that requiring it would block a deployment on hours of transfer.
 #: Without it, VCI and the greenness channels are simply absent.
-OPTIONAL_GRID_VARIABLES = ("tmean", "pet_fao", "ndvi")
+OPTIONAL_GRID_VARIABLES = ("tmean", "pet_fao", "ndvi", "u10", "v10", "wind_speed")
 
 
 def save_raw(paths: DataPaths, ind: pd.DataFrame, grids: dict) -> None:

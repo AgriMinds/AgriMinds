@@ -186,6 +186,24 @@ warning. The catchment outline is the surveyed one: 18,948 km², from
 is a rectangle over a catchment that is not one, 15 of its 64 cells fall outside the basin and are
 marked rather than reported as readings.
 
+## How far ahead the forecast is trustworthy
+
+The model is trained for twelve months, but training a lead is not the same as earning the right
+to publish it. Each lead is scored against climatology on held-out data at training time, and
+only the ones that beat it are served as a probability:
+
+| lead | 1 | 2 | 3 | 6 | 12 |
+|---|---|---|---|---|---|
+| AUC | 0.714 | 0.595 | 0.492 | 0.487 | 0.428 |
+| BSS vs climatology | **+0.058** | +0.011 | −0.021 | −0.028 | −0.038 |
+
+On the current observed record that is **lead 1 only**. The other eleven months are served as a
+*seasonal outlook*: a direction and the reasoning behind it, never a percentage. `/prediction`
+shows all twelve with the measured skill beside each, so the horizon is visible rather than
+implied, and it widens by itself as the record and the inputs improve.
+
+`GET /api/v1/drought/horizon` returns the same thing for any client.
+
 ## Analytics
 
 Alongside the operational dashboards there is a read-only `analytics` schema: a star schema of
