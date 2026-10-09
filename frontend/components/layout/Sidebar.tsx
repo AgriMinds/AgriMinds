@@ -78,6 +78,13 @@ function ModelCard() {
           </div>
         ))}
       </dl>
+      <Link
+        href="/prediction/metrics"
+        className="mt-2.5 flex items-center justify-between border-t border-white/10 pt-2 text-[10px] font-medium text-brand-lime/80 hover:text-brand-lime transition-colors"
+      >
+        <span>Performance & validation</span>
+        <span>→</span>
+      </Link>
     </div>
   )
 }
@@ -282,12 +289,13 @@ export function Sidebar({ open, onClose, user }: Props) {
           </p>
           <ul className="flex flex-col gap-0.5">
             {items.map(({ href, key, icon: Icon }) => {
-              const active = pathname === href || pathname.startsWith(`${href}/`)
+              const active = pathname === href || (href !== '/' && pathname.startsWith(`${href}/`))
+              const isPrediction = key === 'prediction'
               return (
                 <li key={href}>
                   <Link
                     href={href}
-                    aria-current={active ? 'page' : undefined}
+                    aria-current={active && !isPrediction ? 'page' : undefined}
                     onClick={onClose}
                     className={cn(
                       'relative flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-brand-lime',
@@ -304,6 +312,38 @@ export function Sidebar({ open, onClose, user }: Props) {
                     <Icon className={cn('size-[18px]', active ? 'text-brand-lime' : 'text-white/50')} />
                     {tn(key)}
                   </Link>
+                  {isPrediction && (
+                    <ul className="ml-8 mt-1 mb-1.5 flex flex-col gap-1 border-l border-white/10 pl-2.5 text-xs">
+                      <li>
+                        <Link
+                          href="/prediction"
+                          onClick={onClose}
+                          className={cn(
+                            'block rounded-md px-2 py-1 transition-colors',
+                            pathname === '/prediction'
+                              ? 'font-semibold text-brand-lime bg-white/[0.08]'
+                              : 'text-white/60 hover:text-white',
+                          )}
+                        >
+                          {tn('predictionHorizon')}
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/prediction/metrics"
+                          onClick={onClose}
+                          className={cn(
+                            'block rounded-md px-2 py-1 transition-colors',
+                            pathname === '/prediction/metrics'
+                              ? 'font-semibold text-brand-lime bg-white/[0.08]'
+                              : 'text-white/60 hover:text-white',
+                          )}
+                        >
+                          {tn('predictionMetrics')}
+                        </Link>
+                      </li>
+                    </ul>
+                  )}
                 </li>
               )
             })}

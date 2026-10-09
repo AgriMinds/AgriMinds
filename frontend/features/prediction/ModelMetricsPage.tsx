@@ -17,6 +17,7 @@ import {
   Activity,
   BarChart3,
   BrainCircuit,
+  CalendarRange,
   ChevronLeft,
   CircleAlert,
   FlaskConical,
@@ -519,6 +520,22 @@ export function ModelMetricsPage() {
               )}
             </div>
           )}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Link
+              href="/prediction"
+              className="inline-flex items-center gap-2 rounded-lg border border-transparent px-3 py-1.5 text-xs font-medium text-fg-muted hover:border-border hover:bg-surface hover:text-fg transition-colors"
+            >
+              <CalendarRange className="size-3.5 text-primary/70" aria-hidden />
+              {t('viewHorizon')}
+            </Link>
+            <Link
+              href="/prediction/metrics"
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-fg shadow-xs"
+            >
+              <BarChart3 className="size-3.5 text-primary" aria-hidden />
+              {t('viewMetrics')}
+            </Link>
+          </div>
         </div>
       </div>
 
