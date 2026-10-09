@@ -1,7 +1,32 @@
 {
   "appName": "AgriMinds AI-DREWS",
   "subtitle": "Lolaa Gaara Choke · Gorsaa Dirree",
+  "organization": "Ministeera Qonnaa DFDI",
   "tabs": { "advisory": "Gorsa", "grid": "Kaartaa Hongee", "enso": "Qilleensa", "settings": "Qindaa'ina" },
+  "roles": {
+    "title": "Sadarkaa Qooda Fudhattaa",
+    "farmer": "Qonnaan Bulaa",
+    "minister": "Ministeera Qonnaa",
+    "da": "Ogeessa Misoomaa",
+    "farmerDesc": "Gorsa sanyii fi hordoffii midhaan qonnaan bulaa",
+    "ministerDesc": "Xiinxala caamsaa biyyaalessaa fi imaammata qonnaa",
+    "daDesc": "Mirkaneessaa dirree fi sassaabbii IEK"
+  },
+  "sidebar": {
+    "menu": "Baafata",
+    "quickActions": "Tarkaanfii Argaa-dhageettii",
+    "switchRole": "Jijjiirraa Shooraa",
+    "systemInfo": "AgriMinds Enterprise v1.1.0",
+    "ethiopiaBadge": "Hoojii Qoorqoorro Choke"
+  },
+  "ministerView": {
+    "title": "Imaammata Qonnaa Biyyaalessaa",
+    "droughtCoverage": "Ukkaamsaa Caamsaa Qoorqoorro",
+    "highRiskCells": "Iddoo Sodaa Olaanaa",
+    "policyAction": "Tarkaanfii Imaammataa Kajeelamu",
+    "policyActionText": "Bishaan qusannaa fi deeggarsa caamsaa hatattamaa sektera sodaa olaanaa Qoorqoorro Chookiitiif gochuu.",
+    "macroBrief": "Gabaasa Imaammata Ministeeraa"
+  },
   "common": {
     "retry": "Irra deebi'i",
     "loading": "Fe'aa jira…",
