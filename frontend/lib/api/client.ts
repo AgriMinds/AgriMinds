@@ -23,6 +23,22 @@ import type {
 } from '@agriminds/api-types'
 import { API_V1_PREFIX } from '@agriminds/api-types'
 
+// ── Metrics types (not yet in the generated api-types package) ────────────────
+export interface DroughtLeadMetric {
+  lead: number; AUC: number; AUC_persistence: number; Brier: number
+  BSS_vs_climatology: number; POD: number; FAR: number; threshold: number; skilful: boolean
+  Accuracy: number; Precision: number; Recall: number; F1: number; PearsonR: number
+  TP: number; FP: number; TN: number; FN: number
+}
+export interface EnsoLeadMetric { model: string; lead: number; RMSE: number; MAE: number; corr: number }
+export interface ModelComparisonRow { model: string; lead: number; RMSE: number; MAE: number; AUC: number; Accuracy: number; F1: number }
+export interface HistoricalValidationPoint { lead: number; date: string; observed: number; predicted: number; PearsonR: number; RMSE: number; MAE: number }
+export interface ModelMetricsResponse {
+  drought: DroughtLeadMetric[]; enso: EnsoLeadMetric[]
+  model_comparison: ModelComparisonRow[]; historical_validation: HistoricalValidationPoint[]
+  model_version: string; data_source: string; trained_at: string | null
+}
+
 /**
  * Browser-side client. It only ever talks to the same-origin proxy at /api/v1/*,
  * which forwards to the FastAPI service and injects the API key server-side.
@@ -136,6 +152,9 @@ export const api = {
 
   /** How far ahead the forecast is trustworthy, lead by lead. */
   horizon: () => request<HorizonResponse>('/drought/horizon'),
+
+  /** Full model-performance scorecard from training-time CSVs. */
+  droughtMetrics: () => request<ModelMetricsResponse>('/drought/metrics'),
 
   // ---- analytics ----------------------------------------------------------------------
   metabaseStatus: () => request<MetabaseStatus>('/analytics/metabase/status'),

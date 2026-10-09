@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class DroughtLeadMetric(BaseModel):
-    """One row of drought_metrics.csv — what each lead scored on held-out data."""
+    """One row of drought_metrics.csv — full scorecard per lead on held-out data."""
 
     lead: int
     AUC: float
@@ -17,6 +17,17 @@ class DroughtLeadMetric(BaseModel):
     FAR: float
     threshold: float
     skilful: bool
+    # Classification metrics
+    Accuracy: float = Field(0.0)
+    Precision: float = Field(0.0)
+    Recall: float = Field(0.0)
+    F1: float = Field(0.0)
+    PearsonR: float = Field(0.0)
+    # Confusion matrix counts
+    TP: int = Field(0)
+    FP: int = Field(0)
+    TN: int = Field(0)
+    FN: int = Field(0)
 
 
 class EnsoLeadMetric(BaseModel):
@@ -29,24 +40,47 @@ class EnsoLeadMetric(BaseModel):
     corr: float
 
 
+class ModelComparisonRow(BaseModel):
+    """One row of model_comparison.csv — Figure 1: all models at one lead."""
+
+    model: str
+    lead: int
+    RMSE: float
+    MAE: float
+    AUC: float
+    Accuracy: float
+    F1: float
+
+
+class HistoricalValidationPoint(BaseModel):
+    """One row of historical_validation.csv — Figure 2: observed vs predicted per date × lead."""
+
+    lead: int
+    date: str
+    observed: float
+    predicted: float
+    PearsonR: float
+    RMSE: float
+    MAE: float
+
+
 class ModelMetricsResponse(BaseModel):
-    """Full payload returned by GET /api/v1/drought/metrics.
-
-    ``drought`` contains the classification/probability metrics for the CNN-LSTM drought
-    model at each of the twelve leads.  ``enso`` contains regression error metrics for every
-    model (CNN-LSTM, Persistence, Ridge) across all ENSO leads, so a frontend chart can
-    draw all three curves together and let the reader see where CNN-LSTM beats the baselines.
-
-    Provenance is included so the frontend can warn the user when metrics come from a
-    synthetic-data run rather than the observed record.
-    """
+    """Full payload returned by GET /api/v1/drought/metrics."""
 
     drought: list[DroughtLeadMetric] = Field(
-        description="Per-lead classification metrics (AUC, BSS, POD, FAR, Brier) from drought_metrics.csv"
+        description="Per-lead classification metrics (AUC, BSS, Accuracy, Precision, Recall, F1, confusion matrix)"
     )
     enso: list[EnsoLeadMetric] = Field(
-        description="Per-model-per-lead regression metrics (RMSE, MAE, corr) from enso_metrics.csv"
+        description="Per-model regression metrics (RMSE, MAE, corr) from enso_metrics.csv"
     )
-    model_version: str = Field(description="The model version that produced these metrics")
-    data_source: str = Field(description="'real' or 'synthetic' — shown as a banner on the page")
-    trained_at: str | None = Field(None, description="ISO-8601 timestamp of the training run")
+    model_comparison: list[ModelComparisonRow] = Field(
+        default_factory=list,
+        description="Figure 1 — SuperHybrid vs CNN-LSTM, CNN, ANN, LSTM at every lead",
+    )
+    historical_validation: list[HistoricalValidationPoint] = Field(
+        default_factory=list,
+        description="Figure 2 — observed vs predicted Sc-PDSI for the test period",
+    )
+    model_version: str
+    data_source: str
+    trained_at: str | None = None

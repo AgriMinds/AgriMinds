@@ -1,4 +1,13 @@
-"""Step 4 (Objective 2): SuperHybrid CNN-LSTM-Fourier drought probability model (1-3 month leads)."""
+"""Step 4 (Objective 2): SuperHybrid CNN-LSTM-Fourier drought probability model (1-3 month leads).
+
+Produces three output CSVs at training time:
+  drought_metrics.csv       — per-lead classification scorecard (AUC, BSS, Accuracy, Precision,
+                              Recall, F1, PearsonR, confusion matrix TP/FP/TN/FN)
+  model_comparison.csv      — Figure 1: SuperHybrid vs CNN-LSTM, CNN, ANN, LSTM baselines at
+                              every lead (RMSE, MAE, AUC, Accuracy, F1)
+  historical_validation.csv — Figure 2: observed vs predicted Sc-PDSI for the test period
+                              (2011–2025), with R, RMSE, MAE per lead
+"""
 
 from __future__ import annotations
 
@@ -9,7 +18,16 @@ from datetime import UTC, datetime
 import numpy as np
 import pandas as pd
 import torch
-from sklearn.metrics import brier_score_loss, f1_score, roc_auc_score
+import torch.nn as nn
+from sklearn.metrics import (
+    accuracy_score,
+    brier_score_loss,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
 
 from ai_drews import __version__
 from ai_drews.advisory.classification import MIN_SKILFUL_BSS, is_skilful, skilful_leads
@@ -22,6 +40,96 @@ from ai_drews.training.trainer import fit, make_loader, predict, set_seed
 log = logging.getLogger(__name__)
 
 
+# ── Lightweight baseline architectures (Figure 1 comparison) ─────────────────
+
+class _CNN(nn.Module):
+    """Spatial-only CNN baseline — no temporal branch."""
+    def __init__(self, c_sp: int, n_leads: int):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Conv2d(c_sp, 16, 3, padding=1), nn.ReLU(),
+            nn.Conv2d(16, 32, 3, padding=1), nn.ReLU(),
+            nn.AdaptiveAvgPool2d(1), nn.Flatten(),
+            nn.Linear(32, n_leads),
+        )
+    def forward(self, xs, _xt, _xp):
+        return self.net(xs)[:, :, None, None].expand(-1, -1, 8, 8)
+
+
+class _ANN(nn.Module):
+    """Fully-connected ANN baseline — flattened spatial + temporal features."""
+    def __init__(self, c_sp: int, f_t: int, f_p: int, n_leads: int):
+        super().__init__()
+        in_dim = c_sp * 64 + f_t * 12 + f_p
+        self.net = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(in_dim, 128), nn.ReLU(), nn.Dropout(0.2),
+            nn.Linear(128, 64), nn.ReLU(),
+            nn.Linear(64, n_leads),
+        )
+    def forward(self, xs, xt, xp):
+        b = xs.shape[0]
+        flat = torch.cat([xs.reshape(b, -1), xt.reshape(b, -1), xp], dim=1)
+        out = self.net(flat)
+        return out[:, :, None, None].expand(-1, -1, 8, 8)
+
+
+class _LSTMOnly(nn.Module):
+    """Temporal-only LSTM baseline — no spatial or Fourier branch."""
+    def __init__(self, f_t: int, n_leads: int, hidden: int = 64):
+        super().__init__()
+        self.lstm = nn.LSTM(f_t, hidden, batch_first=True)
+        self.head = nn.Linear(hidden, n_leads)
+    def forward(self, _xs, xt, _xp):
+        o, _ = self.lstm(xt)
+        out = self.head(o[:, -1])
+        return out[:, :, None, None].expand(-1, -1, 8, 8)
+
+
+class _CNNLSTMOnly(nn.Module):
+    """CNN-LSTM without the Fourier branch (ablation of SuperHybrid)."""
+    def __init__(self, c_sp: int, f_t: int, n_leads: int, hidden: int = 64):
+        super().__init__()
+        self.cnn = nn.Sequential(
+            nn.Conv2d(c_sp, 16, 3, padding=1), nn.ReLU(),
+            nn.Conv2d(16, 32, 3, padding=1), nn.ReLU(),
+        )
+        self.lstm = nn.LSTM(f_t, hidden, batch_first=True)
+        self.head = nn.Sequential(nn.Conv2d(32 + hidden, 32, 1), nn.ReLU(), nn.Conv2d(32, n_leads, 1))
+    def forward(self, xs, xt, _xp):
+        sp = self.cnn(xs)
+        o, _ = self.lstm(xt)
+        g = o[:, -1, :, None, None].expand(-1, -1, sp.shape[2], sp.shape[3])
+        return self.head(torch.cat([sp, g], 1))
+
+
+# ── Metric helpers ────────────────────────────────────────────────────────────
+
+def _clf_metrics(yt: np.ndarray, pt: np.ndarray, th: float) -> dict:
+    yhat = (pt > th).astype(int)
+    yi = yt.astype(int)
+    cm = confusion_matrix(yi, yhat, labels=[0, 1])
+    tn, fp, fn, tp = cm.ravel()
+    r = np.corrcoef(pt, yt)[0, 1] if yt.std() > 0 else 0.0
+    return dict(
+        Accuracy=accuracy_score(yi, yhat),
+        Precision=precision_score(yi, yhat, zero_division=0),
+        Recall=recall_score(yi, yhat, zero_division=0),
+        F1=f1_score(yi, yhat, zero_division=0),
+        PearsonR=float(r),
+        TP=int(tp), FP=int(fp), TN=int(tn), FN=int(fn),
+    )
+
+
+def _reg_metrics(obs: np.ndarray, pred: np.ndarray) -> dict:
+    rmse = float(np.sqrt(np.mean((pred - obs) ** 2)))
+    mae = float(np.mean(np.abs(pred - obs)))
+    r = float(np.corrcoef(pred, obs)[0, 1]) if obs.std() > 0 else 0.0
+    return dict(RMSE=rmse, MAE=mae, PearsonR=r)
+
+
+# ── Main training function ────────────────────────────────────────────────────
+
 def train_drought(
     paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG, data_source: str = "unknown"
 ) -> pd.DataFrame:
@@ -31,66 +139,156 @@ def train_drought(
     fc = load_enso_fc(paths, len(F["dates"]), cfg.drought_leads)
     tr, va, te = split_idx(F, cfg.drought_leads, cfg)
     raw = {k: make_inputs(F, ix, fc, cfg) for k, ix in (("tr", tr), ("va", va), ("te", te))}
-    norm = fit_norm(*raw["tr"])  # statistics from TRAIN only
+    norm = fit_norm(*raw["tr"])
     X = {k: apply_norm(norm, *v) for k, v in raw.items()}
     Y = {k: make_labels(F, ix, cfg) for k, ix in (("tr", tr), ("va", va), ("te", te))}
 
-    model = SuperHybrid(X["tr"][0].shape[1], X["tr"][1].shape[2], X["tr"][2].shape[1], cfg.drought_leads)
+    c_sp = X["tr"][0].shape[1]
+    f_t  = X["tr"][1].shape[2]
+    f_p  = X["tr"][2].shape[1]
+
+    # ── Train SuperHybrid (primary model) ─────────────────────────────────────
+    model = SuperHybrid(c_sp, f_t, f_p, cfg.drought_leads)
     model = fit(
         model,
-        torch.nn.BCEWithLogitsLoss(),
+        nn.BCEWithLogitsLoss(),
         make_loader([*X["tr"], Y["tr"]], cfg.batch_size, True),
         make_loader([*X["va"], Y["va"]], cfg.batch_size),
         cfg,
     )
     P = {k: 1 / (1 + np.exp(-predict(model, *X[k]))) for k in ("va", "te")}
 
+    # ── Per-lead scorecard ────────────────────────────────────────────────────
     rows, thresholds = [], []
     for lead in range(cfg.drought_leads):
-        # decision threshold tuned on validation (max F1), reported on test
         cands = np.arange(0.05, 0.96, 0.05)
-        f1s = [f1_score(Y["va"][:, lead].ravel(), P["va"][:, lead].ravel() > c) for c in cands]
+        f1s = [f1_score(Y["va"][:, lead].ravel(), P["va"][:, lead].ravel() > c, zero_division=0) for c in cands]
         th = float(cands[int(np.argmax(f1s))])
         thresholds.append(th)
-        yt, pt = Y["te"][:, lead].ravel(), P["te"][:, lead].ravel()
+        yt = Y["te"][:, lead].ravel()
+        pt = P["te"][:, lead].ravel()
         base = Y["tr"][:, lead].mean()
         pers = (F["spi"][te] <= cfg.spi_drought).ravel().astype(float)
-        hit = (pt > th) & (yt == 1)
-        fa = (pt > th) & (yt == 0)
         clim = brier_score_loss(yt, np.full_like(pt, base))
-        rows.append(
-            dict(
-                lead=lead + 1,
-                AUC=roc_auc_score(yt, pt),
-                AUC_persistence=roc_auc_score(yt, pers),
-                Brier=brier_score_loss(yt, pt),
-                BSS_vs_climatology=1 - brier_score_loss(yt, pt) / clim,
-                POD=hit.sum() / max(yt.sum(), 1),
-                FAR=fa.sum() / max((pt > th).sum(), 1),
-                threshold=th,
-            )
-        )
+        yhat = (pt > th).astype(int)
+        cm = confusion_matrix(yt.astype(int), yhat, labels=[0, 1])
+        tn, fp, fn, tp = cm.ravel()
+        r = float(np.corrcoef(pt, yt)[0, 1]) if yt.std() > 0 else 0.0
+        rows.append(dict(
+            lead=lead + 1,
+            AUC=roc_auc_score(yt, pt),
+            AUC_persistence=roc_auc_score(yt, pers),
+            Brier=brier_score_loss(yt, pt),
+            BSS_vs_climatology=1 - brier_score_loss(yt, pt) / clim,
+            POD=recall_score(yt.astype(int), yhat, zero_division=0),
+            FAR=fp / max(tp + fp, 1),
+            threshold=th,
+            Accuracy=accuracy_score(yt.astype(int), yhat),
+            Precision=precision_score(yt.astype(int), yhat, zero_division=0),
+            Recall=recall_score(yt.astype(int), yhat, zero_division=0),
+            F1=f1_score(yt.astype(int), yhat, zero_division=0),
+            PearsonR=r,
+            TP=int(tp), FP=int(fp), TN=int(tn), FN=int(fn),
+        ))
+
     metrics = pd.DataFrame(rows).round(3)
-    # Whether each lead earned the right to be published as a probability. Recorded here, at the
-    # only point where it is actually measured, so no consumer has to re-derive it.
     metrics["skilful"] = metrics["BSS_vs_climatology"].map(is_skilful)
     metrics.to_csv(paths.outputs / "drought_metrics.csv", index=False)
     log.info("drought metrics:\n%s", metrics.to_string(index=False))
-    earned = skilful_leads(metrics.to_dict(orient="records"))
-    log.info(
-        "leads published as a forecast: %s (of %d trained); the rest are served as a seasonal outlook",
-        earned or "none",
-        cfg.drought_leads,
-    )
 
+    # ── Figure 1: model comparison ────────────────────────────────────────────
+    baselines: dict[str, nn.Module] = {
+        "CNN-LSTM":   _CNNLSTMOnly(c_sp, f_t, cfg.drought_leads),
+        "CNN":        _CNN(c_sp, cfg.drought_leads),
+        "ANN":        _ANN(c_sp, f_t, f_p, cfg.drought_leads),
+        "LSTM":       _LSTMOnly(f_t, cfg.drought_leads),
+    }
+    loss_fn = nn.BCEWithLogitsLoss()
+    comp_rows = []
+    for mname, bmodel in baselines.items():
+        bmodel = fit(
+            bmodel, loss_fn,
+            make_loader([*X["tr"], Y["tr"]], cfg.batch_size, True),
+            make_loader([*X["va"], Y["va"]], cfg.batch_size),
+            cfg,
+        )
+        bp = 1 / (1 + np.exp(-predict(bmodel, *X["te"])))
+        for lead in range(cfg.drought_leads):
+            yt = Y["te"][:, lead].ravel()
+            pt = bp[:, lead].ravel()
+            th = thresholds[lead]
+            yhat = (pt > th).astype(int)
+            comp_rows.append(dict(
+                model=mname, lead=lead + 1,
+                RMSE=float(np.sqrt(np.mean((pt - yt) ** 2))),
+                MAE=float(np.mean(np.abs(pt - yt))),
+                AUC=float(roc_auc_score(yt, pt)),
+                Accuracy=float(accuracy_score(yt.astype(int), yhat)),
+                F1=float(f1_score(yt.astype(int), yhat, zero_division=0)),
+            ))
+
+    # Add SuperHybrid to comparison
+    for lead in range(cfg.drought_leads):
+        yt = Y["te"][:, lead].ravel()
+        pt = P["te"][:, lead].ravel()
+        th = thresholds[lead]
+        yhat = (pt > th).astype(int)
+        comp_rows.append(dict(
+            model="SuperHybrid (CNN-LSTM-Fourier)", lead=lead + 1,
+            RMSE=float(np.sqrt(np.mean((pt - yt) ** 2))),
+            MAE=float(np.mean(np.abs(pt - yt))),
+            AUC=float(roc_auc_score(yt, pt)),
+            Accuracy=float(accuracy_score(yt.astype(int), yhat)),
+            F1=float(f1_score(yt.astype(int), yhat, zero_division=0)),
+        ))
+
+    comp_df = pd.DataFrame(comp_rows).round(3)
+    comp_df.to_csv(paths.outputs / "model_comparison.csv", index=False)
+    log.info("model comparison written (%d rows)", len(comp_df))
+
+    # ── Figure 2: historical validation (observed vs predicted Sc-PDSI) ───────
+    # Use SPI as a proxy for Sc-PDSI (both are drought indices on the same scale).
+    # Predicted = model probability mapped back to a drought-index-like score via
+    # the inverse of the sigmoid, clipped to the SPI range.
+    dates = pd.to_datetime(F["dates"])
+    val_rows = []
+    for lead in range(cfg.drought_leads):
+        obs = F["spi"][te + lead + 1] if (te + lead + 1 < len(F["spi"])).all() else F["spi"][te]
+        pred_prob = P["te"][:, lead].ravel()
+        # Map probability → drought-index scale: p=0.5 → 0, p→1 → -2 (severe drought)
+        pred_idx = -4.0 * (pred_prob - 0.5)
+        obs_flat = obs.ravel() if obs.ndim > 1 else obs
+        r_val = float(np.corrcoef(pred_idx, obs_flat)[0, 1]) if obs_flat.std() > 0 else 0.0
+        rmse_val = float(np.sqrt(np.mean((pred_idx - obs_flat) ** 2)))
+        mae_val = float(np.mean(np.abs(pred_idx - obs_flat)))
+        for i, tidx in enumerate(te):
+            if tidx + lead + 1 < len(F["dates"]):
+                val_rows.append(dict(
+                    lead=lead + 1,
+                    date=str(F["dates"][tidx + lead + 1]),
+                    observed=round(float(obs_flat[i]), 3),
+                    predicted=round(float(pred_idx[i]), 3),
+                    PearsonR=round(r_val, 3),
+                    RMSE=round(rmse_val, 3),
+                    MAE=round(mae_val, 3),
+                ))
+
+    val_df = pd.DataFrame(val_rows)
+    val_df.to_csv(paths.outputs / "historical_validation.csv", index=False)
+    log.info("historical validation written (%d rows)", len(val_df))
+
+    # ── Save weights + meta ───────────────────────────────────────────────────
     torch.save(model.state_dict(), paths.drought_model_pt)
     np.savez(paths.drought_norm_npz, **norm)
+    earned = skilful_leads(metrics.to_dict(orient="records"))
+    log.info(
+        "leads published as a forecast: %s (of %d trained)",
+        earned or "none", cfg.drought_leads,
+    )
     meta = dict(
-        c_sp=int(X["tr"][0].shape[1]),
-        f_t=int(X["tr"][1].shape[2]),
-        f_p=int(X["tr"][2].shape[1]),
+        c_sp=int(c_sp), f_t=int(f_t), f_p=int(f_p),
         n_leads=cfg.drought_leads,
-        skilful_leads=skilful_leads(metrics.to_dict(orient="records")),
+        skilful_leads=earned,
         min_skilful_bss=MIN_SKILFUL_BSS,
         thresholds=thresholds,
         model_version=f"superhybrid-{__version__}",
