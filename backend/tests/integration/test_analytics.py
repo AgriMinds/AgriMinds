@@ -313,7 +313,7 @@ class TestAnalyticsEndpoints:
     def test_the_status_endpoint_never_returns_the_signing_secret(
         self, artifacts_dir, db_engine, staff, sign_in
     ):
-        from tests.conftest import _client, _settings
+        from conftest import _client, _settings
 
         settings = _settings(
             artifacts_dir.root,
@@ -338,7 +338,7 @@ class TestAnalyticsEndpoints:
         assert "fact_farm" in body["views"] and "dim_woreda" in body["views"]
 
     def test_the_connection_never_returns_a_credential(self, client, admin, sign_in):
-        from tests.conftest import TEST_DATABASE_URL
+        from conftest import TEST_DATABASE_URL
 
         body = client.get("/api/v1/analytics/connection", headers=sign_in(admin.email)["headers"]).json()
         secret = TEST_DATABASE_URL.split("//", 1)[1].split("@")[0]
@@ -359,7 +359,7 @@ class TestConnectionReachability:
     def test_a_configured_public_address_is_used_verbatim_and_not_flagged(
         self, artifacts_dir, db_engine, admin, sign_in
     ):
-        from tests.conftest import _client, _settings
+        from conftest import _client, _settings
 
         settings = _settings(artifacts_dir.root, analytics_public_host="db.example.et:5432")
         with _client(settings) as public:
