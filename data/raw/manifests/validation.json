@@ -1,0 +1,16 @@
+{
+  "key": "validation",
+  "provider": "CHIRPS v2.0 and the Ethiopian Meteorological Institute",
+  "source_url": "https://climateserv.servirglobal.net/",
+  "citation": "ERA5 monthly catchment rainfall compared against CHIRPS v2.0 catchment means.",
+  "retrieved_at": "2026-10-09T06:03:18+00:00",
+  "records": 317,
+  "coverage_start": "2000-01-01",
+  "coverage_end": "2026-05-01",
+  "variables": [
+    "correlation",
+    "bias_mm",
+    "mae_mm"
+  ],
+  "notes": "Over 317 months ERA5 tracks CHIRPS at r=0.96, running 46.3 mm/month wetter (mean absolute difference 51.4 mm)."
+}

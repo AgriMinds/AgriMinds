@@ -46,6 +46,7 @@ async def write_risk_snapshot(session: AsyncSession, inference: InferenceService
                     "lead_month": lead,
                     "grid_row": cell.row,
                     "grid_col": cell.col,
+                    "in_watershed": grid.in_watershed(cell),
                     "latitude": latitude,
                     "longitude": longitude,
                     "probability": round(probability, 4),
@@ -68,6 +69,7 @@ async def write_risk_snapshot(session: AsyncSession, inference: InferenceService
             "pdsi_category": statement.excluded.pdsi_category,
             "target_month": statement.excluded.target_month,
             "data_source": statement.excluded.data_source,
+            "in_watershed": statement.excluded.in_watershed,
         },
     )
     await session.execute(statement)

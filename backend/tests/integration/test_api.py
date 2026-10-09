@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from tests.conftest import TEST_CFG
 
 
 def test_health_healthy(client):
@@ -78,7 +79,9 @@ def test_enso_outlook(client):
     body = client.get("/api/v1/enso/outlook").json()
     assert body["current_state"] in {"El Niño", "La Niña", "Neutral"}
     assert len(body["historical_series"]) == 36
-    assert len(body["forecast_series"]) == 3
+    # The ENSO horizon is configuration, not a constant: pinning it is what broke when the
+    # forecast was extended from three months to a full year.
+    assert len(body["forecast_series"]) == TEST_CFG.enso_leads
     assert all(p["is_forecast"] for p in body["forecast_series"])
 
 

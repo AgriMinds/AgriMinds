@@ -143,3 +143,38 @@ __all__ = [
     "pdsi_category",
     "pdsi_is_drought",
 ]
+
+
+# ---------------------------------------------------------------- forecast skill
+#: A lead is only published as a probability when it beats climatology. The Brier Skill Score is
+#: the test that matters here: AUC says the ranking is useful, but a farmer is told a *number*,
+#: and BSS is what says that number is better calibrated than quoting the long-run average.
+#:
+#: The margin is deliberately above zero. A score that merely ties climatology has no business
+#: being presented as a forecast, and sampling noise alone can push a worthless lead just over
+#: the line.
+MIN_SKILFUL_BSS = 0.02
+
+
+def is_skilful(bss_vs_climatology: float | None) -> bool:
+    """Whether a lead's probabilities may be published as a forecast."""
+    return bss_vs_climatology is not None and bss_vs_climatology >= MIN_SKILFUL_BSS
+
+
+def skilful_leads(metrics: list[dict]) -> list[int]:
+    """The lead months that earned a probability, in order.
+
+    Skill decays with lead time but is not guaranteed to do so monotonically on a short record,
+    so each lead is judged on its own measurement rather than by truncating at the first failure.
+    """
+    return sorted(int(row["lead"]) for row in metrics if is_skilful(row.get("BSS_vs_climatology")))
+
+
+def horizon_kind(lead: int, metrics: list[dict]) -> str:
+    """``forecast`` where the lead is skilful, ``outlook`` where it is not.
+
+    The distinction is the whole point: an outlook says which way the season is leaning, a
+    forecast says how likely drought is. Presenting the second when only the first is supported
+    is the failure this guards against.
+    """
+    return "forecast" if lead in set(skilful_leads(metrics)) else "outlook"

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useI18n } from '@/i18n';
@@ -50,8 +50,11 @@ export function Screen({ title, subtitle, refreshing = false, onRefresh, childre
       </View>
 
       <View style={styles.header}>
-        <Text style={[typo.title, { color: colors.text }]}>{title}</Text>
-        {subtitle ? <Text style={[typo.caption, { color: colors.textMuted }]}>{subtitle}</Text> : null}
+        <Image source={require('../../assets/icon.png')} style={styles.logo} />
+        <View style={{ gap: 2 }}>
+          <Text style={[typo.title, { color: colors.text }]}>{title}</Text>
+          {subtitle ? <Text style={[typo.caption, { color: colors.textMuted }]}>{subtitle}</Text> : null}
+        </View>
       </View>
       {children}
     </ScrollView>
@@ -64,5 +67,6 @@ const styles = StyleSheet.create({
   menuButton: { padding: spacing.sm, borderRadius: radius.md, borderWidth: 1, elevation: 1 },
   roleBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.pill, borderWidth: 1 },
   roleBadgeText: { fontSize: 12, fontWeight: '700' },
-  header: { gap: 2, marginBottom: spacing.xs },
+  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.xs },
+  logo: { width: 36, height: 36, borderRadius: 8 },
 });

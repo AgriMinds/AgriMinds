@@ -11,7 +11,7 @@ from __future__ import annotations
 import enum
 from datetime import date
 
-from sqlalchemy import Date, Enum, Float, Index, Integer, String
+from sqlalchemy import Boolean, Date, Enum, Float, Index, Integer, String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from agriminds_api.db.base import Base, Timestamps, UUIDPrimaryKey
@@ -64,5 +64,9 @@ class RiskSnapshot(UUIDPrimaryKey, Timestamps, Base):
     probability: Mapped[float] = mapped_column(Float)
     risk_level: Mapped[RiskLevel] = mapped_column(risk_level_enum, index=True)
     # Observed ground dryness for the issue month; absent when the record has no mean temperature.
+    #: Whether the catchment actually contains this cell. The forecast grid is a rectangle over
+    #: a basin that is not one, so some cells carry a model output for land outside it. Without
+    #: this column a BI tool has no way to tell, and would report those as readings.
+    in_watershed: Mapped[bool] = mapped_column(Boolean, server_default=text("true"), index=True)
     pdsi: Mapped[float | None] = mapped_column(Float)
     pdsi_category: Mapped[PdsiCategory | None] = mapped_column(pdsi_category_enum)

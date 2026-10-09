@@ -27,11 +27,42 @@ import urllib.request
 DEFAULT_URL = "http://localhost:3001"
 #: The read-only role. It can read the analytics views and nothing else.
 BI_ROLE = "agriminds_bi"
+DASHBOARD_NAME = "Ministry overview"
+#: Key Metabase stores the custom region map under, and where it fetches the polygons from.
+#: The URL is resolved by the Metabase container, so it is the Compose service name, not
+#: localhost. The file carries geometry only, which is why the endpoint needs no credential.
+GRID_MAP_KEY = "choke-grid"
+GRID_MAP_URL = os.environ.get("METABASE_GRID_GEOJSON_URL", "http://backend:8000/api/v1/geo/grid.geojson")
 
-#: The four questions the app's empty state promises. Native SQL rather than Metabase's query
-#: builder, so the dashboard is reviewable in this file and survives a schema the builder has
-#: not introspected yet.
+#: The questions the app's empty state promises, plus the two maps that answer "where". Native
+#: SQL rather than Metabase's query builder, so the dashboard is reviewable in this file and
+#: survives a schema the builder has not introspected yet.
 CARDS: list[dict] = [
+    {
+        "name": "Drought risk across the watershed",
+        "description": "Latest forecast at one month lead, shaded by probability per grid cell.",
+        "display": "map",
+        # Only cells the catchment actually contains. The grid is a rectangle over a basin that
+        # is not one, so 15 of the 64 lie outside it and have no reading to report.
+        "sql": """
+            SELECT 'r' || grid_row || 'c' || grid_col AS "Cell",
+                   round(avg(probability)::numeric, 3) AS "Probability"
+            FROM analytics.fact_risk
+            WHERE issued_date = (SELECT max(issued_date) FROM analytics.fact_risk)
+              AND lead_month = 1
+              AND in_watershed
+            GROUP BY 1
+        """,
+        # A choropleth, not pins: a drought field is a surface, and 64 identical dots encode
+        # nothing. (Metabase's heat pin type throws in v0.50, so this is also the one that works.)
+        "settings": {
+            "map.type": "region",
+            "map.region": GRID_MAP_KEY,
+            "map.dimension": "Cell",
+            "map.metric": "Probability",
+        },
+        "size": {"col": 0, "row": 0, "size_x": 24, "size_y": 9},
+    },
     {
         "name": "Registered land by woreda",
         "description": "Farmers, plots and hectares, per district.",
@@ -46,7 +77,7 @@ CARDS: list[dict] = [
             GROUP BY w.woreda_en
             ORDER BY "Hectares" DESC
         """,
-        "size": {"col": 0, "row": 0, "size_x": 12, "size_y": 6},
+        "size": {"col": 0, "row": 8, "size_x": 12, "size_y": 6},
     },
     {
         "name": "Advisories delivered and read",
@@ -60,7 +91,7 @@ CARDS: list[dict] = [
             GROUP BY delivered_month
             ORDER BY delivered_month
         """,
-        "size": {"col": 12, "row": 0, "size_x": 12, "size_y": 6},
+        "size": {"col": 12, "row": 8, "size_x": 12, "size_y": 6},
     },
     {
         "name": "Forecast history",
@@ -74,7 +105,7 @@ CARDS: list[dict] = [
             GROUP BY target_month, lead_month
             ORDER BY target_month, lead_month
         """,
-        "size": {"col": 0, "row": 6, "size_x": 12, "size_y": 6},
+        "size": {"col": 0, "row": 14, "size_x": 12, "size_y": 6},
     },
     {
         "name": "Crop mix",
@@ -88,7 +119,34 @@ CARDS: list[dict] = [
             GROUP BY c.crop_name
             ORDER BY "Hectares" DESC
         """,
-        "size": {"col": 12, "row": 6, "size_x": 12, "size_y": 6},
+        "size": {"col": 12, "row": 14, "size_x": 12, "size_y": 6},
+    },
+    {
+        "name": "Registered plots and their risk",
+        "description": "Every registered plot, placed where it actually is.",
+        "display": "map",
+        "sql": """
+            SELECT f.latitude  AS "Latitude",
+                   f.longitude AS "Longitude",
+                   w.woreda_en AS "Woreda",
+                   c.crop_name AS "Crop",
+                   f.area_hectares AS "Hectares",
+                   r.risk_level    AS "Risk"
+            FROM analytics.fact_farm f
+            JOIN analytics.dim_woreda w USING (woreda_key)
+            JOIN analytics.dim_crop  c USING (crop_key)
+            LEFT JOIN analytics.fact_farm_risk r
+                   ON r.farm_key = f.farm_key AND r.lead_month = 1
+        """,
+        # Markers, not a heat map: 25 plots are individual holdings a development agent needs to
+        # click, not a density to smooth over.
+        "settings": {
+            "map.type": "pin",
+            "map.pin_type": "markers",
+            "map.latitude_column": "Latitude",
+            "map.longitude_column": "Longitude",
+        },
+        "size": {"col": 0, "row": 20, "size_x": 24, "size_y": 7},
     },
 ]
 
@@ -142,14 +200,6 @@ def main() -> int:
     if not args.password:
         print("error: set METABASE_ADMIN_PASSWORD (at least 8 characters)", file=sys.stderr)
         return 2
-    if not args.db_password:
-        print(
-            f"error: set METABASE_PG_PASSWORD to the '{BI_ROLE}' password.\n"
-            '       Create one with: make bi-role password="$(openssl rand -base64 24)"',
-            file=sys.stderr,
-        )
-        return 2
-
     wait_for(args.url)
     properties = call(args.url, "/api/session/properties", method="GET") or {}
 
@@ -187,6 +237,15 @@ def main() -> int:
     if existing:
         database_id = existing["id"]
         print(f"· database already connected (id {database_id})")
+    elif not args.db_password:
+        # Only needed to create the connection; a re-run against a connected instance should not
+        # demand a credential Metabase is already holding.
+        print(
+            f"error: set METABASE_PG_PASSWORD to the '{BI_ROLE}' password.\n"
+            '       Create one with: make bi-role password="$(openssl rand -base64 24)"',
+            file=sys.stderr,
+        )
+        return 2
     else:
         created = call(
             args.url,
@@ -222,6 +281,31 @@ def main() -> int:
     else:
         print("  (warning: the analytics views have not appeared yet; cards may need a re-sync)")
 
+    # ---- 2b. the region map -----------------------------------------------------------
+    # A choropleth needs polygons Metabase can fetch for itself; it keeps them under a key that
+    # cards then reference. Registering is a read-modify-write of one setting, so existing
+    # custom maps on the instance are preserved.
+    maps = call(args.url, "/api/setting/custom-geojson", method="GET", **auth) or {}
+    mine = {k: v for k, v in maps.items() if not (v or {}).get("builtin")}
+    if mine.get(GRID_MAP_KEY, {}).get("url") == GRID_MAP_URL:
+        print(f"· region map '{GRID_MAP_KEY}' already registered")
+    else:
+        mine[GRID_MAP_KEY] = {
+            "name": "Choke watershed forecast grid",
+            "url": GRID_MAP_URL,
+            "region_key": "cell",
+            "region_name": "cell",
+        }
+        try:
+            call(args.url, "/api/setting/custom-geojson", {"value": mine}, **auth, method="PUT")
+            print(f"· registered region map '{GRID_MAP_KEY}' from {GRID_MAP_URL}")
+        except SetupError as exc:
+            raise SetupError(
+                f"could not register the region map: {exc}\n"
+                "  Generate the polygons first:  make grid-geojson\n"
+                f"  and check Metabase can reach {GRID_MAP_URL}"
+            ) from exc
+
     # ---- 3. static embedding ----------------------------------------------------------
     # Metabase split this setting in two at v0.51: older instances register only
     # `enable-embedding`, newer ones `enable-embedding-static`. Setting the wrong one is a 500,
@@ -237,9 +321,11 @@ def main() -> int:
     if not enabled:
         raise SetupError("could not enable embedding; turn it on in Admin > Settings > Embedding")
 
-    # ---- 4. a starter dashboard -------------------------------------------------------
+    # ---- 4. the dashboard ------------------------------------------------------------
+    # Reconciled rather than created once: a card added to CARDS later must reach a dashboard
+    # that already exists, and re-running must not leave two copies of anything.
     dashboards = call(args.url, "/api/dashboard", method="GET", **auth) or []
-    existing_dash = next((d for d in dashboards if d["name"] == "Ministry overview"), None)
+    existing_dash = next((d for d in dashboards if d["name"] == DASHBOARD_NAME), None)
     if existing_dash:
         dashboard_id = existing_dash["id"]
         print(f"· dashboard already exists (id {dashboard_id})")
@@ -247,31 +333,55 @@ def main() -> int:
         dashboard = call(
             args.url,
             "/api/dashboard",
-            {"name": "Ministry overview", "description": "Registered land, advisories and forecast history."},
+            {"name": DASHBOARD_NAME, "description": "Where the risk is, what is registered, and what was sent."},
             **auth,
         )
         dashboard_id = dashboard["id"]
-        cards = []
-        for card in CARDS:
-            question = call(
-                args.url,
-                "/api/card",
-                {
-                    "name": card["name"],
-                    "description": card["description"],
-                    "display": card["display"],
-                    "dataset_query": {
-                        "type": "native",
-                        "native": {"query": " ".join(card["sql"].split())},
-                        "database": database_id,
-                    },
-                    "visualization_settings": {},
-                },
-                **auth,
+        print(f"· created dashboard '{DASHBOARD_NAME}' (id {dashboard_id})")
+
+    detail = call(args.url, f"/api/dashboard/{dashboard_id}", method="GET", **auth) or {}
+    by_name = {
+        (dc.get("card") or {}).get("name"): dc
+        for dc in detail.get("dashcards", [])
+        if (dc.get("card") or {}).get("name")
+    }
+
+    dashcards, added, updated = [], 0, 0
+    for index, card in enumerate(CARDS):
+        body = {
+            "name": card["name"],
+            "description": card["description"],
+            "display": card["display"],
+            "dataset_query": {
+                "type": "native",
+                "native": {"query": " ".join(card["sql"].split())},
+                "database": database_id,
+            },
+            "visualization_settings": card.get("settings", {}),
+        }
+        placed = by_name.get(card["name"])
+        if placed:
+            card_id, dashcard_id = placed["card_id"], placed["id"]
+            # This file is the spec. A card whose query or chart type has been edited here must
+            # reach a dashboard that already exists, or the next run silently ships the old one.
+            current = placed.get("card") or {}
+            stale = (
+                current.get("display") != body["display"]
+                or ((current.get("dataset_query") or {}).get("native") or {}).get("query")
+                != body["dataset_query"]["native"]["query"]
+                or (current.get("visualization_settings") or {}) != body["visualization_settings"]
             )
-            cards.append({"id": -len(cards) - 1, "card_id": question["id"], **card["size"]})
-        call(args.url, f"/api/dashboard/{dashboard_id}", {"dashcards": cards}, **auth, method="PUT")
-        print(f"· created dashboard 'Ministry overview' with {len(cards)} cards (id {dashboard_id})")
+            if stale:
+                call(args.url, f"/api/card/{card_id}", body, **auth, method="PUT")
+                updated += 1
+        else:
+            card_id = call(args.url, "/api/card", body, **auth)["id"]
+            dashcard_id = -(index + 1)
+            added += 1
+        dashcards.append({"id": dashcard_id, "card_id": card_id, **card["size"]})
+
+    call(args.url, f"/api/dashboard/{dashboard_id}", {"dashcards": dashcards}, **auth, method="PUT")
+    print(f"· dashboard has {len(dashcards)} cards ({added} added, {updated} updated this run)")
 
     call(
         args.url,

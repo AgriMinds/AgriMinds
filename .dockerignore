@@ -12,6 +12,11 @@
 **/.mypy_cache
 docs
 data
+!data/models
+!data/geo
+!data/raw
+!data/processed
+!data/outputs
 .env
 .env.*
 !.env.example

@@ -147,6 +147,10 @@ URL for one published dashboard; the signing secret never reaches the browser.
 4. **Build a dashboard**, then **Sharing → Embed → Static embedding → Publish**. The dashboard id
    is the number in its URL.
 
+`make analytics-setup admin_password="…" password="…"` does steps 1, 3 and 4 for you over
+Metabase's API, including a starter dashboard. It reconciles rather than recreates, so adding a
+card to `scripts/metabase_setup.py` and re-running updates the existing dashboard in place.
+
    ```bash
    echo "AGRIMINDS_METABASE_DASHBOARD_ID=7" >> .env
    docker compose up -d backend
@@ -154,6 +158,35 @@ URL for one published dashboard; the signing secret never reaches the browser.
 
 The Analytics tab appears once the API can sign a URL. Until then the page says so plainly and
 points staff at the native dashboards, rather than rendering a broken frame.
+
+### Maps
+
+Two of the dashboard cards are maps, and they answer different questions.
+
+**Drought risk** is a choropleth: one polygon per forecast cell, shaded by probability. A drought
+field is a surface, and 64 identical pins encode nothing — so the grid is published as GeoJSON
+and Metabase shades it. Generate the polygons once, then point Metabase at them:
+
+```bash
+make grid-geojson     # writes data/geo/choke_grid.geojson
+```
+
+The setup script registers it as a custom region map pointing at
+`http://backend:8000/api/v1/geo/grid.geojson`. That endpoint is deliberately **unauthenticated**:
+Metabase fetches a custom GeoJSON without sending any credential, and the file is pure geometry —
+the catchment outline and the grid, carrying no reading, no account and no plot. Anything with a
+number in it stays behind the authenticated endpoints.
+
+Cells outside the catchment are left unshaded. The grid is a rectangle over a basin that is not
+one, so 15 of its 64 cells have no reading to report; `fact_risk.in_watershed` is what the card
+filters on, and the same column stops any other BI tool presenting them as readings.
+
+**Registered plots** is a pin map on an OpenStreetMap basemap, so an agent can see holdings
+against real terrain, rivers and towns.
+
+One limitation worth knowing: Metabase's *heat* pin type throws in v0.50 (`setOptions` of
+undefined), and its region maps draw no basemap. Pins give you the basemap, the choropleth gives
+you the encoding; the dashboard uses each where it fits.
 
 ### Scoping an agent to their own district
 

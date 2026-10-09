@@ -159,3 +159,50 @@ def test_the_shapefile_still_reads_the_same_way():
     from_json = load_boundary(GEOJSON)
     assert from_shape.bbox == pytest.approx(from_json.bbox, abs=1e-4)
     assert from_shape.area_km2 == from_json.area_km2
+
+
+def test_grid_geojson_agrees_with_the_mask():
+    """The map and the mask must mark the same cells, or the choropleth shows readings for
+    land the basin does not contain."""
+    from ai_drews.config import DEFAULT_CONFIG
+    from ai_drews.geo.watershed import grid_geojson, grid_mask, load_boundary
+
+    survey = REPO_ROOT / "data" / "geo" / "choke_watershed.geojson"
+    if not survey.exists():
+        pytest.skip("surveyed outline not present")
+    boundary = load_boundary(survey)
+
+    mask = grid_mask(boundary, DEFAULT_CONFIG.rows, DEFAULT_CONFIG.cols, DEFAULT_CONFIG.bbox)
+    features = grid_geojson(DEFAULT_CONFIG.rows, DEFAULT_CONFIG.cols, DEFAULT_CONFIG.bbox, boundary)[
+        "features"
+    ]
+
+    assert len(features) == DEFAULT_CONFIG.rows * DEFAULT_CONFIG.cols
+    for feature in features:
+        row, col = feature["properties"]["row"], feature["properties"]["col"]
+        assert feature["properties"]["in_watershed"] == mask.inside[row][col], (
+            f"cell ({row},{col}) disagrees with the grid mask"
+        )
+
+
+def test_grid_cells_tile_the_bounding_box_without_gaps():
+    from ai_drews.geo.watershed import grid_geojson
+
+    features = grid_geojson(2, 2, (37.0, 10.0, 38.0, 11.0))["features"]
+    rings = [f["geometry"]["coordinates"][0] for f in features]
+    assert all(ring[0] == ring[-1] for ring in rings), "every ring must be closed"
+
+    lons = sorted({round(x, 6) for ring in rings for x, _ in ring})
+    lats = sorted({round(y, 6) for ring in rings for _, y in ring})
+    assert lons == [37.0, 37.5, 38.0]
+    assert lats == [10.0, 10.5, 11.0]
+
+
+def test_row_zero_is_the_northern_most_row():
+    """The grid, the mask and every forecast array share this convention."""
+    from ai_drews.geo.watershed import cell_id, grid_geojson
+
+    features = {f["properties"]["cell"]: f for f in grid_geojson(2, 2, (37.0, 10.0, 38.0, 11.0))["features"]}
+    north = features[cell_id(0, 0)]["geometry"]["coordinates"][0]
+    south = features[cell_id(1, 0)]["geometry"]["coordinates"][0]
+    assert max(y for _, y in north) > max(y for _, y in south)

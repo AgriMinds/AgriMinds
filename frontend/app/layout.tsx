@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: t('tagline'),
     applicationName: t('title'),
     keywords: ['Ethiopia', 'agriculture', 'drought early warning', 'farmer advisory', 'AI-DREWS', 'Choke Mountain'],
-    icons: { icon: '/icon.svg', apple: '/apple-icon.png' },
+    icons: { icon: [{ url: '/icon.svg' }, { url: '/icon.png', sizes: '512x512', type: 'image/png' }], apple: '/apple-icon.png' },
   }
 }
 

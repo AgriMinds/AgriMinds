@@ -111,11 +111,30 @@ def load_fields(paths: DataPaths) -> Fields:
 
 
 def load_enso_fc(paths: DataPaths, T: int, leads: int = 3) -> np.ndarray:
-    """ENSO forecasts (leads 1..3) from Objective 1 aligned to the field dates; zeros if not trained yet."""
+    """ENSO forecasts aligned to the field dates; zeros if Objective 1 has not been trained yet.
+
+    When the ENSO model reaches less far than the drought head, the furthest available lead is
+    carried forward rather than zero-filled: a zero is the value for "neutral", which is a claim
+    about the Pacific, while carrying forward says only that nothing newer is known. Either way
+    the affected leads will not clear the skill gate, so this decides how they look, not whether
+    they are published.
+    """
     if not paths.enso_forecast_csv.exists():
         return np.zeros((T, leads), "float32")
-    cols = [f"fc_l{i + 1}" for i in range(leads)]
-    fc = pd.read_csv(paths.enso_forecast_csv)[cols].to_numpy("float32")
+    frame = pd.read_csv(paths.enso_forecast_csv)
+    available = [c for c in (f"fc_l{i + 1}" for i in range(leads)) if c in frame.columns]
+    if not available:
+        log.warning("enso_forecast.csv has no fc_l* columns; the drought head loses its ENSO input")
+        return np.zeros((T, leads), "float32")
+    fc = frame[available].to_numpy("float32")
+    if len(available) < leads:
+        log.warning(
+            "ENSO reaches %d leads but the drought head needs %d; carrying lead %d forward",
+            len(available),
+            leads,
+            len(available),
+        )
+        fc = np.concatenate([fc, np.repeat(fc[:, -1:], leads - len(available), axis=1)], axis=1)
     if len(fc) != T:
         raise ValueError(
             f"enso_forecast.csv has {len(fc)} rows but fields have {T} months; retrain ENSO first"

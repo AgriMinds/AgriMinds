@@ -10,14 +10,21 @@ from ai_drews.config import DEFAULT_CONFIG, PipelineConfig
 Norm = dict[str, np.ndarray]
 
 
+#: Width of the point vector before the ENSO forecast is appended: six seasonal harmonics plus
+#: four FFT amplitudes each for rain and ENSO. The total width follows the forecast horizon, so
+#: nothing downstream should assume a constant.
+FOURIER_BASE_FEATURES = 6 + 4 + 4
+
+
 def fourier_feats(F: dict, t: int, enso_fc: np.ndarray, cfg: PipelineConfig = DEFAULT_CONFIG) -> np.ndarray:
-    """Xp: seasonal harmonics of origin month + FFT amplitudes of rain & ENSO window + ENSO forecast (17 dims)."""
+    """Xp: seasonal harmonics of the origin month, FFT amplitudes of the rain and ENSO windows,
+    and the ENSO forecast itself — ``FOURIER_BASE_FEATURES + cfg.drought_leads`` dimensions."""
     m = F["months"][t]
     harm = [f(2 * np.pi * k * m / 12) for k in (1, 2, 3) for f in (np.sin, np.cos)]
     w = slice(t - cfg.window + 1, t + 1)
     fr = np.abs(np.fft.rfft(F["TF"][w, 0]))[1:5] / cfg.window
     fn = np.abs(np.fft.rfft(F["nino"][w]))[1:5] / cfg.window
-    return np.array(harm + list(fr) + list(fn) + list(enso_fc[t]), dtype="float32")  # 6+4+4+3 = 17
+    return np.array(harm + list(fr) + list(fn) + list(enso_fc[t]), dtype="float32")
 
 
 def make_inputs(F: dict, t_idx, enso_fc: np.ndarray, cfg: PipelineConfig = DEFAULT_CONFIG):

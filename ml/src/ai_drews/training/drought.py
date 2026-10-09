@@ -12,6 +12,7 @@ import torch
 from sklearn.metrics import brier_score_loss, f1_score, roc_auc_score
 
 from ai_drews import __version__
+from ai_drews.advisory.classification import MIN_SKILFUL_BSS, is_skilful, skilful_leads
 from ai_drews.config import DEFAULT_CONFIG, DataPaths, PipelineConfig
 from ai_drews.features.fields import load_enso_fc, load_fields
 from ai_drews.features.windows import apply_norm, fit_norm, make_inputs, make_labels, split_idx
@@ -70,8 +71,17 @@ def train_drought(
             )
         )
     metrics = pd.DataFrame(rows).round(3)
+    # Whether each lead earned the right to be published as a probability. Recorded here, at the
+    # only point where it is actually measured, so no consumer has to re-derive it.
+    metrics["skilful"] = metrics["BSS_vs_climatology"].map(is_skilful)
     metrics.to_csv(paths.outputs / "drought_metrics.csv", index=False)
     log.info("drought metrics:\n%s", metrics.to_string(index=False))
+    earned = skilful_leads(metrics.to_dict(orient="records"))
+    log.info(
+        "leads published as a forecast: %s (of %d trained); the rest are served as a seasonal outlook",
+        earned or "none",
+        cfg.drought_leads,
+    )
 
     torch.save(model.state_dict(), paths.drought_model_pt)
     np.savez(paths.drought_norm_npz, **norm)
@@ -80,6 +90,8 @@ def train_drought(
         f_t=int(X["tr"][1].shape[2]),
         f_p=int(X["tr"][2].shape[1]),
         n_leads=cfg.drought_leads,
+        skilful_leads=skilful_leads(metrics.to_dict(orient="records")),
+        min_skilful_bss=MIN_SKILFUL_BSS,
         thresholds=thresholds,
         model_version=f"superhybrid-{__version__}",
         trained_at=datetime.now(UTC).isoformat(timespec="seconds"),

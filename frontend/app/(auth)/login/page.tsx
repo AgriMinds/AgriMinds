@@ -1,6 +1,6 @@
+import Image from 'next/image'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { Leaf } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { homePathFor } from '@agriminds/api-types'
 import { LoginForm } from '@/features/auth/LoginForm'
@@ -35,8 +35,8 @@ export default async function LoginPage({
     <main id="main" className="bg-contour flex min-h-svh flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
-          <span className="flex size-14 items-center justify-center rounded-2xl bg-brand-lime text-brand-forest-deep shadow-md">
-            <Leaf className="size-7" />
+          <span className="flex size-14 items-center justify-center overflow-hidden rounded-2xl shadow-md">
+            <Image src="/icon.png" alt="AgriMinds" width={56} height={56} className="size-14 object-cover" />
           </span>
           <div>
             <h1 className="font-display text-display-sm font-bold tracking-tight">{ta('name')}</h1>

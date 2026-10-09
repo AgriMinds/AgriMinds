@@ -1,6 +1,7 @@
 'use client'
 
-import { Leaf, MapPin, Menu } from 'lucide-react'
+import Image from 'next/image'
+import { MapPin, Menu } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
@@ -53,7 +54,7 @@ export function TopBar({ onOpenNav, user }: TopBarProps) {
             <Menu />
           </Button>
           <span className="flex min-w-0 items-center gap-2 truncate font-display text-sm font-bold tracking-tight lg:hidden">
-            <Leaf className="size-4 text-primary" /> {t('title')}
+            <Image src="/icon.png" alt="AgriMinds" width={20} height={20} className="size-5 rounded-sm object-cover" /> {t('title')}
           </span>
           <p className="hidden min-w-0 items-center gap-1.5 truncate text-sm text-fg-muted lg:flex">
             <MapPin className="size-3.5 shrink-0 text-primary" /> {t('subtitle')}

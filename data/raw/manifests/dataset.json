@@ -1,0 +1,22 @@
+{
+  "key": "dataset",
+  "provider": "era5: ERA5 reanalysis (ECMWF), served by the Open-Meteo archive; nino34: NOAA Physical Sciences Laboratory",
+  "source_url": "",
+  "citation": "Hersbach et al. (2020), ERA5 hourly data on single levels, Copernicus Climate Change Service. Retrieved through https://open-meteo.com/en/docs/historical-weather-api | NOAA PSL climate indices derived from ERSST v5/v6, anomalies against the 1981-2010 base period. https://psl.noaa.gov/data/climateindices/",
+  "retrieved_at": "2026-10-09T06:03:18+00:00",
+  "records": 318,
+  "coverage_start": "2000-01-01",
+  "coverage_end": "2026-06-01",
+  "variables": [
+    "nino12",
+    "nino34",
+    "nino4",
+    "pet_fao",
+    "rain",
+    "soi",
+    "soilm",
+    "tmax",
+    "tmean"
+  ],
+  "notes": "Observed data for 8x8 cells over 318 months, assembled from era5, nino34."
+}

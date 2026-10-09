@@ -1,7 +1,7 @@
 import numpy as np
 
 from ai_drews.features import compute_fields, make_inputs, make_labels, spi, split_idx, vci, zanom
-from ai_drews.features.windows import apply_norm, fit_norm
+from ai_drews.features.windows import FOURIER_BASE_FEATURES, apply_norm, fit_norm
 
 
 def test_spi_is_standardised_and_has_leading_nans(synthetic, months, test_cfg):
@@ -41,7 +41,9 @@ def test_fields_and_sample_shapes(synthetic, test_cfg):
     Xs, Xt, Xp = make_inputs(F, tr, fc, test_cfg)
     assert Xs.shape == (len(tr), 5, H, W)
     assert Xt.shape == (len(tr), test_cfg.window, 7)
-    assert Xp.shape == (len(tr), 17)
+    # The point vector carries the ENSO forecast, so its width follows the horizon rather than
+    # being a constant. Pinning the number here is what broke when the horizon went 3 -> 12.
+    assert Xp.shape == (len(tr), FOURIER_BASE_FEATURES + test_cfg.drought_leads)
     Y = make_labels(F, tr, test_cfg)
     assert Y.shape == (len(tr), test_cfg.drought_leads, H, W)
     assert set(np.unique(Y)) <= {0.0, 1.0}

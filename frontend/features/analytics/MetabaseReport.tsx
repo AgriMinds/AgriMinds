@@ -43,11 +43,12 @@ export function millisecondsUntilRenewal(expiresAt: string, now: number = Date.n
  */
 export function MetabaseReport({ config, onRenew, isRenewing }: Props) {
   const t = useTranslations('analytics')
+  const src = config.embed_url
   // Which URL has finished loading, rather than a boolean reset on every change: a renewal
   // swaps the src, and the placeholder must come back for the new frame without an effect
   // reaching in to clear a flag.
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null)
-  const loaded = loadedUrl === config.embed_url
+  const loaded = loadedUrl === src
 
   // Renew on the URL's own schedule, not a fixed interval: the server decides how long it lives.
   useEffect(() => {
@@ -73,7 +74,7 @@ export function MetabaseReport({ config, onRenew, isRenewing }: Props) {
             </span>
           )}
           <a
-            href={config.embed_url}
+            href={src}
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-1.5 text-xs font-medium text-fg-muted underline-offset-2 hover:text-fg hover:underline focus-visible:ring-2 focus-visible:ring-ring"
@@ -83,7 +84,11 @@ export function MetabaseReport({ config, onRenew, isRenewing }: Props) {
         </span>
       </div>
 
-      <div className="relative h-[70vh] min-h-[420px] w-full overflow-hidden rounded-2xl border border-border bg-surface-raised">
+      {/* The frame keeps a light surface in both themes. Metabase's static embed ignores the
+          theme options in the URL fragment (tested against v0.50), so the dashboard renders
+          light whatever the page does; giving its container a deliberate light sheet reads as a
+          printed report rather than as an element that failed to follow the theme. */}
+      <div className="relative h-[70vh] min-h-[420px] w-full overflow-hidden rounded-2xl border border-border bg-white p-1 shadow-sm">
         {!loaded && (
           <div
             className="absolute inset-0 animate-pulse bg-surface-sunken"
@@ -92,11 +97,11 @@ export function MetabaseReport({ config, onRenew, isRenewing }: Props) {
           />
         )}
         <iframe
-          key={config.embed_url}
-          src={config.embed_url}
+          key={src}
+          src={src}
           title={t('reportTitle')}
-          onLoad={() => setLoadedUrl(config.embed_url)}
-          className="size-full border-0"
+          onLoad={() => setLoadedUrl(src)}
+          className="size-full rounded-xl border-0"
           // The dashboard is read-only and same-purpose; it needs no camera, no payment, no
           // access to the parent. Allow only what a chart actually uses.
           sandbox="allow-scripts allow-same-origin allow-popups allow-forms"

@@ -9,6 +9,7 @@ from agriminds_api.api.v1 import (
     drought,
     enso,
     farms,
+    geo,
     health,
     system,
 )
@@ -16,9 +17,11 @@ from agriminds_api.schemas.common import ErrorResponse
 
 api_router = APIRouter()
 
-# Public: liveness/readiness and the sign-in endpoints.
+# Public: liveness/readiness, sign-in, and map geometry (which carries no readings — a BI tool
+# fetching a choropleth's polygons cannot present a credential).
 api_router.include_router(health.router)
 api_router.include_router(auth.router)
+api_router.include_router(geo.router)
 
 # Forecast data: a signed-in person or a trusted service (X-API-Key).
 _forecast = APIRouter(

@@ -1,11 +1,11 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   BarChart3,
   Database,
-  Leaf,
   ListChecks,
   Map,
   Sprout,
@@ -31,7 +31,7 @@ type NavItem = { href: string; key: string; icon: LucideIcon }
 export function navForRole(role: Role): NavItem[] {
   if (role === 'farmer') return [{ href: '/farm', key: 'farm', icon: Sprout }]
   return [
-    { href: '/ministry', key: 'ministry', icon: Leaf },
+    { href: '/ministry', key: 'ministry', icon: Map },
     { href: '/watershed', key: 'watershed', icon: Map },
     { href: '/analytics', key: 'analytics', icon: BarChart3 },
     { href: '/data-sources', key: 'dataSources', icon: Database },
@@ -251,8 +251,8 @@ export function Sidebar({ open, onClose, user }: Props) {
             onClick={onClose}
             className="flex items-center gap-3 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-lime"
           >
-            <span className="flex size-10 items-center justify-center rounded-xl bg-brand-lime text-brand-forest-deep shadow-md shadow-black/20">
-              <Leaf className="size-5" />
+            <span className="flex size-10 items-center justify-center overflow-hidden rounded-xl shadow-md shadow-black/20">
+              <Image src="/icon.png" alt="AgriMinds" width={40} height={40} className="size-10 object-cover" />
             </span>
             <span className="leading-tight">
               <span className="block font-display text-base font-bold tracking-tight">{t('name')}</span>

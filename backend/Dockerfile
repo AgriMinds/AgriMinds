@@ -24,6 +24,12 @@ WORKDIR /app
 COPY --from=builder --chown=app:app /app/.venv /app/.venv
 COPY --from=builder --chown=app:app /app/ml /app/ml
 COPY --from=builder --chown=app:app /app/backend /app/backend
+# Bake model weights and reference data into the image so Railway has them without a volume mount
+COPY --chown=app:app data/models /app/data/models
+COPY --chown=app:app data/geo /app/data/geo
+COPY --chown=app:app data/raw /app/data/raw
+COPY --chown=app:app data/processed /app/data/processed
+COPY --chown=app:app data/outputs /app/data/outputs
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     AGRIMINDS_DATA_DIR=/app/data \

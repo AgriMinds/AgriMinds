@@ -80,6 +80,29 @@ def data_sources(data_dir: DataDir = None) -> None:
         )
 
 
+@app.command("grid-geojson")
+def grid_geojson_cmd(data_dir: DataDir = None) -> None:
+    """Write the forecast grid as one polygon per cell, for choropleth maps.
+
+    A pin map puts identical dots on the watershed and encodes nothing. This is what a BI tool
+    shades by probability; join it on `cell` (r{row}c{col}).
+    """
+    from ai_drews.geo.watershed import load_boundary, write_grid_geojson
+
+    paths = _paths(data_dir)
+    boundary = load_boundary(paths.watershed_geojson) if paths.watershed_geojson.exists() else None
+    if boundary is None:
+        typer.echo("warning: no catchment outline; every cell will be marked in_watershed")
+    out = write_grid_geojson(
+        paths.root / "geo" / "choke_grid.geojson",
+        DEFAULT_CONFIG.rows,
+        DEFAULT_CONFIG.cols,
+        DEFAULT_CONFIG.bbox,
+        boundary,
+    )
+    typer.echo(f"{out} ({DEFAULT_CONFIG.rows}x{DEFAULT_CONFIG.cols} cells)")
+
+
 @app.command("build-data")
 def build_data(data_dir: DataDir = None) -> None:
     """Step 1: load real raw data if present, otherwise write synthetic stand-in data."""

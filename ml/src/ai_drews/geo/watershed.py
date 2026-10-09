@@ -250,6 +250,80 @@ def load_boundary(path: str | Path) -> Boundary:
     )
 
 
+def cell_id(row: int, col: int) -> str:
+    """Stable key for one grid cell, used to join a map polygon to a forecast row."""
+    return f"r{row}c{col}"
+
+
+def grid_geojson(
+    rows: int,
+    cols: int,
+    bbox: tuple[float, float, float, float],
+    boundary: Boundary | None = None,
+) -> dict:
+    """The forecast grid as one polygon per cell, for choropleth mapping.
+
+    A pin map puts 64 identical dots on the watershed and encodes nothing; a drought field is a
+    surface, so each cell is drawn as the rectangle it actually covers and shaded by its own
+    probability. `cell` matches :func:`cell_id`, which is what a BI tool joins on.
+
+    Cells outside the catchment are kept but marked: dropping them silently would make the map
+    disagree with the grid mask, and showing them unmarked would present a reading for land the
+    basin does not contain.
+    """
+    lon_min, lat_min, lon_max, lat_max = bbox
+    lat_step = (lat_max - lat_min) / rows
+    lon_step = (lon_max - lon_min) / cols
+
+    features = []
+    for row in range(rows):
+        north = lat_max - row * lat_step
+        south = north - lat_step
+        for col in range(cols):
+            west = lon_min + col * lon_step
+            east = west + lon_step
+            centre_lon, centre_lat = (west + east) / 2, (north + south) / 2
+            inside = bool(boundary.contains(centre_lon, centre_lat)) if boundary else True
+            features.append(
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "cell": cell_id(row, col),
+                        "row": row,
+                        "col": col,
+                        "in_watershed": inside,
+                    },
+                    "geometry": {
+                        "type": "Polygon",
+                        # Closed ring, anticlockwise from the south-west corner.
+                        "coordinates": [
+                            [
+                                [round(west, 6), round(south, 6)],
+                                [round(east, 6), round(south, 6)],
+                                [round(east, 6), round(north, 6)],
+                                [round(west, 6), round(north, 6)],
+                                [round(west, 6), round(south, 6)],
+                            ]
+                        ],
+                    },
+                }
+            )
+    return {"type": "FeatureCollection", "features": features}
+
+
+def write_grid_geojson(
+    path: str | Path,
+    rows: int,
+    cols: int,
+    bbox: tuple[float, float, float, float],
+    boundary: Boundary | None = None,
+) -> Path:
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(grid_geojson(rows, cols, bbox, boundary), separators=(",", ":")))
+    return out
+
+
 def write_geojson(boundary: Boundary, path: str | Path, simplify_tolerance: float | None = None) -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)

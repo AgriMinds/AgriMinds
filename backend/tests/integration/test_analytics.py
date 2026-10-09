@@ -396,3 +396,61 @@ class TestBlankEnvironmentVariables:
     def test_whitespace_is_not_a_configuration(self):
         settings = Settings(_env_file=None, env="test", metabase_secret_key="   ")
         assert settings.metabase_secret_key is None
+
+
+class TestSnapshotMarksTheCatchment:
+    """The grid is a rectangle over a basin that is not one. A snapshot that forgets which
+    cells lie outside lets any BI tool shade them as readings."""
+
+    async def test_cells_outside_the_catchment_are_marked(self, client, db_session, artifacts_dir):
+        from agriminds_api.core.cache import MemoryCache
+        from agriminds_api.services.grid import build_grid
+        from agriminds_api.services.inference import InferenceService
+        from agriminds_api.services.snapshot import write_risk_snapshot
+
+        settings = Settings(_env_file=None, env="test", data_dir=artifacts_dir.root, redis_url=None)
+        inference = InferenceService(settings, MemoryCache())
+        inference.load()
+        # The grid the application builds, not a bounding box: that difference is the bug.
+        await write_risk_snapshot(db_session, inference, build_grid(settings))
+        await db_session.commit()
+
+        rows = (
+            await db_session.execute(
+                text(
+                    "SELECT in_watershed, count(DISTINCT (grid_row, grid_col)) "
+                    "FROM risk_snapshots GROUP BY in_watershed"
+                )
+            )
+        ).all()
+        counts = {bool(flag): int(n) for flag, n in rows}
+        assert counts.get(False, 0) > 0, (
+            "no cell is marked outside the catchment; the snapshot grid has lost its boundary"
+        )
+        assert counts.get(True, 0) > 0, "every cell marked outside: the mask cannot be right"
+
+    async def test_the_analytics_view_exposes_the_flag(self, client, db_session):
+        from sqlalchemy import text as sa_text
+
+        columns = {
+            row[0]
+            for row in (
+                await db_session.execute(
+                    sa_text(
+                        "SELECT column_name FROM information_schema.columns "
+                        "WHERE table_schema = 'analytics' AND table_name = 'fact_risk'"
+                    )
+                )
+            ).all()
+        }
+        assert "in_watershed" in columns
+
+    def test_the_api_and_the_snapshot_build_the_same_grid(self, artifacts_dir):
+        """They used to diverge: the CLI built a bounding-box grid and marked everything inside."""
+        from tests.conftest import _settings
+
+        from agriminds_api.services.grid import build_grid
+
+        grid = build_grid(_settings(artifacts_dir.root))
+        assert grid.boundary is not None, "the surveyed outline should be loaded"
+        assert grid.cells_in_watershed() < grid.rows * grid.cols

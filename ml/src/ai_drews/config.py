@@ -24,8 +24,16 @@ class PipelineConfig:
     bbox: tuple[float, float, float, float] = (37.00780, 9.84375, 38.53125, 11.26234)
 
     window: int = 12  # months of history fed to the networks
-    enso_leads: int = 6  # Objective 1: Nino3.4 forecast horizon (months)
-    drought_leads: int = 3  # Objective 2: drought probability horizon (months)
+    #: Objective 1: how far ahead Niño 3.4 is forecast. It matches `drought_leads` because the
+    #: drought head is conditioned on this series — a lead with no ENSO input has nothing to
+    #: distinguish it from climatology. Skill beyond about nine months is poor (the spring
+    #: predictability barrier), which the per-lead scoring is there to expose rather than hide.
+    enso_leads: int = 12
+    #: Objective 2: how far ahead the drought head is *trained*. Training a lead is not the same
+    #: as publishing it — each is scored against climatology and only the skilful ones are served
+    #: as probabilities, the rest as a seasonal outlook. Training the full year costs little and
+    #: means the horizon widens by itself as the record and the inputs improve.
+    drought_leads: int = 12
     spi_scale: int = 3  # SPI-3 (seasonal drought)
     spi_drought: float = -1.0  # SPI <= -1 -> drought event
     # Available water capacity of the soil profile, used by the Palmer water balance (mm).

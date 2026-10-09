@@ -1,34 +1,16 @@
 'use client'
 
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback } from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
+import { useIsDark } from '@/hooks/useIsDark'
 
 const KEY = 'agriminds-theme'
 
-/** The <html> class list is the source of truth (set before paint by the inline script in layout.tsx). */
-function subscribe(onChange: () => void) {
-  const observer = new MutationObserver(onChange)
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-  const mq = window.matchMedia('(prefers-color-scheme: dark)')
-  mq.addEventListener('change', onChange)
-  return () => {
-    observer.disconnect()
-    mq.removeEventListener('change', onChange)
-  }
-}
-
-function getSnapshot(): boolean {
-  const root = document.documentElement
-  if (root.classList.contains('dark')) return true
-  if (root.classList.contains('light')) return false
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-}
-
 export function ThemeToggle() {
   const t = useTranslations('app.theme')
-  const isDark = useSyncExternalStore(subscribe, getSnapshot, () => false)
+  const isDark = useIsDark()
 
   const toggle = useCallback(() => {
     const next = !isDark

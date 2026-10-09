@@ -88,14 +88,16 @@ bi-role: ## Enable the read-only analytics login for BI tools (prints the passwo
 	  "ALTER ROLE agriminds_bi WITH LOGIN PASSWORD '$(password)';"
 	@echo "agriminds_bi can now sign in. It can read schema 'analytics' and nothing else."
 
+grid-geojson: ## Write the forecast grid as polygons, for choropleth maps
+	$(COMPOSE) run --rm backend ai-drews grid-geojson
+
 analytics: ## Start Metabase (open source, no licence) on http://localhost:3001
 	$(COMPOSE) --profile analytics up -d metabase
 	@echo "Metabase starting on http://localhost:$${METABASE_PORT:-3001} (first boot takes a minute)."
 	@echo "Connect it to postgres/agriminds as 'agriminds_bi' -- see docs/analytics.md."
 
-analytics-setup: ## Provision Metabase: admin, read-only database, embedding and a starter dashboard
-	@test -n "$(password)" || (echo 'usage: make analytics-setup password="<agriminds_bi password>" admin_password="<metabase admin password>"' && exit 1)
-	@test -n "$(admin_password)" || (echo 'usage: make analytics-setup password="<agriminds_bi password>" admin_password="<metabase admin password>"' && exit 1)
+analytics-setup: ## Provision Metabase: admin, read-only database, embedding and the dashboard
+	@test -n "$(admin_password)" || (echo 'usage: make analytics-setup admin_password="<metabase admin>" [password="<agriminds_bi>"]' && echo '       password= is only needed the first time, to create the database connection.' && exit 1)
 	METABASE_PG_PASSWORD='$(password)' METABASE_ADMIN_PASSWORD='$(admin_password)' \
 	  METABASE_URL=http://localhost:$${METABASE_PORT:-3001} $(PY) scripts/metabase_setup.py
 

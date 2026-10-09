@@ -129,13 +129,15 @@ def snapshot_risk() -> None:
         from starlette.concurrency import run_in_threadpool
 
         from agriminds_api.core.cache import build_cache
-        from agriminds_api.domain.geo import GridSpec
+        from agriminds_api.services.grid import build_grid
         from agriminds_api.services.inference import InferenceService
         from agriminds_api.services.snapshot import write_risk_snapshot
 
         inference = InferenceService(settings, build_cache(None))
         await run_in_threadpool(inference.load)
-        grid = GridSpec.from_bbox(settings.grid_rows, settings.grid_cols, settings.bbox)
+        # The same grid the API serves: a bounding-box grid here would mark every cell as
+        # inside the catchment and the snapshot would contradict the map.
+        grid = build_grid(settings)
         typer.echo(await write_risk_snapshot(session, inference, grid))
 
     _run(work)
