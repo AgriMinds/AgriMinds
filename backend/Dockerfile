@@ -8,14 +8,12 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 COPY ml/pyproject.toml ml/README.md ml/
 COPY backend/pyproject.toml backend/README.md backend/
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-install-workspace --package agriminds-api
+RUN uv sync --frozen --no-dev --no-install-workspace --package agriminds-api
 COPY ml/src ml/src
 COPY backend/src backend/src
 COPY backend/alembic.ini backend/alembic.ini
 COPY backend/alembic backend/alembic
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --package agriminds-api
+RUN uv sync --frozen --no-dev --package agriminds-api
 
 FROM python:3.12-slim AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/* \
