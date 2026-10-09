@@ -158,32 +158,73 @@ def _fetch(
     headers: dict[str, str] | None,
     timeout: float = _TIMEOUT,
 ) -> Any:
+    import os
+
     try:
         import httpx
     except ModuleNotFoundError as exc:  # pragma: no cover - dependency is declared
         raise IngestError("httpx is required to ingest data: pip install -e 'ml[ingest]'") from exc
+
+    request_params = dict(params) if params is not None else {}
+    api_key = os.getenv("OPEN_METEO_API_KEY")
+    if api_key and "open-meteo.com" in url and "apikey" not in request_params:
+        request_params["apikey"] = api_key
 
     last: Exception | None = None
     attempt = 0
     waited_for_rate_limit = 0.0
     while attempt < _RETRIES:
         try:
-            response = httpx.get(url, params=params, headers=headers, timeout=timeout, follow_redirects=True)
+            response = httpx.get(
+                url,
+                params=request_params if request_params else None,
+                headers=headers,
+                timeout=timeout,
+                follow_redirects=True,
+            )
             response.raise_for_status()
             return response
         except Exception as exc:  # noqa: BLE001 - every transport failure is worth one more try
             last = exc
-            if getattr(getattr(exc, "response", None), "status_code", None) == 429:
-                if waited_for_rate_limit + _RATE_LIMIT_WAIT > _RATE_LIMIT_TOTAL_WAIT:
+            resp = getattr(exc, "response", None)
+            if getattr(resp, "status_code", None) == 429:
+                reason = ""
+                try:
+                    reason = str(resp.json().get("reason", ""))
+                except Exception:
+                    reason = getattr(resp, "text", "")[:200]
+
+                if any(kw in reason.lower() for kw in ("daily", "tomorrow", "quota", "limit exceeded")):
+                    raise IngestError(
+                        f"{url} exceeded daily rate limit (HTTP 429: {reason}). "
+                        "The Open-Meteo free tier daily request quota has been reached for this IP. "
+                        "Set OPEN_METEO_API_KEY in your environment to use an API key, or wait until tomorrow (00:00 UTC)."
+                    ) from exc
+
+                retry_after_str = resp.headers.get("retry-after") if hasattr(resp, "headers") else None
+                wait_step = _RATE_LIMIT_WAIT
+                if retry_after_str:
+                    try:
+                        wait_step = float(retry_after_str)
+                    except ValueError:
+                        pass
+
+                if wait_step > 300.0:
+                    raise IngestError(
+                        f"{url} requested a long rate-limit wait ({wait_step:.0f}s): {reason}"
+                    ) from exc
+
+                if waited_for_rate_limit + wait_step > _RATE_LIMIT_TOTAL_WAIT:
                     break
-                waited_for_rate_limit += _RATE_LIMIT_WAIT
+                waited_for_rate_limit += wait_step
                 log.warning(
-                    "%s is rate-limited; waiting %.0fs (%.0f min waited so far)",
+                    "%s is rate-limited (%s); waiting %.0fs (%.0f min waited so far)",
                     url,
-                    _RATE_LIMIT_WAIT,
+                    reason or "429 Too Many Requests",
+                    wait_step,
                     waited_for_rate_limit / 60,
                 )
-                time.sleep(_RATE_LIMIT_WAIT)
+                time.sleep(wait_step)
                 # Reset the transport-failure counter: the 429 backoff already served as the
                 # pause, so the next attempt should get a full retry budget.
                 attempt = 0

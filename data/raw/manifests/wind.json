@@ -1,0 +1,17 @@
+{
+  "key": "wind",
+  "provider": "ERA5 reanalysis (ECMWF), served by the Open-Meteo archive",
+  "source_url": "https://archive-api.open-meteo.com/v1/archive",
+  "citation": "Hersbach et al. (2020), ERA5 hourly data on single levels: 10m u-component and 10m v-component of wind. Retrieved through https://open-meteo.com/en/docs/historical-weather-api",
+  "retrieved_at": "2026-10-09T12:34:14+00:00",
+  "records": 24960,
+  "coverage_start": "1994-01-01",
+  "coverage_end": "2026-06-01",
+  "variables": [
+    "u10",
+    "v10",
+    "wind_speed",
+    "wind_constancy"
+  ],
+  "notes": "8x8 cells, 390 months. Hourly 10 m speed and direction converted to components per hour, then averaged \u2014 the vector mean the Climate Data Store's u/v fields carry, not a scalar mean with a dominant direction."
+}

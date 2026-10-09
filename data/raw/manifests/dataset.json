@@ -1,9 +1,9 @@
 {
   "key": "dataset",
-  "provider": "era5: ERA5 reanalysis (ECMWF), served by the Open-Meteo archive; nino34: NOAA Physical Sciences Laboratory",
+  "provider": "era5: ERA5 reanalysis (ECMWF), served by the Open-Meteo archive; nino34: NOAA Physical Sciences Laboratory; wind: ERA5 reanalysis (ECMWF), served by the Open-Meteo archive",
   "source_url": "",
-  "citation": "Hersbach et al. (2020), ERA5 hourly data on single levels, Copernicus Climate Change Service. Retrieved through https://open-meteo.com/en/docs/historical-weather-api | NOAA PSL climate indices derived from ERSST v5/v6, anomalies against the 1981-2010 base period. https://psl.noaa.gov/data/climateindices/",
-  "retrieved_at": "2026-10-09T06:03:18+00:00",
+  "citation": "Hersbach et al. (2020), ERA5 hourly data on single levels, Copernicus Climate Change Service. Retrieved through https://open-meteo.com/en/docs/historical-weather-api | NOAA PSL climate indices derived from ERSST v5/v6, anomalies against the 1981-2010 base period. https://psl.noaa.gov/data/climateindices/ | Hersbach et al. (2020), ERA5 hourly data on single levels: 10m u-component and 10m v-component of wind. Retrieved through https://open-meteo.com/en/docs/historical-weather-api",
+  "retrieved_at": "2026-10-09T12:34:18+00:00",
   "records": 318,
   "coverage_start": "2000-01-01",
   "coverage_end": "2026-06-01",
@@ -16,7 +16,10 @@
     "soi",
     "soilm",
     "tmax",
-    "tmean"
+    "tmean",
+    "u10",
+    "v10",
+    "wind_speed"
   ],
-  "notes": "Observed data for 8x8 cells over 318 months, assembled from era5, nino34."
+  "notes": "Observed data for 8x8 cells over 318 months, assembled from era5, nino34, wind."
 }

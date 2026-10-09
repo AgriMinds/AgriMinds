@@ -83,6 +83,7 @@ const MODEL_COLOR: Record<string, string> = {
   'CNN':        C.cnn,
   'ANN':        C.ann,
   'LSTM':       C.lstm,
+  'RCM':        'oklch(0.62 0.16 290)',
   'Persistence': C.persistence,
   'Ridge':      C.ridge,
 }

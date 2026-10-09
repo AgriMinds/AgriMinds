@@ -37,6 +37,7 @@ _forecast.include_router(drought.router)
 _forecast.include_router(horizon.router)
 _forecast.include_router(advisory.router)
 _forecast.include_router(enso.router)
+_forecast.include_router(metrics.router)
 api_router.include_router(_forecast)
 
 # Per-person data: a signed-in user only; each router enforces its own role.

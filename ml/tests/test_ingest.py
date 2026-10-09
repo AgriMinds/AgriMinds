@@ -287,4 +287,4 @@ def test_the_slow_source_is_not_in_ingest_all():
     assert "ndvi" not in CONNECTORS
     assert "ndvi" in OPT_IN_CONNECTORS
     assert "ndvi" in ALL_CONNECTORS
-    assert set(CONNECTORS) == {"nino34", "era5", "chirps", "crops", "validation"}
+    assert set(CONNECTORS) == {"nino34", "era5", "chirps", "crops", "validation", "wind"}
