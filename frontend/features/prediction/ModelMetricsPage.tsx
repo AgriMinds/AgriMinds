@@ -99,13 +99,13 @@ function ChartTooltip({
 }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-xl border border-border bg-surface-raised px-3 py-2 shadow-lg text-xs min-w-[170px]">
-      <p className="font-semibold text-fg mb-1.5">{typeof label === 'number' ? `Lead ${label}m` : label}</p>
+    <div className="rounded-xl border border-border bg-surface-raised/95 backdrop-blur-xs px-2.5 py-2 shadow-lg text-[11px] sm:text-xs max-w-[260px] sm:max-w-none">
+      <p className="font-semibold text-fg mb-1">{typeof label === 'number' ? `Lead ${label}m` : label}</p>
       {payload.map((p) => (
-        <div key={p.name} className="flex items-center gap-2 py-0.5">
+        <div key={p.name} className="flex items-center gap-1.5 py-0.5">
           <span className="size-2 rounded-full shrink-0" style={{ background: p.color ?? p.fill }} />
           <span className="text-fg-muted flex-1 truncate">{p.name}</span>
-          <span className="font-mono font-medium tabular-nums text-fg">
+          <span className="font-mono font-medium tabular-nums text-fg shrink-0">
             {typeof p.value === 'number' ? p.value.toFixed(3) : p.value}
           </span>
         </div>
@@ -128,7 +128,20 @@ function KpiTile({
     good === null ? '' : good
       ? 'bg-status-ok/12 text-status-ok'
       : 'bg-status-warn/18 text-status-warn'
-  return <Stat icon={icon} label={label} value={value} detail={detail} tone={tone} />
+  return (
+    <div className="flex min-w-0 flex-col justify-between gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-border bg-surface-raised p-2.5 sm:p-3.5 md:p-4 shadow-xs hover:border-border-strong transition-colors">
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        <span className={cn('flex size-6 sm:size-7 shrink-0 items-center justify-center rounded-md sm:rounded-lg [&_svg]:size-3 sm:[&_svg]:size-3.5', tone || 'bg-surface-sunken text-fg-muted')}>
+          {icon}
+        </span>
+        <span className="truncate text-[10px] sm:text-xs font-medium text-fg-muted" title={label}>{label}</span>
+      </div>
+      <div className="font-display text-base sm:text-lg md:text-xl lg:text-2xl font-bold tracking-tight tabular-nums truncate text-fg">
+        {value}
+      </div>
+      {detail && <div className="text-[10px] sm:text-xs leading-tight text-fg-subtle truncate" title={detail}>{detail}</div>}
+    </div>
+  )
 }
 
 // ── Figure 1: comparative bar chart ──────────────────────────────────────────
@@ -158,58 +171,66 @@ function ModelComparisonChart({
   return (
     <div className="flex flex-col gap-3">
       {/* metric selector */}
-      <div className="flex flex-wrap gap-1.5">
-        {metrics.map((m) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => setMetric(m)}
-            className={cn(
-              'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-              metric === m
-                ? 'border-primary bg-primary/10 text-primary'
-                : 'border-border text-fg-muted hover:border-border-strong hover:text-fg',
-            )}
-          >
-            {m}
-          </button>
-        ))}
-        <span className="ml-auto text-[11px] text-fg-subtle self-center">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-1.5" role="tablist" aria-label="Comparison Metric">
+          {metrics.map((m) => (
+            <button
+              key={m}
+              type="button"
+              role="tab"
+              aria-selected={metric === m}
+              onClick={() => setMetric(m)}
+              className={cn(
+                'min-h-7 rounded-full border px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-colors cursor-pointer',
+                metric === m
+                  ? 'border-primary bg-primary/10 text-primary font-semibold'
+                  : 'border-border text-fg-muted hover:border-border-strong hover:text-fg',
+              )}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+        <span className="text-[11px] text-fg-subtle shrink-0">
           {lowerIsBetter ? '↓ lower is better' : '↑ higher is better'}
         </span>
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <ReBarChart data={data} margin={{ top: 6, right: 12, bottom: 20, left: 2 }} barCategoryGap="18%" barGap={2}>
-          <CartesianGrid strokeDasharray="3 3" stroke={C.grid} vertical={false} />
-          <XAxis
-            dataKey="lead"
-            tick={{ fill: C.axis, fontSize: 11 }}
-            tickFormatter={(v) => `L${v}`}
-            label={{ value: 'Lead (months)', position: 'insideBottom', offset: -8, fill: C.axis, fontSize: 11 }}
-          />
-          <YAxis
-            tick={{ fill: C.axis, fontSize: 11 }}
-            tickFormatter={(v: number) => v.toFixed(2)}
-            width={50}
-          />
-          <Tooltip content={<ChartTooltip />} />
-          <Legend
-            wrapperStyle={{ fontSize: 11, paddingTop: 4 }}
-            formatter={(v) => <span style={{ color: C.axis }}>{v}</span>}
-          />
-          {models.map((m) => (
-            <Bar
-              key={m}
-              dataKey={m}
-              fill={MODEL_COLOR[m] ?? '#888'}
-              radius={[3, 3, 0, 0]}
-              maxBarSize={22}
-              opacity={m === 'SuperHybrid (CNN-LSTM-Fourier)' ? 1 : 0.6}
-            />
-          ))}
-        </ReBarChart>
-      </ResponsiveContainer>
+      <div className="w-full overflow-x-auto [scrollbar-width:thin] -mx-1 sm:mx-0">
+        <div className="min-w-[500px] sm:min-w-0 h-[280px] sm:h-[320px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <ReBarChart data={data} margin={{ top: 8, right: 8, bottom: 20, left: -4 }} barCategoryGap="16%" barGap={1}>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} vertical={false} />
+              <XAxis
+                dataKey="lead"
+                tick={{ fill: C.axis, fontSize: 10 }}
+                tickFormatter={(v) => `L${v}`}
+                label={{ value: 'Lead (months)', position: 'insideBottom', offset: -8, fill: C.axis, fontSize: 10 }}
+              />
+              <YAxis
+                tick={{ fill: C.axis, fontSize: 10 }}
+                tickFormatter={(v: number) => v.toFixed(2)}
+                width={42}
+              />
+              <Tooltip content={<ChartTooltip />} />
+              <Legend
+                wrapperStyle={{ fontSize: 10, paddingTop: 4 }}
+                formatter={(v) => <span style={{ color: C.axis }}>{v}</span>}
+              />
+              {models.map((m) => (
+                <Bar
+                  key={m}
+                  dataKey={m}
+                  fill={MODEL_COLOR[m] ?? '#888'}
+                  radius={[2, 2, 0, 0]}
+                  maxBarSize={18}
+                  opacity={m === 'SuperHybrid (CNN-LSTM-Fourier)' ? 1 : 0.65}
+                />
+              ))}
+            </ReBarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   )
 }
@@ -233,59 +254,67 @@ function HistoricalValidationChart({
   return (
     <div className="flex flex-col gap-3">
       {/* lead selector */}
-      <div className="flex flex-wrap gap-1.5 items-center">
-        <span className="text-xs text-fg-subtle">Lead:</span>
-        {leads.map((l) => (
-          <button
-            key={l}
-            type="button"
-            onClick={() => setLead(l)}
-            className={cn(
-              'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
-              lead === l
-                ? 'border-primary bg-primary/10 text-primary'
-                : 'border-border text-fg-muted hover:border-border-strong hover:text-fg',
-            )}
-          >
-            {l}m
-          </button>
-        ))}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-1.5" role="tablist" aria-label="Lead month">
+          <span className="text-[11px] sm:text-xs text-fg-subtle shrink-0">Lead:</span>
+          {leads.map((l) => (
+            <button
+              key={l}
+              type="button"
+              role="tab"
+              aria-selected={lead === l}
+              onClick={() => setLead(l)}
+              className={cn(
+                'min-h-7 rounded-full border px-2 sm:px-2.5 py-0.5 sm:py-1 text-[11px] sm:text-xs font-medium transition-colors cursor-pointer',
+                lead === l
+                  ? 'border-primary bg-primary/10 text-primary font-semibold'
+                  : 'border-border text-fg-muted hover:border-border-strong hover:text-fg',
+              )}
+            >
+              {l}m
+            </button>
+          ))}
+        </div>
         {summary && (
-          <span className="ml-auto font-mono text-[11px] text-fg-subtle">
+          <div className="inline-flex items-center rounded-lg bg-surface-sunken/60 px-2.5 py-1 font-mono text-[10px] sm:text-[11px] text-fg-subtle shrink-0 self-start sm:self-auto">
             R = {summary.PearsonR.toFixed(3)} · RMSE = {summary.RMSE.toFixed(3)} · MAE = {summary.MAE.toFixed(3)}
-          </span>
+          </div>
         )}
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <ReLineChart data={filtered} margin={{ top: 6, right: 12, bottom: 20, left: 2 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
-          <XAxis
-            dataKey="month"
-            tick={{ fill: C.axis, fontSize: 10 }}
-            interval={Math.floor(filtered.length / 8)}
-            label={{ value: 'Date', position: 'insideBottom', offset: -8, fill: C.axis, fontSize: 11 }}
-          />
-          <YAxis
-            tick={{ fill: C.axis, fontSize: 11 }}
-            tickFormatter={(v: number) => v.toFixed(1)}
-            label={{ value: 'Sc-PDSI', angle: -90, position: 'insideLeft', offset: 14, fill: C.axis, fontSize: 11 }}
-            width={50}
-          />
-          <ReferenceLine y={0} stroke={C.grid} strokeWidth={1} />
-          <ReferenceLine y={-1} stroke={C.threshold} strokeDasharray="4 3" strokeWidth={1}
-            label={{ value: 'Drought', fill: C.threshold, fontSize: 10, position: 'insideTopLeft' }} />
-          <Tooltip content={<ChartTooltip />} />
-          <Legend
-            wrapperStyle={{ fontSize: 11, paddingTop: 4 }}
-            formatter={(v) => <span style={{ color: C.axis }}>{v}</span>}
-          />
-          <Line type="monotone" dataKey="observed" name="Observed" stroke={C.observed} strokeWidth={2}
-            dot={false} activeDot={{ r: 3 }} />
-          <Line type="monotone" dataKey="predicted" name="Predicted" stroke={C.predicted} strokeWidth={2}
-            strokeDasharray="5 3" dot={false} activeDot={{ r: 3 }} />
-        </ReLineChart>
-      </ResponsiveContainer>
+      <div className="w-full overflow-x-auto [scrollbar-width:thin] -mx-1 sm:mx-0">
+        <div className="min-w-[480px] sm:min-w-0 h-[280px] sm:h-[320px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <ReLineChart data={filtered} margin={{ top: 8, right: 8, bottom: 20, left: -6 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
+              <XAxis
+                dataKey="month"
+                tick={{ fill: C.axis, fontSize: 9 }}
+                interval={Math.floor(filtered.length / 7)}
+                label={{ value: 'Date', position: 'insideBottom', offset: -8, fill: C.axis, fontSize: 10 }}
+              />
+              <YAxis
+                tick={{ fill: C.axis, fontSize: 10 }}
+                tickFormatter={(v: number) => v.toFixed(1)}
+                label={{ value: 'Sc-PDSI', angle: -90, position: 'insideLeft', offset: 12, fill: C.axis, fontSize: 10 }}
+                width={42}
+              />
+              <ReferenceLine y={0} stroke={C.grid} strokeWidth={1} />
+              <ReferenceLine y={-1} stroke={C.threshold} strokeDasharray="4 3" strokeWidth={1}
+                label={{ value: 'Drought', fill: C.threshold, fontSize: 9, position: 'insideTopLeft' }} />
+              <Tooltip content={<ChartTooltip />} />
+              <Legend
+                wrapperStyle={{ fontSize: 10, paddingTop: 4 }}
+                formatter={(v) => <span style={{ color: C.axis }}>{v}</span>}
+              />
+              <Line type="monotone" dataKey="observed" name="Observed Sc-PDSI" stroke={C.observed} strokeWidth={2}
+                dot={false} activeDot={{ r: 3 }} />
+              <Line type="monotone" dataKey="predicted" name="Predicted (SuperHybrid)" stroke={C.predicted} strokeWidth={2}
+                strokeDasharray="5 3" dot={false} activeDot={{ r: 3 }} />
+            </ReLineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   )
 }
@@ -307,23 +336,27 @@ function EnsoErrorChart({ enso, metric, yLabel }: { enso: EnsoLeadMetric[]; metr
   const data = pivotEnso(enso, metric)
   const models = distinctModels(enso)
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <ReLineChart data={data} margin={{ top: 6, right: 12, bottom: 20, left: 2 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
-        <XAxis dataKey="lead" tick={{ fill: C.axis, fontSize: 11 }} tickFormatter={(v) => `L${v}`}
-          label={{ value: 'Lead (months)', position: 'insideBottom', offset: -8, fill: C.axis, fontSize: 11 }} />
-        <YAxis tick={{ fill: C.axis, fontSize: 11 }} tickFormatter={(v: number) => v.toFixed(2)}
-          label={{ value: yLabel, angle: -90, position: 'insideLeft', offset: 14, fill: C.axis, fontSize: 11 }} width={50} />
-        <Tooltip content={<ChartTooltip />} />
-        <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} formatter={(v) => <span style={{ color: C.axis }}>{v}</span>} />
-        {models.map((m) => (
-          <Line key={m} type="monotone" dataKey={m} stroke={MODEL_COLOR[m] ?? '#888'}
-            strokeWidth={m === 'CNN-LSTM' ? 2.5 : 1.5}
-            dot={m === 'CNN-LSTM' ? { r: 3, fill: MODEL_COLOR[m] } : false}
-            activeDot={{ r: 4 }} />
-        ))}
-      </ReLineChart>
-    </ResponsiveContainer>
+    <div className="w-full overflow-x-auto [scrollbar-width:thin] -mx-1 sm:mx-0">
+      <div className="min-w-[320px] sm:min-w-0 h-[220px] sm:h-[250px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <ReLineChart data={data} margin={{ top: 6, right: 8, bottom: 20, left: -6 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
+            <XAxis dataKey="lead" tick={{ fill: C.axis, fontSize: 10 }} tickFormatter={(v) => `L${v}`}
+              label={{ value: 'Lead (months)', position: 'insideBottom', offset: -8, fill: C.axis, fontSize: 10 }} />
+            <YAxis tick={{ fill: C.axis, fontSize: 10 }} tickFormatter={(v: number) => v.toFixed(2)}
+              label={{ value: yLabel, angle: -90, position: 'insideLeft', offset: 12, fill: C.axis, fontSize: 10 }} width={42} />
+            <Tooltip content={<ChartTooltip />} />
+            <Legend wrapperStyle={{ fontSize: 10, paddingTop: 4 }} formatter={(v) => <span style={{ color: C.axis }}>{v}</span>} />
+            {models.map((m) => (
+              <Line key={m} type="monotone" dataKey={m} stroke={MODEL_COLOR[m] ?? '#888'}
+                strokeWidth={m === 'CNN-LSTM' ? 2.5 : 1.5}
+                dot={m === 'CNN-LSTM' ? { r: 3, fill: MODEL_COLOR[m] } : false}
+                activeDot={{ r: 4 }} />
+            ))}
+          </ReLineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   )
 }
 
@@ -335,67 +368,71 @@ function AucBssChart({ drought }: { drought: DroughtLeadMetric[] }) {
     BSS: d.BSS_vs_climatology,
   }))
   return (
-    <ResponsiveContainer width="100%" height={260}>
-      <ReLineChart data={data} margin={{ top: 6, right: 54, bottom: 20, left: 2 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
-        <XAxis dataKey="lead" tick={{ fill: C.axis, fontSize: 11 }} tickFormatter={(v) => `L${v}`}
-          label={{ value: 'Lead (months)', position: 'insideBottom', offset: -8, fill: C.axis, fontSize: 11 }} />
-        <YAxis yAxisId="auc" domain={[0.35, 0.8]} tick={{ fill: C.axis, fontSize: 11 }}
-          tickFormatter={(v: number) => v.toFixed(2)}
-          label={{ value: 'AUC', angle: -90, position: 'insideLeft', offset: 14, fill: C.axis, fontSize: 11 }} width={50} />
-        <YAxis yAxisId="bss" orientation="right" domain={[-0.06, 0.08]} tick={{ fill: C.axis, fontSize: 11 }}
-          tickFormatter={(v: number) => v.toFixed(3)}
-          label={{ value: 'BSS', angle: 90, position: 'insideRight', offset: 12, fill: C.axis, fontSize: 11 }} width={50} />
-        <ReferenceLine yAxisId="bss" y={0} stroke={C.threshold} strokeDasharray="5 3" strokeWidth={1.5}
-          label={{ value: 'BSS=0', fill: C.threshold, fontSize: 10, position: 'insideTopLeft' }} />
-        <Tooltip content={<ChartTooltip />} />
-        <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} formatter={(v) => <span style={{ color: C.axis }}>{v}</span>} />
-        <Line yAxisId="auc" type="monotone" dataKey="AUC (CNN-LSTM)" stroke={C.auc} strokeWidth={2.5} dot={{ r: 3, fill: C.auc }} activeDot={{ r: 4 }} />
-        <Line yAxisId="auc" type="monotone" dataKey="AUC (Persist.)" stroke={C.persistence} strokeWidth={1.5} strokeDasharray="5 3" dot={false} activeDot={{ r: 3 }} />
-        <Line yAxisId="bss" type="monotone" dataKey="BSS" stroke={C.superhybrid} strokeWidth={2} dot={{ r: 3, fill: C.superhybrid }} activeDot={{ r: 4 }} />
-      </ReLineChart>
-    </ResponsiveContainer>
+    <div className="w-full overflow-x-auto [scrollbar-width:thin] -mx-1 sm:mx-0">
+      <div className="min-w-[360px] sm:min-w-0 h-[240px] sm:h-[270px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <ReLineChart data={data} margin={{ top: 6, right: 28, bottom: 20, left: -6 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
+            <XAxis dataKey="lead" tick={{ fill: C.axis, fontSize: 10 }} tickFormatter={(v) => `L${v}`}
+              label={{ value: 'Lead (months)', position: 'insideBottom', offset: -8, fill: C.axis, fontSize: 10 }} />
+            <YAxis yAxisId="auc" domain={[0.35, 0.8]} tick={{ fill: C.axis, fontSize: 10 }}
+              tickFormatter={(v: number) => v.toFixed(2)}
+              label={{ value: 'AUC', angle: -90, position: 'insideLeft', offset: 12, fill: C.axis, fontSize: 10 }} width={40} />
+            <YAxis yAxisId="bss" orientation="right" domain={[-0.06, 0.08]} tick={{ fill: C.axis, fontSize: 10 }}
+              tickFormatter={(v: number) => v.toFixed(3)}
+              label={{ value: 'BSS', angle: 90, position: 'insideRight', offset: 10, fill: C.axis, fontSize: 10 }} width={40} />
+            <ReferenceLine yAxisId="bss" y={0} stroke={C.threshold} strokeDasharray="5 3" strokeWidth={1.5}
+              label={{ value: 'BSS=0', fill: C.threshold, fontSize: 9, position: 'insideTopLeft' }} />
+            <Tooltip content={<ChartTooltip />} />
+            <Legend wrapperStyle={{ fontSize: 10, paddingTop: 4 }} formatter={(v) => <span style={{ color: C.axis }}>{v}</span>} />
+            <Line yAxisId="auc" type="monotone" dataKey="AUC (CNN-LSTM)" stroke={C.auc} strokeWidth={2.5} dot={{ r: 3, fill: C.auc }} activeDot={{ r: 4 }} />
+            <Line yAxisId="auc" type="monotone" dataKey="AUC (Persist.)" stroke={C.persistence} strokeWidth={1.5} strokeDasharray="5 3" dot={false} activeDot={{ r: 3 }} />
+            <Line yAxisId="bss" type="monotone" dataKey="BSS" stroke={C.superhybrid} strokeWidth={2} dot={{ r: 3, fill: C.superhybrid }} activeDot={{ r: 4 }} />
+          </ReLineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   )
 }
 
 function ConfusionMatrixGrid({ drought }: { drought: DroughtLeadMetric[] }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-3">
       {drought.map((d) => {
         const total = d.TP + d.FP + d.TN + d.FN
         const pct = (n: number) => total > 0 ? `${Math.round((n / total) * 100)}%` : '—'
         return (
           <div key={d.lead} className={cn(
-            'rounded-xl border p-3 text-xs',
+            'rounded-xl border p-2.5 sm:p-3 text-xs transition-colors',
             d.skilful ? 'border-status-ok/40 bg-status-ok/[0.04]' : 'border-border bg-surface-sunken/40',
           )}>
             <div className="flex items-center justify-between mb-2">
               <span className="font-semibold text-fg">Lead {d.lead}m</span>
               {d.skilful && <Badge variant="ok" size="sm">Skilful</Badge>}
             </div>
-            <div className="grid grid-cols-2 gap-1 text-center">
-              <div className="rounded bg-status-ok/15 p-1.5">
-                <div className="font-mono font-bold text-status-ok">{d.TP}</div>
-                <div className="text-[10px] text-fg-subtle">TP {pct(d.TP)}</div>
+            <div className="grid grid-cols-2 gap-1 text-center font-mono">
+              <div className="rounded bg-status-ok/15 p-1 sm:p-1.5">
+                <div className="font-bold text-xs sm:text-sm text-status-ok">{d.TP}</div>
+                <div className="text-[9px] sm:text-[10px] text-fg-subtle">TP {pct(d.TP)}</div>
               </div>
-              <div className="rounded bg-status-bad/15 p-1.5">
-                <div className="font-mono font-bold text-status-bad">{d.FP}</div>
-                <div className="text-[10px] text-fg-subtle">FP {pct(d.FP)}</div>
+              <div className="rounded bg-status-bad/15 p-1 sm:p-1.5">
+                <div className="font-bold text-xs sm:text-sm text-status-bad">{d.FP}</div>
+                <div className="text-[9px] sm:text-[10px] text-fg-subtle">FP {pct(d.FP)}</div>
               </div>
-              <div className="rounded bg-status-bad/10 p-1.5">
-                <div className="font-mono font-bold text-status-warn">{d.FN}</div>
-                <div className="text-[10px] text-fg-subtle">FN {pct(d.FN)}</div>
+              <div className="rounded bg-status-bad/10 p-1 sm:p-1.5">
+                <div className="font-bold text-xs sm:text-sm text-status-warn">{d.FN}</div>
+                <div className="text-[9px] sm:text-[10px] text-fg-subtle">FN {pct(d.FN)}</div>
               </div>
-              <div className="rounded bg-surface-sunken p-1.5">
-                <div className="font-mono font-bold text-fg-muted">{d.TN}</div>
-                <div className="text-[10px] text-fg-subtle">TN {pct(d.TN)}</div>
+              <div className="rounded bg-surface-sunken p-1 sm:p-1.5">
+                <div className="font-bold text-xs sm:text-sm text-fg-muted">{d.TN}</div>
+                <div className="text-[9px] sm:text-[10px] text-fg-subtle">TN {pct(d.TN)}</div>
               </div>
             </div>
-            <div className="mt-2 grid grid-cols-2 gap-x-2 text-[10px] text-fg-subtle">
-              <span>Acc {d.Accuracy.toFixed(2)}</span>
-              <span>F1 {d.F1.toFixed(2)}</span>
-              <span>Prec {d.Precision.toFixed(2)}</span>
-              <span>Rec {d.Recall.toFixed(2)}</span>
+            <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-fg-subtle">
+              <span>Acc: <strong className="text-fg font-normal">{d.Accuracy.toFixed(2)}</strong></span>
+              <span>F1: <strong className="text-fg font-normal">{d.F1.toFixed(2)}</strong></span>
+              <span>Prec: <strong className="text-fg font-normal">{d.Precision.toFixed(2)}</strong></span>
+              <span>Rec: <strong className="text-fg font-normal">{d.Recall.toFixed(2)}</strong></span>
             </div>
           </div>
         )
@@ -407,34 +444,51 @@ function ConfusionMatrixGrid({ drought }: { drought: DroughtLeadMetric[] }) {
 function DroughtMetricsTable({ drought }: { drought: DroughtLeadMetric[] }) {
   const cols = ['Lead','AUC','AUC Pers.','BSS','Accuracy','Precision','Recall','F1','PearsonR','Skilful']
   return (
-    <div className="overflow-x-auto -mx-1">
-      <table className="w-full text-xs border-collapse min-w-[700px]">
-        <thead>
-          <tr className="border-b border-border">
-            {cols.map((h) => <th key={h} className="px-3 py-2 text-left font-semibold text-fg-subtle whitespace-nowrap">{h}</th>)}
-          </tr>
-        </thead>
-        <tbody>
-          {drought.map((row) => (
-            <tr key={row.lead} className={cn('border-b border-border/50 transition-colors hover:bg-surface-sunken/50', row.skilful && 'bg-status-ok/[0.04]')}>
-              <td className="px-3 py-2 font-mono font-bold">{row.lead}</td>
-              <td className="px-3 py-2 font-mono">{row.AUC.toFixed(3)}</td>
-              <td className="px-3 py-2 font-mono text-fg-muted">{row.AUC_persistence.toFixed(3)}</td>
-              <td className={cn('px-3 py-2 font-mono font-semibold', row.BSS_vs_climatology >= 0 ? 'text-status-ok' : 'text-status-bad')}>
-                {row.BSS_vs_climatology > 0 ? '+' : ''}{row.BSS_vs_climatology.toFixed(3)}
-              </td>
-              <td className="px-3 py-2 font-mono">{row.Accuracy.toFixed(3)}</td>
-              <td className="px-3 py-2 font-mono">{row.Precision.toFixed(3)}</td>
-              <td className="px-3 py-2 font-mono">{row.Recall.toFixed(3)}</td>
-              <td className="px-3 py-2 font-mono font-semibold">{row.F1.toFixed(3)}</td>
-              <td className={cn('px-3 py-2 font-mono', row.PearsonR >= 0.5 ? 'text-status-ok' : '')}>{row.PearsonR.toFixed(3)}</td>
-              <td className="px-3 py-2">
-                {row.skilful ? <Badge variant="ok" size="sm">Yes</Badge> : <Badge variant="outline" size="sm">No</Badge>}
-              </td>
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between text-[11px] text-fg-subtle sm:hidden px-1">
+        <span>↔ Scroll sideways for all columns</span>
+      </div>
+      <div className="overflow-x-auto [scrollbar-width:thin] -mx-4 sm:mx-0 px-4 sm:px-0">
+        <table className="w-full text-xs border-collapse min-w-[650px]">
+          <thead>
+            <tr className="border-b border-border bg-surface-sunken/40">
+              {cols.map((h, i) => (
+                <th
+                  key={h}
+                  className={cn(
+                    'px-2.5 sm:px-3 py-2 text-left font-semibold text-fg-subtle whitespace-nowrap',
+                    i === 0 && 'sticky left-0 bg-surface-raised z-10 shadow-[1px_0_0_0_var(--border)]',
+                  )}
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {drought.map((row) => (
+              <tr key={row.lead} className={cn('border-b border-border/50 transition-colors hover:bg-surface-sunken/50', row.skilful && 'bg-status-ok/[0.04]')}>
+                <td className="sticky left-0 bg-surface-raised z-10 shadow-[1px_0_0_0_var(--border)] px-2.5 sm:px-3 py-2 font-mono font-bold text-fg">
+                  {row.lead}
+                </td>
+                <td className="px-2.5 sm:px-3 py-2 font-mono">{row.AUC.toFixed(3)}</td>
+                <td className="px-2.5 sm:px-3 py-2 font-mono text-fg-muted">{row.AUC_persistence.toFixed(3)}</td>
+                <td className={cn('px-2.5 sm:px-3 py-2 font-mono font-semibold', row.BSS_vs_climatology >= 0 ? 'text-status-ok' : 'text-status-bad')}>
+                  {row.BSS_vs_climatology > 0 ? '+' : ''}{row.BSS_vs_climatology.toFixed(3)}
+                </td>
+                <td className="px-2.5 sm:px-3 py-2 font-mono">{row.Accuracy.toFixed(3)}</td>
+                <td className="px-2.5 sm:px-3 py-2 font-mono">{row.Precision.toFixed(3)}</td>
+                <td className="px-2.5 sm:px-3 py-2 font-mono">{row.Recall.toFixed(3)}</td>
+                <td className="px-2.5 sm:px-3 py-2 font-mono font-semibold">{row.F1.toFixed(3)}</td>
+                <td className={cn('px-2.5 sm:px-3 py-2 font-mono', row.PearsonR >= 0.5 ? 'text-status-ok font-semibold' : '')}>{row.PearsonR.toFixed(3)}</td>
+                <td className="px-2.5 sm:px-3 py-2">
+                  {row.skilful ? <Badge variant="ok" size="sm">Yes</Badge> : <Badge variant="outline" size="sm">No</Badge>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -443,38 +497,47 @@ function EnsoMetricsTable({ enso }: { enso: EnsoLeadMetric[] }) {
   const models = distinctModels(enso)
   const leads = [...new Set(enso.map((r) => r.lead))].sort((a, b) => a - b)
   return (
-    <div className="overflow-x-auto -mx-1">
-      <table className="w-full text-xs border-collapse min-w-[600px]">
-        <thead>
-          <tr className="border-b border-border">
-            <th className="px-3 py-2 text-left font-semibold text-fg-subtle">Lead</th>
-            {models.flatMap((m) => [
-              <th key={`${m}-r`} className="px-3 py-2 text-left font-semibold text-fg-subtle whitespace-nowrap">{m} RMSE</th>,
-              <th key={`${m}-m`} className="px-3 py-2 text-left font-semibold text-fg-subtle whitespace-nowrap">{m} MAE</th>,
-              <th key={`${m}-c`} className="px-3 py-2 text-left font-semibold text-fg-subtle whitespace-nowrap">{m} r</th>,
-            ])}
-          </tr>
-        </thead>
-        <tbody>
-          {leads.map((lead) => {
-            const byModel = new Map(enso.filter((r) => r.lead === lead).map((r) => [r.model, r]))
-            return (
-              <tr key={lead} className="border-b border-border/50 hover:bg-surface-sunken/50 transition-colors">
-                <td className="px-3 py-2 font-mono font-bold">{lead}</td>
-                {models.flatMap((m) => {
-                  const r = byModel.get(m)
-                  const isCnn = m === 'CNN-LSTM'
-                  return [
-                    <td key={`${m}-r`} className={cn('px-3 py-2 font-mono', isCnn ? 'font-semibold' : 'text-fg-muted')}>{r ? r.RMSE.toFixed(3) : '—'}</td>,
-                    <td key={`${m}-m`} className={cn('px-3 py-2 font-mono', isCnn ? 'font-semibold' : 'text-fg-muted')}>{r ? r.MAE.toFixed(3) : '—'}</td>,
-                    <td key={`${m}-c`} className={cn('px-3 py-2 font-mono', r && r.corr >= 0.7 ? 'text-status-ok font-semibold' : r && r.corr < 0.2 ? 'text-fg-subtle' : '')}>{r ? r.corr.toFixed(3) : '—'}</td>,
-                  ]
-                })}
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between text-[11px] text-fg-subtle sm:hidden px-1">
+        <span>↔ Scroll sideways for all models</span>
+      </div>
+      <div className="overflow-x-auto [scrollbar-width:thin] -mx-4 sm:mx-0 px-4 sm:px-0">
+        <table className="w-full text-xs border-collapse min-w-[620px]">
+          <thead>
+            <tr className="border-b border-border bg-surface-sunken/40">
+              <th className="sticky left-0 bg-surface-raised z-10 shadow-[1px_0_0_0_var(--border)] px-2.5 sm:px-3 py-2 text-left font-semibold text-fg-subtle">
+                Lead
+              </th>
+              {models.flatMap((m) => [
+                <th key={`${m}-r`} className="px-2.5 sm:px-3 py-2 text-left font-semibold text-fg-subtle whitespace-nowrap">{m} RMSE</th>,
+                <th key={`${m}-m`} className="px-2.5 sm:px-3 py-2 text-left font-semibold text-fg-subtle whitespace-nowrap">{m} MAE</th>,
+                <th key={`${m}-c`} className="px-2.5 sm:px-3 py-2 text-left font-semibold text-fg-subtle whitespace-nowrap">{m} r</th>,
+              ])}
+            </tr>
+          </thead>
+          <tbody>
+            {leads.map((lead) => {
+              const byModel = new Map(enso.filter((r) => r.lead === lead).map((r) => [r.model, r]))
+              return (
+                <tr key={lead} className="border-b border-border/50 hover:bg-surface-sunken/50 transition-colors">
+                  <td className="sticky left-0 bg-surface-raised z-10 shadow-[1px_0_0_0_var(--border)] px-2.5 sm:px-3 py-2 font-mono font-bold text-fg">
+                    {lead}
+                  </td>
+                  {models.flatMap((m) => {
+                    const r = byModel.get(m)
+                    const isCnn = m === 'CNN-LSTM'
+                    return [
+                      <td key={`${m}-r`} className={cn('px-2.5 sm:px-3 py-2 font-mono', isCnn ? 'font-semibold' : 'text-fg-muted')}>{r ? r.RMSE.toFixed(3) : '—'}</td>,
+                      <td key={`${m}-m`} className={cn('px-2.5 sm:px-3 py-2 font-mono', isCnn ? 'font-semibold' : 'text-fg-muted')}>{r ? r.MAE.toFixed(3) : '—'}</td>,
+                      <td key={`${m}-c`} className={cn('px-2.5 sm:px-3 py-2 font-mono', r && r.corr >= 0.7 ? 'text-status-ok font-semibold' : r && r.corr < 0.2 ? 'text-fg-subtle' : '')}>{r ? r.corr.toFixed(3) : '—'}</td>,
+                    ]
+                  })}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -494,60 +557,64 @@ export function ModelMetricsPage() {
   return (
     <>
       <div className="bg-contour border-b border-border">
-        <div className="mx-auto flex max-w-[1100px] flex-col gap-2 px-4 pt-8 pb-7 sm:px-6 lg:px-8">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-fg-subtle">
-            <Link href="/prediction" className="flex items-center gap-1 hover:text-fg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded">
-              <ChevronLeft className="size-3.5" aria-hidden /> Forecast Horizon
+        <div className="mx-auto flex max-w-[1100px] flex-col gap-2 px-3 pt-6 pb-5 sm:px-6 sm:pt-8 sm:pb-7 lg:px-8">
+          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-xs text-fg-subtle">
+            <Link href="/prediction" className="inline-flex items-center gap-1 hover:text-fg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded py-0.5">
+              <ChevronLeft className="size-3.5 shrink-0" aria-hidden /> Forecast Horizon
             </Link>
             <span aria-hidden>/</span>
-            <span className="text-fg-muted" aria-current="page">Model Performance</span>
+            <span className="text-fg-muted truncate" aria-current="page">Model Performance</span>
           </nav>
-          <p className="flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-primary uppercase mt-1">
-            <BarChart3 className="size-3.5" aria-hidden /> {t('metricsEyebrow')}
+          <p className="flex items-center gap-2 text-[11px] sm:text-xs font-semibold tracking-[0.14em] text-primary uppercase mt-1">
+            <BarChart3 className="size-3.5 shrink-0" aria-hidden /> {t('metricsEyebrow')}
           </p>
-          <h1 className="font-display text-display font-bold">{t('metricsTitle')}</h1>
-          <p className="max-w-2xl text-sm leading-relaxed text-fg-muted sm:text-base">{t('metricsIntro')}</p>
+          <h1 className="font-display text-xl sm:text-2xl md:text-3xl lg:text-display font-bold tracking-tight">
+            {t('metricsTitle')}
+          </h1>
+          <p className="max-w-2xl text-xs sm:text-sm md:text-base leading-relaxed text-fg-muted">
+            {t('metricsIntro')}
+          </p>
           {data && (
-            <div className="flex flex-wrap items-center gap-2 mt-1">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
               {isSynthetic
                 ? <Badge variant="warn" className="gap-1.5"><FlaskConical className="size-3" aria-hidden />Synthetic data</Badge>
                 : <Badge variant="ok">Observed record</Badge>}
               <Badge variant="outline">{data.model_version}</Badge>
               {data.trained_at && (
-                <span className="text-xs text-fg-subtle font-mono">
+                <span className="text-[11px] sm:text-xs text-fg-subtle font-mono">
                   Trained {new Date(data.trained_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
               )}
             </div>
           )}
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:gap-2">
             <Link
               href="/prediction"
-              className="inline-flex items-center gap-2 rounded-lg border border-transparent px-3 py-1.5 text-xs font-medium text-fg-muted hover:border-border hover:bg-surface hover:text-fg transition-colors"
+              className="inline-flex min-h-8 items-center gap-1.5 sm:gap-2 rounded-lg border border-transparent px-2.5 sm:px-3 py-1.5 text-xs font-medium text-fg-muted hover:border-border hover:bg-surface hover:text-fg transition-colors"
             >
-              <CalendarRange className="size-3.5 text-primary/70" aria-hidden />
+              <CalendarRange className="size-3.5 text-primary/70 shrink-0" aria-hidden />
               {t('viewHorizon')}
             </Link>
             <Link
               href="/prediction/metrics"
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-fg shadow-xs"
+              className="inline-flex min-h-8 items-center gap-1.5 sm:gap-2 rounded-lg border border-border bg-surface px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-fg shadow-xs"
             >
-              <BarChart3 className="size-3.5 text-primary" aria-hidden />
+              <BarChart3 className="size-3.5 text-primary shrink-0" aria-hidden />
               {t('viewMetrics')}
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-4 sm:gap-6 px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
 
         {isSynthetic && (
-          <div role="status" aria-live="polite" className="flex items-start gap-3 rounded-xl border border-status-warn/40 bg-status-warn/[0.06] p-4">
+          <div role="status" aria-live="polite" className="flex items-start gap-3 rounded-xl border border-status-warn/40 bg-status-warn/[0.06] p-3 sm:p-4">
             <CircleAlert className="size-5 shrink-0 text-status-warn mt-0.5" aria-hidden />
-            <div className="text-sm">
+            <div className="text-xs sm:text-sm">
               <p className="font-semibold text-fg">Synthetic training data</p>
               <p className="mt-0.5 text-fg-muted leading-relaxed">
-                Run <code className="rounded bg-surface-sunken px-1 py-0.5 font-mono text-xs">make train-real</code> to ingest the real inputs and retrain.
+                Run <code className="rounded bg-surface-sunken px-1 py-0.5 font-mono text-[11px] sm:text-xs">make train-real</code> to ingest the real inputs and retrain.
               </p>
             </div>
           </div>
@@ -555,11 +622,11 @@ export function ModelMetricsPage() {
 
         {isPending && (
           <>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 xl:grid-cols-8">
-              {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3 lg:gap-4 xl:grid-cols-8">
+              {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-24 sm:h-28 rounded-xl sm:rounded-2xl" />)}
             </div>
-            <Skeleton className="h-80 rounded-2xl" />
-            <Skeleton className="h-80 rounded-2xl" />
+            <Skeleton className="h-72 sm:h-80 rounded-2xl" />
+            <Skeleton className="h-72 sm:h-80 rounded-2xl" />
           </>
         )}
 
@@ -568,7 +635,7 @@ export function ModelMetricsPage() {
         {data && (
           <>
             {/* 1. KPI strip */}
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 xl:grid-cols-8">
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3 lg:gap-4 xl:grid-cols-8">
               <KpiTile icon={<TrendingDown />} label="RMSE · L1" value={lead1e ? lead1e.RMSE.toFixed(3) : '—'} detail="CNN-LSTM Niño 3.4" good={lead1e ? lead1e.RMSE < 0.75 : null} />
               <KpiTile icon={<Activity />} label="MAE · L1" value={lead1e ? lead1e.MAE.toFixed(3) : '—'} detail="CNN-LSTM Niño 3.4" good={lead1e ? lead1e.MAE < 0.6 : null} />
               <KpiTile icon={<LineChart />} label="Pearson R · L1" value={lead1e ? lead1e.corr.toFixed(3) : '—'} detail="CNN-LSTM vs observed" good={lead1e ? lead1e.corr >= 0.7 : null} />
@@ -585,18 +652,18 @@ export function ModelMetricsPage() {
                 <CardHeader>
                   <CardHeading>
                     <CardIcon><BarChart3 /></CardIcon>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <CardTitle>Figure 1 — Comparative Model Evaluation</CardTitle>
-                      <CardDescription>SuperHybrid (CNN-LSTM-Fourier) vs CNN-LSTM, CNN, ANN, LSTM across all leads. Select a metric.</CardDescription>
+                      <CardDescription>SuperHybrid (CNN-LSTM-Fourier) vs CNN-LSTM, CNN, ANN, LSTM, RCM across all leads. Select a metric.</CardDescription>
                     </div>
                   </CardHeading>
                 </CardHeader>
                 <CardContent><ModelComparisonChart rows={data.model_comparison} /></CardContent>
-                <CardFooter>
-                  {['SuperHybrid (CNN-LSTM-Fourier)','CNN-LSTM','CNN','ANN','LSTM'].map((m) => (
-                    <div key={m} className="flex items-center gap-2">
-                      <span className="size-2.5 rounded-sm shrink-0" style={{ background: MODEL_COLOR[m] }} aria-hidden />
-                      <span>{m}</span>
+                <CardFooter className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1.5 text-[11px] sm:text-xs">
+                  {['SuperHybrid (CNN-LSTM-Fourier)','CNN-LSTM','CNN','ANN','LSTM','RCM'].map((m) => (
+                    <div key={m} className="flex items-center gap-1.5">
+                      <span className="size-2 sm:size-2.5 rounded-xs sm:rounded-sm shrink-0" style={{ background: MODEL_COLOR[m] }} aria-hidden />
+                      <span className="truncate">{m}</span>
                     </div>
                   ))}
                 </CardFooter>
@@ -609,24 +676,24 @@ export function ModelMetricsPage() {
                 <CardHeader>
                   <CardHeading>
                     <CardIcon><LineChart /></CardIcon>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <CardTitle>Figure 2 — Historical Validation (2011–2025)</CardTitle>
                       <CardDescription>Observed vs predicted Sc-PDSI. Trained 1990–2010, evaluated 2011–2025. Pearson R, RMSE and MAE shown per lead.</CardDescription>
                     </div>
                   </CardHeading>
                 </CardHeader>
                 <CardContent><HistoricalValidationChart rows={data.historical_validation} /></CardContent>
-                <CardFooter>
-                  <div className="flex items-center gap-2">
-                    <span className="size-2.5 rounded-full shrink-0" style={{ background: C.observed }} aria-hidden />
+                <CardFooter className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1.5 text-[11px] sm:text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="size-2 sm:size-2.5 rounded-full shrink-0" style={{ background: C.observed }} aria-hidden />
                     <span>Observed Sc-PDSI</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="inline-block w-4 border-t-2 border-dashed" style={{ borderColor: C.predicted }} aria-hidden />
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block w-3.5 sm:w-4 border-t-2 border-dashed" style={{ borderColor: C.predicted }} aria-hidden />
                     <span>Predicted (SuperHybrid)</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="inline-block w-4 border-t-2 border-dashed" style={{ borderColor: C.threshold }} aria-hidden />
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block w-3.5 sm:w-4 border-t-2 border-dashed" style={{ borderColor: C.threshold }} aria-hidden />
                     <span>Drought threshold (−1)</span>
                   </div>
                 </CardFooter>
@@ -639,20 +706,20 @@ export function ModelMetricsPage() {
                 <CardHeader>
                   <CardHeading>
                     <CardIcon><TrendingDown /></CardIcon>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <CardTitle>ENSO Forecast Error by Lead</CardTitle>
                       <CardDescription>RMSE and MAE of Niño 3.4 forecast (°C). CNN-LSTM vs Persistence and Ridge baselines.</CardDescription>
                     </div>
                   </CardHeading>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
                     <div>
-                      <p className="text-xs font-semibold text-fg-subtle mb-2 pl-1">Root Mean Square Error (°C)</p>
+                      <p className="text-xs font-semibold text-fg-subtle mb-1.5 pl-0.5">Root Mean Square Error (°C)</p>
                       <EnsoErrorChart enso={data.enso} metric="RMSE" yLabel="RMSE (°C)" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-fg-subtle mb-2 pl-1">Mean Absolute Error (°C)</p>
+                      <p className="text-xs font-semibold text-fg-subtle mb-1.5 pl-0.5">Mean Absolute Error (°C)</p>
                       <EnsoErrorChart enso={data.enso} metric="MAE" yLabel="MAE (°C)" />
                     </div>
                   </div>
@@ -665,7 +732,7 @@ export function ModelMetricsPage() {
               <CardHeader>
                 <CardHeading>
                   <CardIcon><BarChart3 /></CardIcon>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <CardTitle>Drought Forecast Skill by Lead</CardTitle>
                     <CardDescription>AUC (left axis) and Brier Skill Score vs climatology (right axis). Positive BSS = beats the long-run average.</CardDescription>
                   </div>
@@ -679,7 +746,7 @@ export function ModelMetricsPage() {
               <CardHeader>
                 <CardHeading>
                   <CardIcon><Target /></CardIcon>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <CardTitle>Confusion Matrix — Per Lead</CardTitle>
                     <CardDescription>TP / FP / FN / TN counts with Accuracy, F1, Precision and Recall for each lead month.</CardDescription>
                   </div>
@@ -692,7 +759,7 @@ export function ModelMetricsPage() {
             <Card>
               <CardHeader>
                 <CardHeading>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <CardTitle>Drought Metrics — Full Scorecard</CardTitle>
                     <CardDescription>All classification metrics per lead. Skilful rows (BSS &gt; 0) highlighted.</CardDescription>
                   </div>
@@ -705,7 +772,7 @@ export function ModelMetricsPage() {
               <Card>
                 <CardHeader>
                   <CardHeading>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <CardTitle>ENSO Regression Metrics — Full Scorecard</CardTitle>
                       <CardDescription>RMSE, MAE, and Pearson r for every model at every lead. r ≥ 0.70 highlighted green.</CardDescription>
                     </div>

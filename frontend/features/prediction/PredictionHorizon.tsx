@@ -107,45 +107,49 @@ export function PredictionHorizon({ locale }: { locale: string }) {
   return (
     <>
       <div className="bg-contour border-b border-border">
-        <div className="mx-auto flex max-w-[1100px] flex-col gap-2 px-4 pt-8 pb-7 sm:px-6 lg:px-8">
-          <p className="flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-primary uppercase">
-            <CalendarRange className="size-3.5" aria-hidden /> {t('eyebrow')}
+        <div className="mx-auto flex max-w-[1100px] flex-col gap-2 px-3 pt-6 pb-5 sm:px-6 sm:pt-8 sm:pb-7 lg:px-8">
+          <p className="flex items-center gap-2 text-[11px] sm:text-xs font-semibold tracking-[0.14em] text-primary uppercase">
+            <CalendarRange className="size-3.5 shrink-0" aria-hidden /> {t('eyebrow')}
           </p>
-          <h1 className="font-display text-display font-bold">{t('title')}</h1>
-          <p className="max-w-2xl text-sm leading-relaxed text-fg-muted sm:text-base">{t('intro')}</p>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+          <h1 className="font-display text-xl sm:text-2xl md:text-3xl lg:text-display font-bold tracking-tight">
+            {t('title')}
+          </h1>
+          <p className="max-w-2xl text-xs sm:text-sm md:text-base leading-relaxed text-fg-muted">
+            {t('intro')}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:gap-2">
             <Link
               href="/prediction"
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-fg shadow-xs"
+              className="inline-flex min-h-8 items-center gap-1.5 sm:gap-2 rounded-lg border border-border bg-surface px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-fg shadow-xs"
             >
-              <CalendarRange className="size-3.5 text-primary" aria-hidden />
+              <CalendarRange className="size-3.5 text-primary shrink-0" aria-hidden />
               {t('viewHorizon')}
             </Link>
             <Link
               href="/prediction/metrics"
-              className="inline-flex items-center gap-2 rounded-lg border border-transparent px-3 py-1.5 text-xs font-medium text-fg-muted hover:border-border hover:bg-surface hover:text-fg transition-colors"
+              className="inline-flex min-h-8 items-center gap-1.5 sm:gap-2 rounded-lg border border-transparent px-2.5 sm:px-3 py-1.5 text-xs font-medium text-fg-muted hover:border-border hover:bg-surface hover:text-fg transition-colors"
             >
-              <BarChart3 className="size-3.5 text-primary/70" aria-hidden />
+              <BarChart3 className="size-3.5 text-primary/70 shrink-0" aria-hidden />
               {t('viewMetrics')}
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-primary/20 bg-primary/[0.04] p-4">
-          <div className="flex items-center gap-3">
+      <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-4 sm:gap-6 px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 rounded-xl border border-primary/20 bg-primary/[0.04] p-3 sm:p-4">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <BarChart3 className="size-5" />
             </div>
-            <div>
-              <h3 className="text-sm font-semibold text-fg">{t('metricsTitle')}</h3>
-              <p className="text-xs text-fg-muted">{t('metricsIntro')}</p>
+            <div className="min-w-0">
+              <h3 className="text-xs sm:text-sm font-semibold text-fg truncate">{t('metricsTitle')}</h3>
+              <p className="text-[11px] sm:text-xs text-fg-muted line-clamp-2 sm:line-clamp-none">{t('metricsIntro')}</p>
             </div>
           </div>
           <Link
             href="/prediction/metrics"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-fg shadow-xs hover:bg-primary/90 transition-colors"
+            className="inline-flex w-full sm:w-auto shrink-0 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 sm:py-1.5 text-xs font-medium text-primary-fg shadow-xs hover:bg-primary/90 transition-colors"
           >
             {t('viewMetrics')} →
           </Link>
