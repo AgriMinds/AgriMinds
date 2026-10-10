@@ -43,14 +43,8 @@ export default function AdvisoryScreen() {
 
   return (
     <Screen
-      title={
-        viewMode === 'dashboard'
-          ? isMinisterOrDa
-            ? t('ministry.title')
-            : t('farmer.eyebrow')
-          : t('advisory.title')
-      }
-      subtitle={t('subtitle')}
+      title={viewMode === 'simulator' ? t('advisory.title') : undefined}
+      subtitle={viewMode === 'simulator' ? t('subtitle') : undefined}
       refreshing={advisory.isFetching && !!data}
       onRefresh={() => advisory.refetch()}
     >

@@ -84,13 +84,28 @@ export default function TabsLayout() {
             </Text>
           </Pressable>
         ),
+        headerBackground: () => (
+          <View style={{ flex: 1, backgroundColor: colors.surface }}>
+            <View style={{ flexDirection: 'row', height: 3.5, width: '100%' }}>
+              <View style={{ flex: 1, backgroundColor: '#078930' }} />
+              <View style={{ flex: 1, backgroundColor: '#FCDD09' }} />
+              <View style={{ flex: 1, backgroundColor: '#DA121A' }} />
+            </View>
+          </View>
+        ),
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
         headerStyle: { backgroundColor: colors.surface },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: t('tabs.advisory'), tabBarIcon: tabIcon('leaf-outline') }} />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: role === 'minister' ? t('ministry.eyebrow') : t('farmer.eyebrow'),
+          tabBarIcon: tabIcon(role === 'minister' ? 'stats-chart-outline' : 'leaf-outline'),
+        }}
+      />
       <Tabs.Screen name="grid" options={{ title: t('tabs.grid'), tabBarIcon: tabIcon('grid-outline') }} />
       <Tabs.Screen name="enso" options={{ title: t('tabs.enso'), tabBarIcon: tabIcon('thermometer-outline') }} />
       <Tabs.Screen name="settings" options={{ title: t('tabs.settings'), tabBarIcon: tabIcon('settings-outline') }} />

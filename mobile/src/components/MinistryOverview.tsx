@@ -1,24 +1,21 @@
-import { LEAD_MONTHS, type CropMixEntry, type LeadMonth, type RiskBucket, type WoredaRisk } from '@agriminds/api-types';
+import { LEAD_MONTHS, type CropMixEntry, type LeadMonth, type RiskBucket, type RiskLevel, type WoredaRisk } from '@agriminds/api-types';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { OfflineBanner, ProvenanceBanner } from '@/components/Banners';
-import { Card, Label } from '@/components/Card';
+import { Card } from '@/components/Card';
 import { RiskBadge } from '@/components/RiskBadge';
 import { SegmentedControl } from '@/components/SegmentedControl';
+import { Stat } from '@/components/Stat';
 import { EmptyState, LoadingState } from '@/components/States';
 import { useMinistryDashboard } from '@/features/useMinistry';
 import { useI18n } from '@/i18n';
 import { useSelection } from '@/state/selection';
 import { radius, riskColors, spacing, useTheme } from '@/theme';
+
+const RISK_LEVEL_ORDER: RiskLevel[] = ['Low', 'Moderate', 'High', 'Severe'];
 
 export function MinistryOverview() {
   const { t, language } = useI18n();
@@ -45,16 +42,19 @@ export function MinistryOverview() {
   }
 
   const totalHectares = coverage?.hectares || 1;
+  const totalPlots = coverage?.farms || 1;
+
+  const atRiskCount = exposure?.farms_at_risk ?? 0;
 
   return (
     <View style={styles.container}>
-      {/* Header Banner */}
-      <Card
+      {/* Top Hero Contour Header (Matching Web) */}
+      <View
         style={[
-          styles.headerCard,
+          styles.heroCard,
           {
             backgroundColor: dark ? '#0d1d33' : '#eaf2fd',
-            borderColor: '#2563eb',
+            borderColor: colors.border,
           },
         ]}
       >
@@ -75,7 +75,6 @@ export function MinistryOverview() {
         </Text>
 
         <View style={styles.leadSelector}>
-          <Label>{t('advisory.lead')}</Label>
           <SegmentedControl<LeadMonth>
             options={LEAD_MONTHS.map((l) => ({
               value: l,
@@ -85,7 +84,7 @@ export function MinistryOverview() {
             onChange={sel.setLead}
           />
         </View>
-      </Card>
+      </View>
 
       {query.isError && data && (
         <OfflineBanner
@@ -96,155 +95,132 @@ export function MinistryOverview() {
 
       {data?.provenance && <ProvenanceBanner provenance={data.provenance} />}
 
-      {/* 4 Core Executive Metric Cards */}
+      {/* 4 Core Executive Metric Cards (Matching Web Stat.tsx) */}
       <View style={styles.statsGrid}>
-        <View
-          style={[
-            styles.statCard,
-            { backgroundColor: colors.surface, borderColor: colors.border },
-          ]}
-        >
-          <View style={styles.statIconWrap}>
-            <Ionicons name="people" size={18} color={colors.primary} />
-          </View>
-          <Text style={[styles.statValue, { color: colors.text }]}>
-            {coverage?.farmers ?? '—'}
-          </Text>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>
-            {t('ministry.registeredFarmers')}
-          </Text>
-          {coverage && (
-            <Text style={[styles.statSub, { color: colors.primary }]}>
-              {t('ministry.activeLast30', { count: coverage.active_farmers_30d })}
-            </Text>
-          )}
-        </View>
+        <Stat
+          icon={<Ionicons name="people" size={17} color={colors.primary} />}
+          label={t('ministry.registeredFarmers')}
+          value={coverage?.farmers ?? '—'}
+          detail={
+            coverage
+              ? t('ministry.activeLast30', { count: coverage.active_farmers_30d })
+              : undefined
+          }
+        />
 
-        <View
-          style={[
-            styles.statCard,
-            { backgroundColor: colors.surface, borderColor: colors.border },
-          ]}
-        >
-          <View style={styles.statIconWrap}>
-            <Ionicons name="leaf" size={18} color="#059669" />
-          </View>
-          <Text style={[styles.statValue, { color: colors.text }]}>
-            {coverage?.farms ?? '—'}
-          </Text>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>
-            {t('ministry.registeredPlots')}
-          </Text>
-          {coverage && (
-            <Text style={[styles.statSub, { color: colors.textMuted }]}>
-              {t('ministry.hectaresTotal', {
-                hectares: coverage.hectares.toFixed(1),
-              })}
-            </Text>
-          )}
-        </View>
+        <Stat
+          icon={<Ionicons name="leaf" size={17} color="#059669" />}
+          label={t('ministry.registeredPlots')}
+          value={coverage?.farms ?? '—'}
+          detail={
+            coverage
+              ? t('ministry.hectaresTotal', {
+                  hectares: coverage.hectares.toFixed(1),
+                })
+              : undefined
+          }
+        />
 
-        <View
-          style={[
-            styles.statCard,
-            { backgroundColor: colors.surface, borderColor: colors.border },
-          ]}
-        >
-          <View style={styles.statIconWrap}>
-            <Ionicons name="map" size={18} color="#2563eb" />
-          </View>
-          <Text style={[styles.statValue, { color: colors.text }]}>
-            {coverage
+        <Stat
+          icon={<Ionicons name="map" size={17} color="#2563eb" />}
+          label={t('ministry.woredasCovered')}
+          value={
+            coverage
               ? `${coverage.woredas_covered}/${coverage.woredas_total}`
-              : '—'}
-          </Text>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>
-            {t('ministry.woredasCovered')}
-          </Text>
-          <Text style={[styles.statSub, { color: colors.textMuted }]}>
-            {t('ministry.woredasDetail')}
-          </Text>
-        </View>
+              : '—'
+          }
+          detail={t('ministry.woredasDetail')}
+        />
 
-        <View
-          style={[
-            styles.statCard,
-            {
-              backgroundColor: colors.surface,
-              borderColor: (exposure?.farms_at_risk ?? 0) > 0 ? '#ea580c' : colors.border,
-            },
-          ]}
-        >
-          <View style={styles.statIconWrap}>
-            <Ionicons
-              name="flame"
-              size={18}
-              color={(exposure?.farms_at_risk ?? 0) > 0 ? '#dc2626' : colors.primary}
-            />
-          </View>
-          <Text
-            style={[
-              styles.statValue,
-              {
-                color:
-                  (exposure?.farms_at_risk ?? 0) > 0 ? '#dc2626' : colors.text,
-              },
-            ]}
-          >
-            {exposure ? exposure.farms_at_risk : '—'}
-          </Text>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>
-            {t('ministry.plotsAtRisk')}
-          </Text>
-          {exposure && (
-            <Text style={[styles.statSub, { color: colors.textMuted }]}>
-              {t('ministry.atRiskDetail', {
-                farmers: exposure.farmers_at_risk,
-                hectares: exposure.hectares_at_risk.toFixed(1),
-              })}
-            </Text>
-          )}
-        </View>
+        <Stat
+          icon={<Ionicons name="flame" size={17} color={atRiskCount > 0 ? '#dc2626' : colors.primary} />}
+          label={t('ministry.plotsAtRisk')}
+          value={exposure ? exposure.farms_at_risk : '—'}
+          tone={atRiskCount > 0 ? 'danger' : undefined}
+          detail={
+            exposure
+              ? t('ministry.atRiskDetail', {
+                  farmers: exposure.farmers_at_risk,
+                  hectares: exposure.hectares_at_risk.toFixed(1),
+                })
+              : t('ministry.exposureUnavailable')
+          }
+        />
       </View>
 
-      {/* Risk Exposure Breakdown Card */}
+      {/* Source Note */}
+      <Text style={[styles.sourceNote, { color: colors.textMuted }]}>
+        {t('ministry.sourceNote')}
+      </Text>
+
+      {/* Risk Exposure Breakdown Card (Matching Web ExposureBreakdown) */}
       <Card
+        icon={<Ionicons name="flame-outline" size={18} color="#ea580c" />}
         title={t('ministry.exposureCardTitle')}
         subtitle={t('ministry.exposureCardSubtitle')}
       >
         {exposure?.buckets ? (
-          <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
-            {exposure.buckets.map((b: RiskBucket) => {
-              const c = riskColors[b.risk_level];
-              const pct =
-                coverage && coverage.farms > 0
-                  ? Math.round((b.farms / coverage.farms) * 100)
-                  : 0;
-              return (
-                <View key={b.risk_level} style={styles.bucketRow}>
-                  <View style={styles.bucketLabelWrap}>
-                    <View style={[styles.bucketDot, { backgroundColor: c.bg }]} />
-                    <Text style={[styles.bucketLevelText, { color: colors.text }]}>
-                      {t(`risk.${b.risk_level}`)}
+          <View style={{ gap: spacing.md, marginTop: spacing.xs }}>
+            {/* Proportional Stacked Color Bar */}
+            <View style={styles.stackedBarContainer}>
+              {RISK_LEVEL_ORDER.map((lvl) => {
+                const b = exposure.buckets.find((x) => x.risk_level === lvl);
+                const count = b?.farms ?? 0;
+                if (count === 0) return null;
+                const pct = Math.max((count / totalPlots) * 100, 4);
+                return (
+                  <View
+                    key={lvl}
+                    style={{
+                      width: `${pct}%`,
+                      height: '100%',
+                      backgroundColor: riskColors[lvl].bg,
+                    }}
+                  />
+                );
+              })}
+            </View>
+
+            {/* Table / List */}
+            <View style={styles.exposureTable}>
+              <View style={[styles.tableHeaderRow, { borderBottomColor: colors.border }]}>
+                <Text style={[styles.tableHeaderCell, { color: colors.textMuted }]}>
+                  {t('ministry.level')}
+                </Text>
+                <Text style={[styles.tableHeaderCell, { color: colors.textMuted, textAlign: 'right' }]}>
+                  {t('ministry.plots')}
+                </Text>
+                <Text style={[styles.tableHeaderCell, { color: colors.textMuted, textAlign: 'right' }]}>
+                  {t('ministry.farmers')}
+                </Text>
+                <Text style={[styles.tableHeaderCell, { color: colors.textMuted, textAlign: 'right' }]}>
+                  {t('ministry.hectares')}
+                </Text>
+              </View>
+
+              {exposure.buckets.map((b: RiskBucket) => {
+                const c = riskColors[b.risk_level];
+                return (
+                  <View key={b.risk_level} style={[styles.tableRow, { borderBottomColor: colors.border }]}>
+                    <View style={styles.levelCell}>
+                      <View style={[styles.dot, { backgroundColor: c.bg }]} />
+                      <Text style={[styles.levelName, { color: colors.text }]}>
+                        {t(`risk.${b.risk_level}`)}
+                      </Text>
+                    </View>
+                    <Text style={[styles.tableCell, { color: colors.text, textAlign: 'right' }]}>
+                      {b.farms}
+                    </Text>
+                    <Text style={[styles.tableCell, { color: colors.text, textAlign: 'right' }]}>
+                      {b.farmers}
+                    </Text>
+                    <Text style={[styles.tableCell, { color: colors.text, textAlign: 'right' }]}>
+                      {b.hectares.toFixed(1)}
                     </Text>
                   </View>
-                  <View style={styles.bucketProgressBg}>
-                    <View
-                      style={[
-                        styles.bucketProgressFill,
-                        {
-                          backgroundColor: c.bg,
-                          width: `${Math.max(pct, 2)}%`,
-                        },
-                      ]}
-                    />
-                  </View>
-                  <Text style={[styles.bucketStats, { color: colors.textMuted }]}>
-                    {b.farms} {t('ministry.plots').toLowerCase()} ({pct}%)
-                  </Text>
-                </View>
-              );
-            })}
+                );
+              })}
+            </View>
           </View>
         ) : (
           <Text style={{ color: colors.textMuted, fontSize: 13 }}>
@@ -253,15 +229,16 @@ export function MinistryOverview() {
         )}
       </Card>
 
-      {/* Crop Mix Card */}
+      {/* Crop Mix Card (Matching Web CropMix) */}
       {data?.crop_mix && data.crop_mix.length > 0 && (
         <Card
+          icon={<Ionicons name="nutrition-outline" size={18} color="#059669" />}
           title={t('ministry.cropMixTitle')}
           subtitle={t('ministry.cropMixSubtitle')}
         >
           <View style={{ gap: spacing.md, marginTop: spacing.xs }}>
             {data.crop_mix.map((item: CropMixEntry) => {
-              const pct = Math.round((item.hectares / totalHectares) * 100);
+              const share = totalHectares > 0 ? (item.hectares / totalHectares) * 100 : 0;
               return (
                 <View key={item.crop} style={{ gap: 4 }}>
                   <View style={styles.cropTopRow}>
@@ -270,10 +247,10 @@ export function MinistryOverview() {
                     </Text>
                     <Text style={[styles.cropMeta, { color: colors.textMuted }]}>
                       {item.hectares.toFixed(1)} ha ({item.farms}{' '}
-                      {t('ministry.plots').toLowerCase()}) · {pct}%
+                      {t('ministry.plots').toLowerCase()}) · {Math.round(share)}%
                     </Text>
                   </View>
-                  <View style={styles.cropProgressBg}>
+                  <View style={[styles.cropProgressBg, { backgroundColor: dark ? '#222222' : '#e5e7eb' }]}>
                     <View
                       style={[
                         styles.cropProgressFill,
@@ -284,7 +261,7 @@ export function MinistryOverview() {
                               : item.crop === 'wheat'
                                 ? '#f59e0b'
                                 : '#2563eb',
-                          width: `${pct}%`,
+                          width: `${Math.max(share, 2)}%`,
                         },
                       ]}
                     />
@@ -296,9 +273,10 @@ export function MinistryOverview() {
         </Card>
       )}
 
-      {/* By Woreda Breakdown Card */}
+      {/* By Woreda Table Card (Matching Web WoredaTable) */}
       {data?.by_woreda && data.by_woreda.length > 0 && (
         <Card
+          icon={<Ionicons name="map-outline" size={18} color="#2563eb" />}
           title={t('ministry.byWoredaTitle')}
           subtitle={t('ministry.byWoredaSubtitle')}
         >
@@ -322,7 +300,7 @@ export function MinistryOverview() {
                     },
                   ]}
                 >
-                  <View style={{ flex: 1 }}>
+                  <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={[styles.woredaName, { color: colors.text }]}>
                       {name}
                     </Text>
@@ -343,9 +321,10 @@ export function MinistryOverview() {
         </Card>
       )}
 
-      {/* Advisory Delivery Metrics Card */}
+      {/* Advisory Delivery Metrics Card (Matching Web DeliveryCard) */}
       {data?.advisories && (
         <Card
+          icon={<Ionicons name="mail-unread-outline" size={18} color={colors.primary} />}
           title={t('ministry.deliveryTitle')}
           subtitle={t('ministry.deliverySubtitle')}
         >
@@ -376,14 +355,27 @@ export function MinistryOverview() {
                 {t('ministry.acknowledged30d')}
               </Text>
             </View>
+          </View>
 
-            <View style={styles.deliveryTile}>
-              <Text style={[styles.deliveryValue, { color: '#059669' }]}>
-                {Math.round((data.advisories.acknowledgement_rate ?? 0) * 100)}%
-              </Text>
-              <Text style={[styles.deliveryLabel, { color: colors.textMuted }]}>
+          <View style={[styles.deliveryRateBox, { borderTopColor: colors.border }]}>
+            <View style={styles.rateTopRow}>
+              <Text style={[styles.rateLabel, { color: colors.textMuted }]}>
                 {t('ministry.acknowledgementRate')}
               </Text>
+              <Text style={[styles.rateValue, { color: '#059669' }]}>
+                {Math.round((data.advisories.acknowledgement_rate ?? 0) * 100)}%
+              </Text>
+            </View>
+            <View style={[styles.cropProgressBg, { backgroundColor: dark ? '#222222' : '#e5e7eb' }]}>
+              <View
+                style={[
+                  styles.cropProgressFill,
+                  {
+                    backgroundColor: '#059669',
+                    width: `${Math.min((data.advisories.acknowledgement_rate ?? 0) * 100, 100)}%`,
+                  },
+                ]}
+              />
             </View>
           </View>
         </Card>
@@ -401,7 +393,7 @@ export function MinistryOverview() {
         ]}
         accessibilityRole="button"
       >
-        <View style={{ flex: 1, gap: 2 }}>
+        <View style={{ flex: 1, gap: 3 }}>
           <Text style={[styles.linkTitle, { color: colors.text }]}>
             {t('ministry.watershedLinkTitle')}
           </Text>
@@ -417,7 +409,17 @@ export function MinistryOverview() {
 
 const styles = StyleSheet.create({
   container: { gap: spacing.lg },
-  headerCard: { padding: spacing.lg, gap: spacing.sm, borderWidth: 1 },
+  heroCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: spacing.lg,
+    gap: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   pill: {
     flexDirection: 'row',
@@ -428,58 +430,75 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   pillText: { fontSize: 11, fontWeight: '700' },
-  title: { fontSize: 22, fontWeight: '800', marginTop: 4 },
-  intro: { fontSize: 13, lineHeight: 18 },
+  title: { fontSize: 24, fontWeight: '800', marginTop: 4, letterSpacing: -0.5 },
+  intro: { fontSize: 13, lineHeight: 19 },
   leadSelector: { marginTop: spacing.xs },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  statCard: {
-    flex: 1,
-    minWidth: 140,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    gap: 2,
+  sourceNote: {
+    fontSize: 12,
+    lineHeight: 16,
+    paddingHorizontal: 4,
   },
-  statIconWrap: { marginBottom: 2 },
-  statValue: { fontSize: 20, fontWeight: '800' },
-  statLabel: { fontSize: 12, fontWeight: '600' },
-  statSub: { fontSize: 11, marginTop: 2 },
-  bucketRow: {
+  stackedBarContainer: {
+    flexDirection: 'row',
+    height: 12,
+    borderRadius: 6,
+    overflow: 'hidden',
+    backgroundColor: '#e5e7eb',
+  },
+  exposureTable: {
+    marginTop: 4,
+  },
+  tableHeaderRow: {
+    flexDirection: 'row',
+    paddingBottom: spacing.xs,
+    borderBottomWidth: 1,
+  },
+  tableHeaderCell: {
+    flex: 1,
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  tableRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  bucketLabelWrap: {
+  levelCell: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    width: 80,
   },
-  bucketDot: { width: 8, height: 8, borderRadius: 4 },
-  bucketLevelText: { fontSize: 12, fontWeight: '700' },
-  bucketProgressBg: {
-    flex: 1,
+  dot: {
+    width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#e5e7eb',
-    overflow: 'hidden',
   },
-  bucketProgressFill: { height: '100%', borderRadius: 4 },
-  bucketStats: { fontSize: 11, width: 100, textAlign: 'right' },
+  levelName: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  tableCell: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '600',
+  },
   cropTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   cropName: { fontSize: 13, fontWeight: '700' },
-  cropMeta: { fontSize: 11 },
+  cropMeta: { fontSize: 12 },
   cropProgressBg: {
     height: 8,
-    backgroundColor: '#e5e7eb',
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -489,35 +508,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: spacing.md,
-    borderRadius: radius.sm,
+    borderRadius: 14,
     borderWidth: 1,
     gap: spacing.sm,
   },
   woredaName: { fontSize: 14, fontWeight: '700' },
-  woredaSub: { fontSize: 11, marginTop: 2 },
+  woredaSub: { fontSize: 12, marginTop: 2 },
   deliveryGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: spacing.sm,
     marginTop: spacing.xs,
   },
   deliveryTile: {
     flex: 1,
-    minWidth: 120,
-    padding: spacing.sm,
     gap: 2,
   },
-  deliveryValue: { fontSize: 18, fontWeight: '800' },
-  deliveryLabel: { fontSize: 11 },
+  deliveryValue: { fontSize: 24, fontWeight: '800' },
+  deliveryLabel: { fontSize: 11, marginTop: 2 },
+  deliveryRateBox: {
+    borderTopWidth: 1,
+    paddingTop: spacing.md,
+    gap: 6,
+  },
+  rateTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  rateLabel: { fontSize: 13 },
+  rateValue: { fontSize: 15, fontWeight: '800' },
   watershedLink: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: spacing.lg,
-    borderRadius: radius.lg,
+    borderRadius: 18,
     borderWidth: 1,
     gap: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   linkTitle: { fontSize: 15, fontWeight: '700' },
-  linkBody: { fontSize: 12 },
+  linkBody: { fontSize: 12, lineHeight: 16 },
 });

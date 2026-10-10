@@ -141,6 +141,7 @@
     "addPlot": "Add plot",
     "hectaresShort": "ha",
     "landRisk": "Risk for this land",
+    "riskUnavailable": "Risk not available",
     "groundNow": "Ground now: {band}",
     "groundUnavailable": "Ground reading not available",
     "ensoNowBand": "Pacific Ocean now: {band}"
@@ -176,6 +177,7 @@
     "watershedLinkTitle": "Open watershed forecast grid",
     "watershedLinkBody": "Spatial drought grid and cell-by-cell risk analysis",
     "woreda": "Woreda",
+    "level": "Level",
     "meanRisk": "Mean risk",
     "farmers": "Farmers",
     "plots": "Plots",

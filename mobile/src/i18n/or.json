@@ -141,6 +141,7 @@
     "addPlot": "Lafa dabali",
     "hectaresShort": "hek",
     "landRisk": "Balaa lafa kanaa",
+    "riskUnavailable": "Balaan hin argamne",
     "groundNow": "Lafa ammaa: {band}",
     "groundUnavailable": "Dubbisni lafaa hin jiru",
     "ensoNowBand": "Garba Paasifik amma: {band}"
@@ -176,6 +177,7 @@
     "watershedLinkTitle": "Kaartaa sulula hongee bani",
     "watershedLinkBody": "Kaartaa bakkaa fi xiinxala balaa seelii tokkoon tokkoon",
     "woreda": "Aanaa",
+    "level": "Sadarkaa",
     "meanRisk": "Balaa giddugaleessaa",
     "farmers": "Qonnaan bultoota",
     "plots": "Lafa",

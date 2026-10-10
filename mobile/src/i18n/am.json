@@ -141,6 +141,7 @@
     "addPlot": "መሬት ጨምር",
     "hectaresShort": "ሄክታር",
     "landRisk": "የዚህ መሬት አደጋ",
+    "riskUnavailable": "አደጋው አልተገኘም",
     "groundNow": "የአሁኑ መሬት፡ {band}",
     "groundUnavailable": "የመሬት ንባብ የለም",
     "ensoNowBand": "የፓሲፊክ ውቅያኖስ አሁን፡ {band}"
@@ -176,6 +177,7 @@
     "watershedLinkTitle": "የተፋሰሱን የድርቅ ፍርግርግ ክፈት",
     "watershedLinkBody": "የቦታ ድርቅ ፍርግርግ እና የሴል-በ-ሴል አደጋ ትንተና",
     "woreda": "ወረዳ",
+    "level": "ደረጃ",
     "meanRisk": "አማካይ አደጋ",
     "farmers": "አርሶ አደሮች",
     "plots": "መሬቶች",
