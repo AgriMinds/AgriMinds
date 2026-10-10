@@ -5,12 +5,26 @@ import type {
   DroughtMapResponse,
   EnsoOutlookResponse,
   ErrorResponse,
+  FarmAdvisory,
+  FarmerDashboard,
   HealthResponse,
+  LeadMonth,
+  MinistryDashboard,
+  TokenPair,
+  WatershedBoundary,
 } from '@agriminds/api-types';
+
+import { loadRoleToken, saveRoleToken } from '@/storage/preferences';
 
 import { getApiConfig } from './config';
 
 export const REQUEST_TIMEOUT_MS = 8000;
+
+export const DEMO_CREDENTIALS: Record<string, { identifier: string; password: string }> = {
+  farmer: { identifier: '0912000001', password: 'AgriMinds#2026' },
+  minister: { identifier: 'minister@moa.gov.et', password: 'AgriMinds#2026' },
+  da: { identifier: 'agent.sinan@moa.gov.et', password: 'AgriMinds#2026' },
+};
 
 export type ApiErrorCode =
   | 'network'
@@ -67,6 +81,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
         ...(init.headers ?? {}),
       },
     });
+    if (res.status === 204) return undefined as T;
     const body: unknown = await res.json().catch(() => null);
     if (!res.ok) throw parseApiError(res.status, body);
     return body as T;
@@ -79,12 +94,88 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
 }
 
+const tokenCache: Record<string, string> = {};
+
+export async function getAuthTokenForRole(role: string): Promise<string | null> {
+  if (tokenCache[role]) return tokenCache[role];
+  const stored = await loadRoleToken(role);
+  if (stored) {
+    tokenCache[role] = stored;
+    return stored;
+  }
+  const creds = DEMO_CREDENTIALS[role];
+  if (creds) {
+    try {
+      const res = await api.login(creds.identifier, creds.password);
+      tokenCache[role] = res.access_token;
+      await saveRoleToken(role, res.access_token);
+      return res.access_token;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+export function clearTokenCache(role?: string) {
+  if (role) delete tokenCache[role];
+  else Object.keys(tokenCache).forEach((k) => delete tokenCache[k]);
+}
+
+async function authRequest<T>(role: string, path: string, init: RequestInit = {}): Promise<T> {
+  let token = await getAuthTokenForRole(role);
+  try {
+    return await request<T>(path, {
+      ...init,
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(init.headers ?? {}),
+      },
+    });
+  } catch (err) {
+    if (err instanceof ApiError && err.code === 'unauthorized') {
+      clearTokenCache(role);
+      await saveRoleToken(role, null);
+      const creds = DEMO_CREDENTIALS[role];
+      if (creds) {
+        const res = await api.login(creds.identifier, creds.password);
+        tokenCache[role] = res.access_token;
+        await saveRoleToken(role, res.access_token);
+        return await request<T>(path, {
+          ...init,
+          headers: {
+            Authorization: `Bearer ${res.access_token}`,
+            ...(init.headers ?? {}),
+          },
+        });
+      }
+    }
+    throw err;
+  }
+}
+
 export const api = {
   health: () => request<HealthResponse>('/health'),
+  login: (identifier: string, password: string) =>
+    request<TokenPair>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ identifier, password }),
+    }),
   droughtMap: (leadMonth: number) => request<DroughtMapResponse>(`/drought/map?lead_month=${leadMonth}`),
   cellRisk: (params: { lead_month: number; row?: number; col?: number; latitude?: number; longitude?: number }) =>
     request<CellRiskResponse>('/drought/cell', { method: 'POST', body: JSON.stringify(params) }),
   evaluateAdvisory: (payload: AdvisoryRequest) =>
     request<AdvisoryResponse>('/advisories/evaluate', { method: 'POST', body: JSON.stringify(payload) }),
   ensoOutlook: () => request<EnsoOutlookResponse>('/enso/outlook'),
+  watershed: () => request<WatershedBoundary>('/drought/watershed'),
+
+  // Role dashboards
+  farmerDashboard: (leadMonth: LeadMonth, role: string = 'farmer') =>
+    authRequest<FarmerDashboard>(role, `/dashboard/farmer?lead_month=${leadMonth}`),
+  ministryDashboard: (leadMonth: LeadMonth, role: string = 'minister') =>
+    authRequest<MinistryDashboard>(role, `/dashboard/ministry?lead_month=${leadMonth}`),
+  farmAdvisory: (farmId: string, leadMonth: LeadMonth, role: string = 'farmer') =>
+    authRequest<FarmAdvisory>(role, `/farms/${farmId}/advisory?lead_month=${leadMonth}`),
+  acknowledgeAdvisory: (advisoryId: string, role: string = 'farmer') =>
+    authRequest<void>(role, `/dashboard/farmer/advisories/${advisoryId}/acknowledge`, { method: 'POST' }),
 };

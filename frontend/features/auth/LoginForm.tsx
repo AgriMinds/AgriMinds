@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { Eye, EyeOff, Loader2, LogIn, TriangleAlert } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { homePathFor } from '@agriminds/api-types'
@@ -16,14 +15,12 @@ const FIELD =
 
 export function LoginForm({ next }: { next?: string }) {
   const t = useTranslations('auth')
-  const router = useRouter()
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [reveal, setReveal] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [routing, startRouting] = useTransition()
-  const busy = submitting || routing
+  const busy = submitting
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -32,10 +29,7 @@ export function LoginForm({ next }: { next?: string }) {
     try {
       const user = await authApi.login(identifier, password)
       const target = safeNextPath(next) ?? homePathFor(user.role)
-      startRouting(() => {
-        router.replace(target)
-        router.refresh()
-      })
+      window.location.assign(target)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t('genericError'))
       setSubmitting(false)
@@ -107,7 +101,54 @@ export function LoginForm({ next }: { next?: string }) {
         </p>
       )}
 
-      <Button type="submit" size="lg" className="mt-1 h-12 w-full text-base" disabled={busy}>
+      <div className="flex flex-col gap-1.5 pt-0.5">
+        <span className="text-[10.5px] font-semibold tracking-wider text-fg-subtle uppercase">
+          Demo Accounts (1-Tap Fill)
+        </span>
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              setIdentifier('minister@moa.gov.et')
+              setPassword('AgriMinds#2026')
+              setError(null)
+            }}
+            className="flex flex-col items-center justify-center rounded-lg border border-border bg-surface-sunken p-2 text-center transition-colors hover:border-primary hover:bg-surface focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+          >
+            <span className="text-xs font-bold text-fg">Minister</span>
+            <span className="text-[10px] text-primary">MoA</span>
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              setIdentifier('0912000001')
+              setPassword('AgriMinds#2026')
+              setError(null)
+            }}
+            className="flex flex-col items-center justify-center rounded-lg border border-border bg-surface-sunken p-2 text-center transition-colors hover:border-primary hover:bg-surface focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+          >
+            <span className="text-xs font-bold text-fg">Farmer</span>
+            <span className="text-[10px] text-primary">Sinan Plot</span>
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              setIdentifier('agent.sinan@moa.gov.et')
+              setPassword('AgriMinds#2026')
+              setError(null)
+            }}
+            className="flex flex-col items-center justify-center rounded-lg border border-border bg-surface-sunken p-2 text-center transition-colors hover:border-primary hover:bg-surface focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+          >
+            <span className="text-xs font-bold text-fg">Agent</span>
+            <span className="text-[10px] text-primary">Field DA</span>
+          </button>
+        </div>
+      </div>
+
+      <Button type="submit" size="lg" className="mt-1 h-12 w-full text-base font-semibold" disabled={busy}>
         {busy ? <Loader2 className="animate-spin" /> : <LogIn />}
         {busy ? t('signingIn') : t('signIn')}
       </Button>

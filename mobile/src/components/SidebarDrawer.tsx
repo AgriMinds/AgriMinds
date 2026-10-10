@@ -127,7 +127,10 @@ export function SidebarDrawer() {
                   return (
                     <TouchableOpacity
                       key={r.id}
-                      onPress={() => setRole(r.id)}
+                      onPress={() => {
+                        setRole(r.id);
+                        handleNavigate('/(tabs)');
+                      }}
                       style={[
                         styles.roleCard,
                         {

@@ -27,10 +27,15 @@ export type Session = { accessToken: string | null; refreshToken: string; user: 
 type CookieJar = Pick<ResponseCookies, 'set' | 'delete'>
 
 function baseCookie(maxAge: number) {
+  const secure =
+    process.env.COOKIE_SECURE === 'true' ||
+    (process.env.NODE_ENV === 'production' &&
+      process.env.COOKIE_SECURE !== 'false' &&
+      process.env.AGRIMINDS_ENV === 'production')
   return {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure,
     path: '/',
     maxAge,
   } as const

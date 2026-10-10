@@ -29,7 +29,7 @@ export default async function LoginPage({
 
   const t = await getTranslations('auth')
   const ta = await getTranslations('app')
-  const showDemo = process.env.NODE_ENV !== 'production'
+  const showDemo = process.env.AGRIMINDS_ENV !== 'production'
 
   return (
     <main id="main" className="bg-contour flex min-h-svh flex-col items-center justify-center px-4 py-10">

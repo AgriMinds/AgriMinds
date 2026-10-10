@@ -33,6 +33,13 @@ export const saveApiBaseUrl = (url: string | null) => setString(STORAGE_KEYS.api
 export const loadApiKey = () => getString(STORAGE_KEYS.apiKey);
 export const saveApiKey = (key: string | null) => setString(STORAGE_KEYS.apiKey, key?.trim() ?? null);
 
+export const loadRoleToken = (role: string) => getString(`${STORAGE_KEYS.tokenPrefix}${role}`);
+export const saveRoleToken = (role: string, token: string | null) =>
+  setString(`${STORAGE_KEYS.tokenPrefix}${role}`, token?.trim() ?? null);
+
+export const loadActiveFarmId = () => getString(STORAGE_KEYS.activeFarmId);
+export const saveActiveFarmId = (id: string | null) => setString(STORAGE_KEYS.activeFarmId, id);
+
 export async function clearQueryCache(): Promise<void> {
   try {
     await AsyncStorage.removeItem(STORAGE_KEYS.queryCache);
