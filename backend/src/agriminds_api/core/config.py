@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     )
 
     project_name: str = "AgriMinds AI-DREWS API"
-    env: Literal["development", "test", "production"] = "development"
+    env: Literal["development", "test", "staging", "production"] = "development"
     log_level: str = "INFO"
     api_v1_prefix: str = "/api/v1"
 
