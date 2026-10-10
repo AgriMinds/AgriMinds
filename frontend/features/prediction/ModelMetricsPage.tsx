@@ -659,13 +659,26 @@ export function ModelMetricsPage() {
                   </CardHeading>
                 </CardHeader>
                 <CardContent><ModelComparisonChart rows={data.model_comparison} /></CardContent>
-                <CardFooter className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1.5 text-[11px] sm:text-xs">
-                  {['SuperHybrid (CNN-LSTM-Fourier)','CNN-LSTM','CNN','ANN','LSTM','RCM'].map((m) => (
-                    <div key={m} className="flex items-center gap-1.5">
-                      <span className="size-2 sm:size-2.5 rounded-xs sm:rounded-sm shrink-0" style={{ background: MODEL_COLOR[m] }} aria-hidden />
-                      <span className="truncate">{m}</span>
-                    </div>
-                  ))}
+                <CardFooter className="flex flex-col items-start gap-2.5 text-xs">
+                  <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1.5 text-[11px] sm:text-xs">
+                    {['SuperHybrid (CNN-LSTM-Fourier)','CNN-LSTM','CNN','ANN','LSTM','RCM'].map((m) => (
+                      <div key={m} className="flex items-center gap-1.5">
+                        <span className="size-2 sm:size-2.5 rounded-xs sm:rounded-sm shrink-0" style={{ background: MODEL_COLOR[m] }} aria-hidden />
+                        <span className="truncate">{m}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="w-full mt-1.5 rounded-xl bg-surface-sunken/60 border border-border p-3 text-[11px] sm:text-xs text-fg-muted space-y-1.5">
+                    <p className="font-semibold text-fg flex items-center gap-1.5">
+                      <span className="size-1.5 rounded-full bg-primary" /> Scale-Dependent Trade-Off & Deployment Recommendations:
+                    </p>
+                    <p>
+                      • <strong>Tactical Farming (Leads 1–2):</strong> Pure <strong>CNN-LSTM</strong> achieves lower point error (MAE 0.212 vs 0.257, RMSE 0.346 vs 0.352) and higher accuracy (77.7% vs 52.7%) by capturing immediate autoregressive hydrological persistence. It is optimal for tactical planting date and input timing.
+                    </p>
+                    <p>
+                      • <strong>Strategic Early Warning (Leads 3–12):</strong> <strong>SuperHybrid (CNN-LSTM-Fourier)</strong> is superior for seasonal horizons where autoregression decays. The Fourier harmonic branch prevents representation drift, sustaining positive discrimination (AUC 0.521–0.531 across Leads 8–10) where pure CNN-LSTM collapses below random chance (AUC 0.493).
+                    </p>
+                  </div>
                 </CardFooter>
               </Card>
             )}
