@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, usePathname } from 'expo-router';
 import React from 'react';
 import {
+  Linking,
   Modal,
   Pressable,
   ScrollView,
@@ -33,7 +34,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const ROLES: { id: UserRole; icon: IconName }[] = [
-  { id: 'farmer', icon: 'person-outline' },
+  { id: 'farmer', icon: 'leaf-outline' },
   { id: 'minister', icon: 'briefcase-outline' },
   { id: 'da', icon: 'clipboard-outline' },
 ];
@@ -59,6 +60,10 @@ export function SidebarDrawer() {
     router.push(route as any);
   };
 
+  const handleCallHotline = () => {
+    Linking.openURL('tel:8028').catch(() => {});
+  };
+
   return (
     <Modal visible={isSidebarOpen} transparent animationType="fade" onRequestClose={closeDrawer}>
       <View style={styles.overlay}>
@@ -69,17 +74,24 @@ export function SidebarDrawer() {
             styles.drawerContent,
             {
               backgroundColor: colors.surface,
-              paddingTop: Math.max(insets.top, spacing.lg),
+              paddingTop: insets.top,
               paddingBottom: Math.max(insets.bottom, spacing.md),
               borderRightColor: colors.border,
             },
           ]}
         >
+          {/* Sovereign Ethiopian Tricolor Stripe */}
+          <View style={styles.nationalStripe}>
+            <View style={[styles.stripeSegment, { backgroundColor: '#078930' }]} />
+            <View style={[styles.stripeSegment, { backgroundColor: '#FCDD09' }]} />
+            <View style={[styles.stripeSegment, { backgroundColor: '#DA121A' }]} />
+          </View>
+
           {/* Top Ethiopian Ministry Branding Header */}
           <View style={[styles.headerContainer, { borderBottomColor: colors.border }]}>
             <View style={styles.emblemRow}>
               <View style={[styles.emblemBadge, { backgroundColor: colors.primary }]}>
-                <Ionicons name="shield-checkmark" size={22} color={colors.onPrimary} />
+                <Ionicons name="shield-checkmark" size={20} color={colors.onPrimary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.orgName, { color: colors.primary }]}>
@@ -89,7 +101,7 @@ export function SidebarDrawer() {
                   {t('appName')}
                 </Text>
               </View>
-              <TouchableOpacity onPress={closeDrawer} style={styles.closeBtn}>
+              <TouchableOpacity onPress={closeDrawer} style={styles.closeBtn} accessibilityLabel="Close menu">
                 <Ionicons name="close" size={22} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
@@ -103,7 +115,7 @@ export function SidebarDrawer() {
           </View>
 
           <ScrollView style={styles.scrollArea} showsVerticalScrollIndicator={false}>
-            {/* Role Switcher Section */}
+            {/* Role Switcher Section (Farmer / Agricultural Minister / DA) */}
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>
                 {t('sidebar.switchRole')}
@@ -154,6 +166,117 @@ export function SidebarDrawer() {
                 })}
               </View>
             </View>
+
+            {/* Role-Specific Directives & Extension Toolkits */}
+            {activeRole === 'farmer' && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>
+                  {t('sidebar.quickActions')}
+                </Text>
+                {/* 8028 Toll-Free Agronomic Advisory Hotline */}
+                <TouchableOpacity
+                  onPress={handleCallHotline}
+                  style={[
+                    styles.actionCard,
+                    {
+                      backgroundColor: dark ? '#13281b' : '#e6f7ec',
+                      borderColor: colors.primary,
+                    },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Call 8028 Agronomic Hotline"
+                >
+                  <View style={[styles.actionIconBadge, { backgroundColor: colors.primary }]}>
+                    <Ionicons name="call" size={16} color={colors.onPrimary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.actionTitle, { color: colors.primary }]}>
+                      {t('sidebar.hotline8028')}
+                    </Text>
+                    <Text style={[styles.actionSubtitle, { color: colors.textMuted }]}>
+                      {t('sidebar.hotlineDesc')}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+                </TouchableOpacity>
+
+                {/* Local Kebele DA Extension Liaison */}
+                <View
+                  style={[
+                    styles.actionCard,
+                    {
+                      backgroundColor: colors.surfaceAlt,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                >
+                  <View style={[styles.actionIconBadge, { backgroundColor: colors.surface }]}>
+                    <Ionicons name="people-outline" size={16} color={colors.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.actionTitle, { color: colors.text }]}>
+                      {t('sidebar.kebeleExtension')}
+                    </Text>
+                    <Text style={[styles.actionSubtitle, { color: colors.textMuted }]}>
+                      {t('sidebar.kebeleDesc')}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {activeRole === 'minister' && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>
+                  {t('sidebar.quickActions')}
+                </Text>
+                {/* Ministerial Emergency Drought Buffer Trigger */}
+                <View
+                  style={[
+                    styles.actionCard,
+                    {
+                      backgroundColor: dark ? '#2a1a10' : '#fff4ec',
+                      borderColor: '#e06d10',
+                    },
+                  ]}
+                >
+                  <View style={[styles.actionIconBadge, { backgroundColor: '#e06d10' }]}>
+                    <Ionicons name="warning" size={16} color="#ffffff" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.actionTitle, { color: '#e06d10' }]}>
+                      {t('sidebar.emergencyBuffer')}
+                    </Text>
+                    <Text style={[styles.actionSubtitle, { color: colors.textMuted }]}>
+                      {t('sidebar.emergencyBufferDesc')}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Strategic Food Security Protection */}
+                <View
+                  style={[
+                    styles.actionCard,
+                    {
+                      backgroundColor: colors.surfaceAlt,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                >
+                  <View style={[styles.actionIconBadge, { backgroundColor: colors.surface }]}>
+                    <Ionicons name="nutrition-outline" size={16} color={colors.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.actionTitle, { color: colors.text }]}>
+                      {t('sidebar.foodSecurity')}
+                    </Text>
+                    <Text style={[styles.actionSubtitle, { color: colors.textMuted }]}>
+                      {t('sidebar.foodSecurityDesc')}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
 
             {/* Navigation Menu */}
             <View style={styles.section}>
@@ -207,7 +330,7 @@ export function SidebarDrawer() {
               </View>
             </View>
 
-            {/* Language Quick Switcher */}
+            {/* Language Quick Switcher (English, Amharic, Afaan Oromoo) */}
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>
                 {t('settings.language')}
@@ -256,19 +379,29 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   backdrop: {
     flex: 1,
   },
   drawerContent: {
-    width: '82%',
-    maxWidth: 320,
+    width: '84%',
+    maxWidth: 330,
     height: '100%',
     borderRightWidth: 1,
   },
+  nationalStripe: {
+    flexDirection: 'row',
+    height: 4,
+    width: '100%',
+  },
+  stripeSegment: {
+    flex: 1,
+    height: 4,
+  },
   headerContainer: {
     paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
     gap: spacing.sm,
@@ -279,8 +412,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   emblemBadge: {
-    width: 38,
-    height: 38,
+    width: 36,
+    height: 36,
     borderRadius: radius.md,
     justifyContent: 'center',
     alignItems: 'center',
@@ -296,7 +429,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   closeBtn: {
-    padding: 4,
+    padding: 6,
   },
   badgePill: {
     flexDirection: 'row',
@@ -316,7 +449,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   section: {
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
     gap: spacing.xs,
   },
   sectionTitle: {
@@ -347,6 +480,30 @@ const styles = StyleSheet.create({
   roleDesc: {
     fontSize: 11,
     lineHeight: 15,
+  },
+  actionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    gap: spacing.sm,
+    marginBottom: 6,
+  },
+  actionIconBadge: {
+    width: 30,
+    height: 30,
+    borderRadius: radius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  actionSubtitle: {
+    fontSize: 10,
+    lineHeight: 13,
   },
   navList: {
     gap: 4,

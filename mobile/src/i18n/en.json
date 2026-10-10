@@ -16,8 +16,16 @@
     "menu": "Navigation",
     "quickActions": "Quick Actions",
     "switchRole": "Switch Operating Mode",
-    "systemInfo": "AgriMinds Enterprise v1.1.0",
-    "ethiopiaBadge": "Choke Watershed Operations"
+    "systemInfo": "AgriMinds Enterprise v1.1.0 · MoA Ethiopia",
+    "ethiopiaBadge": "Choke Watershed Operations",
+    "hotline8028": "8028 Agronomic Hotline",
+    "hotlineDesc": "MoA Toll-Free IVR / SMS Service",
+    "kebeleExtension": "Kebele Extension (DA)",
+    "kebeleDesc": "Field agent consultation active",
+    "emergencyBuffer": "Emergency Drought Buffer",
+    "emergencyBufferDesc": "Trigger for ≥75% severe risk cells",
+    "foodSecurity": "Strategic Food Security",
+    "foodSecurityDesc": "Teff, Wheat & Maize Protection"
   },
   "ministerView": {
     "title": "National & Watershed Policy Overview",

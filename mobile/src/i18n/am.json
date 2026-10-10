@@ -16,8 +16,16 @@
     "menu": "ማውጫ",
     "quickActions": "ፈጣን እርምጃዎች",
     "switchRole": "የስራ ሚና ይቀይሩ",
-    "systemInfo": "አግሪማይንድስ ኢንተርፕራይዝ v1.1.0",
-    "ethiopiaBadge": "የጮቄ ተፋሰስ ስራዎች"
+    "systemInfo": "አግሪማይንድስ ኢንተርፕራይዝ v1.1.0 · የኢ.ፌ.ዴ.ሪ ግብርና ሚኒስቴር",
+    "ethiopiaBadge": "የጮቄ ተፋሰስ ስራዎች",
+    "hotline8028": "8028 ነፃ የግብርና መስመር",
+    "hotlineDesc": "ከግብርና ሚኒስቴር በነፃ ስልክ እና SMS",
+    "kebeleExtension": "የቀበሌ ልማት ሠራተኛ (DA)",
+    "kebeleDesc": "የመስክ ባለሙያ ድጋፍ ዝግጁ ነው",
+    "emergencyBuffer": "የአስቸኳይ ጊዜ ድርቅ ክምችት",
+    "emergencyBufferDesc": "ከ75% በላይ አደጋ ላለባቸው ክፍሎች",
+    "foodSecurity": "ስትራቴጂካዊ የምግብ ዋስትና",
+    "foodSecurityDesc": "የጤፍ፣ ስንዴ እና በቆሎ ጥበቃ"
   },
   "ministerView": {
     "title": "አገራዊ እና የተፋሰሱ ፖሊሲ እይታ",

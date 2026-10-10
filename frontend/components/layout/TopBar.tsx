@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { MapPin, Menu } from 'lucide-react'
+import { Landmark, MapPin, Menu, Sprout } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
@@ -61,6 +61,18 @@ export function TopBar({ onOpenNav, user }: TopBarProps) {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          {user.role === 'minister' && (
+            <span className="hidden xl:inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+              <Landmark className="size-3.5 text-amber-500" />
+              <span>FDRE Ministry of Agriculture</span>
+            </span>
+          )}
+          {user.role === 'farmer' && (
+            <span className="hidden xl:inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+              <Sprout className="size-3.5" />
+              <span>Smallholder Farmer</span>
+            </span>
+          )}
           <span className="hidden sm:inline-flex">
             <HealthChip />
           </span>

@@ -7,10 +7,15 @@ import {
   BarChart3,
   CalendarRange,
   Database,
+  Flame,
+  Landmark,
   ListChecks,
   Map,
+  PhoneCall,
+  ShieldCheck,
   Sprout,
   Waves,
+  Wheat,
   X,
   type LucideIcon,
 } from 'lucide-react'
@@ -59,7 +64,7 @@ function ModelCard() {
     [t('issued'), model?.issued_date ?? '—'],
   ]
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.06] p-3.5">
+    <div className="rounded-xl border border-white/10 bg-white/[0.06] p-3.5 backdrop-blur-xs">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-[10px] font-semibold tracking-[0.16em] text-brand-sage uppercase">{t('title')}</span>
         <span
@@ -90,6 +95,83 @@ function ModelCard() {
 }
 
 /**
+ * Ministerial executive policy directives quick-access toolkit.
+ * Gives the Agricultural Minister of Ethiopia high-level command visibility.
+ */
+function MinisterToolkit() {
+  const ts = useTranslations('sidebar')
+  return (
+    <div className="mx-3 my-2 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] p-3 text-xs">
+      <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-amber-300 uppercase">
+        <Landmark className="size-3.5 text-amber-400" />
+        <span>{ts('executiveToolkit')}</span>
+      </div>
+      <div className="mt-2.5 flex flex-col gap-2">
+        <div className="flex items-start gap-2">
+          <Wheat className="mt-0.5 size-3.5 shrink-0 text-amber-300" />
+          <div className="min-w-0">
+            <span className="block font-semibold text-white/90">{ts('foodSecurity')}</span>
+            <span className="block text-[10px] text-white/60">{ts('foodSecurityDesc')}</span>
+          </div>
+        </div>
+        <div className="flex items-start gap-2">
+          <Flame className="mt-0.5 size-3.5 shrink-0 text-risk-high" />
+          <div className="min-w-0">
+            <span className="block font-semibold text-white/90">{ts('emergencyRelief')}</span>
+            <span className="block text-[10px] text-white/60">{ts('emergencyReliefDesc')}</span>
+          </div>
+        </div>
+        <div className="flex items-start gap-2">
+          <Map className="mt-0.5 size-3.5 shrink-0 text-brand-lime" />
+          <div className="min-w-0">
+            <span className="block font-semibold text-white/90">{ts('woredasCovered')}</span>
+            <span className="block text-[10px] text-white/60">{ts('woredasDesc')}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Farmer extension & advisory service card.
+ * Provides direct access to Ethiopia's national 8028 hotline and local Kebele DA.
+ */
+function FarmerServices() {
+  const ts = useTranslations('sidebar')
+  return (
+    <div className="mx-3 my-2 flex flex-col gap-2">
+      <p className="px-1 text-[10px] font-semibold tracking-[0.18em] text-white/40 uppercase">
+        {ts('farmerSupport')}
+      </p>
+      <a
+        href="tel:8028"
+        className="group flex items-center gap-2.5 rounded-lg border border-brand-lime/30 bg-brand-lime/[0.08] p-2.5 transition-colors hover:border-brand-lime hover:bg-brand-lime/[0.15]"
+      >
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-brand-lime/20 text-brand-lime group-hover:bg-brand-lime group-hover:text-brand-forest-deep transition-colors">
+          <PhoneCall className="size-3.5" />
+        </span>
+        <div className="min-w-0 leading-tight">
+          <span className="block text-xs font-bold text-white group-hover:text-brand-lime transition-colors">
+            {ts('hotline8028')}
+          </span>
+          <span className="block truncate text-[10px] text-white/60">{ts('hotlineDesc')}</span>
+        </div>
+      </a>
+      <div className="flex items-center gap-2.5 rounded-lg border border-white/10 bg-white/[0.04] p-2.5">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-white/10 text-brand-sage">
+          <ShieldCheck className="size-3.5" />
+        </span>
+        <div className="min-w-0 leading-tight">
+          <span className="block text-xs font-semibold text-white/90">{ts('kebeleExtension')}</span>
+          <span className="block truncate text-[10px] text-white/55">{ts('kebeleDesc')}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
  * Who is signed in.
  *
  * The farmer variant also names their land, because "2 plots · Hulet Ej Enese" tells them at a
@@ -99,6 +181,9 @@ function ModelCard() {
  */
 function Identity({ user, detail }: { user: { name: string; role: Role }; detail?: string }) {
   const tr = useTranslations('roles')
+  const ts = useTranslations('sidebar')
+  const isMinister = user.role === 'minister'
+  const isFarmer = user.role === 'farmer'
   const initials = user.name
     .split(/\s+/)
     .filter(Boolean)
@@ -106,18 +191,34 @@ function Identity({ user, detail }: { user: { name: string; role: Role }; detail
     .map((part) => part[0] ?? '')
     .join('')
     .toUpperCase()
+
   return (
-    <div className="mx-4 mb-2 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.06] p-3">
-      <span
-        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-sage/25 text-xs font-bold text-white"
-        aria-hidden
-      >
-        {initials || '\u2014'}
-      </span>
-      <span className="min-w-0 leading-tight">
-        <span className="block truncate text-sm font-semibold">{user.name}</span>
-        <span className="block truncate text-[11px] text-white/55">{detail ?? tr(user.role)}</span>
-      </span>
+    <div className="mx-4 mb-2 flex flex-col gap-1.5 rounded-xl border border-white/10 bg-white/[0.06] p-3 shadow-xs">
+      <div className="flex items-center gap-3">
+        <span
+          className={cn(
+            'flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-xs',
+            isMinister
+              ? 'bg-gradient-to-br from-amber-500 to-amber-700 ring-2 ring-amber-400/40'
+              : 'bg-brand-sage/25 ring-1 ring-white/10',
+          )}
+          aria-hidden
+        >
+          {initials || '\u2014'}
+        </span>
+        <span className="min-w-0 leading-tight">
+          <span className="block truncate text-sm font-semibold text-white">{user.name}</span>
+          <span className="block truncate text-[11px] text-white/60">{detail ?? tr(user.role)}</span>
+        </span>
+      </div>
+      <div className="flex items-center justify-between border-t border-white/10 pt-1.5 text-[10px]">
+        <span className="font-medium text-brand-sage">
+          {isMinister ? ts('ministerDesk') : isFarmer ? ts('registeredSmallholder') : tr(user.role)}
+        </span>
+        <span className="rounded-sm bg-white/10 px-1.5 py-0.5 font-mono text-[9px] text-white/70">
+          {isMinister ? ts('nationalOversight') : ts('activeSurveillance')}
+        </span>
+      </div>
     </div>
   )
 }
@@ -233,9 +334,11 @@ type Props = { open: boolean; onClose: () => void; user: { name: string; role: R
 export function Sidebar({ open, onClose, user }: Props) {
   const t = useTranslations('app')
   const tn = useTranslations('nav')
+  const ts = useTranslations('sidebar')
   const pathname = usePathname()
   const items = navForRole(user.role)
   const farmer = user.role === 'farmer'
+  const isMinister = user.role === 'minister' || user.role === 'admin'
 
   return (
     <>
@@ -250,35 +353,53 @@ export function Sidebar({ open, onClose, user }: Props) {
       <aside
         aria-label={tn('section')}
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col overflow-y-auto bg-surface-inverse text-white shadow-lg transition-transform duration-300 lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col overflow-y-auto bg-surface-inverse text-white shadow-xl transition-transform duration-300 lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="flex items-center justify-between px-5 pt-5 pb-4">
-          <Link
-            href={items[0]?.href ?? '/'}
-            onClick={onClose}
-            className="flex items-center gap-3 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-lime"
-          >
-            <span className="flex size-10 items-center justify-center overflow-hidden rounded-xl shadow-md shadow-black/20">
-              <Image src="/icon.png" alt="AgriMinds" width={40} height={40} className="size-10 object-cover" />
-            </span>
-            <span className="leading-tight">
-              <span className="block font-display text-base font-bold tracking-tight">{t('name')}</span>
-              <span className="block text-[10px] font-semibold tracking-[0.2em] text-brand-sage uppercase">
-                {t('product')}
+        {/* Ethiopian sovereign tricolor ribbon */}
+        <div
+          className="h-1.5 w-full bg-gradient-to-r from-[#078930] via-[#FCDD09] to-[#DA121A] shrink-0"
+          aria-hidden="true"
+        />
+
+        {/* Institutional Branding Header */}
+        <div className="flex flex-col gap-2 border-b border-white/10 px-5 pt-4 pb-3">
+          <div className="flex items-center justify-between">
+            <Link
+              href={items[0]?.href ?? '/'}
+              onClick={onClose}
+              className="flex items-center gap-3 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-lime"
+            >
+              <span className="flex size-10 items-center justify-center overflow-hidden rounded-xl shadow-md shadow-black/20 ring-1 ring-white/15">
+                <Image src="/icon.png" alt="AgriMinds" width={40} height={40} className="size-10 object-cover" />
               </span>
-            </span>
-          </Link>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="text-white/70 hover:bg-white/10 hover:text-white lg:hidden"
-            aria-label={t('closeNavigation')}
-            onClick={onClose}
-          >
-            <X />
-          </Button>
+              <span className="leading-tight">
+                <span className="block font-display text-base font-bold tracking-tight text-white">{t('name')}</span>
+                <span className="block text-[10px] font-semibold tracking-[0.2em] text-brand-sage uppercase">
+                  {t('product')}
+                </span>
+              </span>
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-white/70 hover:bg-white/10 hover:text-white lg:hidden"
+              aria-label={t('closeNavigation')}
+              onClick={onClose}
+            >
+              <X />
+            </Button>
+          </div>
+
+          {/* Ethiopian Ministry of Agriculture Official Subheader */}
+          <div className="rounded-lg bg-white/[0.05] px-2.5 py-1.5 text-[10.5px] leading-tight text-white/75">
+            <div className="font-semibold text-brand-lime flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-status-ok animate-pulse" aria-hidden />
+              {ts('orgTitle')}
+            </div>
+            <div className="text-[9.5px] text-white/55 truncate">{ts('basinBadge')}</div>
+          </div>
         </div>
 
         {farmer ? <FarmerIdentity user={user} /> : <Identity user={user} />}
@@ -348,7 +469,14 @@ export function Sidebar({ open, onClose, user }: Props) {
               )
             })}
           </ul>
+
           {farmer && pathname === '/farm' && <FarmSections onNavigate={onClose} />}
+
+          {/* Farmer Advisory Hotline & Extension Services */}
+          {farmer && <FarmerServices />}
+
+          {/* Minister of Agriculture Strategic Executive Directives Toolkit */}
+          {isMinister && <MinisterToolkit />}
         </nav>
 
         <div className="flex flex-col gap-3 px-4 pb-5">

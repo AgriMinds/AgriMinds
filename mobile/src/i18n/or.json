@@ -16,8 +16,16 @@
     "menu": "Baafata",
     "quickActions": "Tarkaanfii Argaa-dhageettii",
     "switchRole": "Jijjiirraa Shooraa",
-    "systemInfo": "AgriMinds Enterprise v1.1.0",
-    "ethiopiaBadge": "Hoojii Qoorqoorro Choke"
+    "systemInfo": "AgriMinds Enterprise v1.1.0 · Ministeera Qonnaa",
+    "ethiopiaBadge": "Hojii Qoorqoorro Cooqee",
+    "hotline8028": "Sarara Bilbila Bilisaa 8028",
+    "hotlineDesc": "Gorsa bilisaa Ministeera Qonnaa irraa",
+    "kebeleExtension": "Ogeessa Misooma Gandaa (DA)",
+    "kebeleDesc": "Gorsi ogeessa misoomaa banaadha",
+    "emergencyBuffer": "Kuusaa Gargaarsa Hongee",
+    "emergencyBufferDesc": "Bakkeewwan sodaa caamsaa ≥75% tiif",
+    "foodSecurity": "Wabii Nyaataa Qonnaa",
+    "foodSecurityDesc": "Eegumsa xaafii, qamadii fi boqqolloo"
   },
   "ministerView": {
     "title": "Imaammata Qonnaa Biyyaalessaa",
