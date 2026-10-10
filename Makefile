@@ -171,27 +171,26 @@ railway-check: ## Verify the Railway CLI is installed and the project is linked
 	@railway status
 
 railway-migrate: ## Apply database migrations on Railway
-	railway run --service $(RAILWAY_SVC) alembic upgrade head
+	railway run --service $(RAILWAY_SVC) -- $(COMPOSE) run --rm backend alembic upgrade head
 
 railway-seed: ## Load reference geography on Railway (regions, zones, woredas)
-	railway run --service $(RAILWAY_SVC) agriminds seed
+	railway run --service $(RAILWAY_SVC) -- $(COMPOSE) run --rm backend agriminds seed
 
 railway-seed-demo: ## Load demo accounts and plots on Railway (never in production)
-	railway run --service $(RAILWAY_SVC) agriminds seed --demo
+	railway run --service $(RAILWAY_SVC) -- $(COMPOSE) run --rm backend agriminds seed --demo
 
-railway-health: ## Check the deployed API health endpoint
-	@URL=$$(railway domain --service $(RAILWAY_SVC) 2>/dev/null | head -1); \
-	 test -n "$$URL" || { echo "Could not resolve service domain. Set RAILWAY_BACKEND_URL=https://... and retry."; exit 1; }; \
-	 echo -n "backend ($$URL): "; \
-	 curl -fsS "https://$$URL/api/v1/health" | python3 -c \
+railway-health: ## Check the deployed API health: make railway-health url=https://<backend-domain>
+	@test -n "$(url)" || { echo "usage: make railway-health url=https://<backend-railway-domain>"; exit 1; }
+	@echo -n "backend ($(url)): "; \
+	 curl -fsS "$(url)/api/v1/health" | python3 -c \
 	   'import sys,json; d=json.load(sys.stdin); print(d["status"], "| model:", d["model"]["source"], "| db:", "up" if d["database"]["reachable"] else "DOWN")' \
 	 || echo "DOWN"
 
 railway-train: ## Run the ML pipeline on Railway (uses data/ already in the image)
-	railway run --service $(RAILWAY_SVC) ai-drews run-all --no-plot
+	railway run --service $(RAILWAY_SVC) -- $(COMPOSE) run --rm backend ai-drews run-all --no-plot
 
 railway-snapshot: ## Persist the current forecast to risk_snapshots on Railway
-	railway run --service $(RAILWAY_SVC) agriminds snapshot-risk
+	railway run --service $(RAILWAY_SVC) -- $(COMPOSE) run --rm backend agriminds snapshot-risk
 
 railway-logs: ## Tail Railway backend logs
 	railway logs --service $(RAILWAY_SVC)
