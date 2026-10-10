@@ -5,7 +5,9 @@ PY           ?= .venv/bin/python
 
 .PHONY: help up up-dev up-mobile down build restart ps logs logs-backend logs-web health train \
         api-types setup test test-py test-js lint fmt typecheck clean \
-        migrate migration seed seed-demo db-shell db-reset snapshot bi-role ingest-wind train-wind
+        migrate migration seed seed-demo db-shell db-reset snapshot bi-role ingest-wind train-wind \
+        railway-check railway-migrate railway-seed railway-seed-demo railway-health \
+        railway-train railway-snapshot railway-logs railway-shell railway-open
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -155,3 +157,47 @@ typecheck: ## Static types (mypy on the API domain layer, tsc on JS packages)
 clean: ## Stop services and remove volumes, build caches
 	$(COMPOSE) --profile mobile down -v --remove-orphans
 	find . -path ./.venv -prune -o \( -name __pycache__ -o -name .pytest_cache -o -name .ruff_cache \) -type d -print0 | xargs -0 rm -rf
+
+# ---------------------------------------------------------------- railway
+# Requires the Railway CLI: https://docs.railway.app/develop/cli
+# Log in once with: railway login
+# Link this repo once with: railway link
+# All targets accept an optional service= override, e.g. make railway-migrate service=backend
+
+RAILWAY_SVC ?= backend
+
+railway-check: ## Verify the Railway CLI is installed and the project is linked
+	@command -v railway >/dev/null 2>&1 || (echo "Railway CLI not found. Install: npm i -g @railway/cli" && exit 1)
+	@railway status
+
+railway-migrate: ## Apply database migrations on Railway
+	railway run --service $(RAILWAY_SVC) alembic upgrade head
+
+railway-seed: ## Load reference geography on Railway (regions, zones, woredas)
+	railway run --service $(RAILWAY_SVC) agriminds seed
+
+railway-seed-demo: ## Load demo accounts and plots on Railway (never in production)
+	railway run --service $(RAILWAY_SVC) agriminds seed --demo
+
+railway-health: ## Check the deployed API health endpoint
+	@URL=$$(railway domain --service $(RAILWAY_SVC) 2>/dev/null | head -1); \
+	 test -n "$$URL" || { echo "Could not resolve service domain. Set RAILWAY_BACKEND_URL=https://... and retry."; exit 1; }; \
+	 echo -n "backend ($$URL): "; \
+	 curl -fsS "https://$$URL/api/v1/health" | python3 -c \
+	   'import sys,json; d=json.load(sys.stdin); print(d["status"], "| model:", d["model"]["source"], "| db:", "up" if d["database"]["reachable"] else "DOWN")' \
+	 || echo "DOWN"
+
+railway-train: ## Run the ML pipeline on Railway (uses data/ already in the image)
+	railway run --service $(RAILWAY_SVC) ai-drews run-all --no-plot
+
+railway-snapshot: ## Persist the current forecast to risk_snapshots on Railway
+	railway run --service $(RAILWAY_SVC) agriminds snapshot-risk
+
+railway-logs: ## Tail Railway backend logs
+	railway logs --service $(RAILWAY_SVC)
+
+railway-shell: ## Open an interactive shell on the Railway backend service
+	railway shell --service $(RAILWAY_SVC)
+
+railway-open: ## Open the deployed web app in the browser
+	railway open --service web
