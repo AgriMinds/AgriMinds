@@ -13,4 +13,11 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
+// Block react-native-worklets from being bundled — it conflicts with reanimated 4.x
+// which ships its own worklets runtime.
+const { exclusionList } = require('metro-config');
+config.resolver.blockList = exclusionList([
+  /node_modules\/react-native-worklets\/.*/,
+]);
+
 module.exports = config;
