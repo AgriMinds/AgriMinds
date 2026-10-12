@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 704" width="760" height="704" font-family="Helvetica, Arial, sans-serif" font-size="13" role="img" aria-label="Each model is scored against baselines before it is served">
+<rect x="0" y="0" width="760" height="704" fill="#ffffff"/>
+<defs><marker id="pipe-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#b0b0b0"/></marker></defs>
+<text x="24" y="28" font-size="15" font-weight="600" fill="#1a1a1a">Each model is scored against baselines before it is served</text>
+<text x="24" y="47" font-size="11.5" fill="#6b6b6b">ai-drews pipeline, ml/src/ai_drews, driven by one CLI</text>
+<g fill="none" stroke="#b0b0b0" stroke-width="1.25">
+<path d="M234 140V156" marker-end="url(#pipe-arrow)"/>
+<path d="M234 232V248" marker-end="url(#pipe-arrow)"/>
+<path d="M234 324V340" marker-end="url(#pipe-arrow)"/>
+<path d="M234 416V432" marker-end="url(#pipe-arrow)"/>
+<path d="M234 508V524" marker-end="url(#pipe-arrow)"/>
+<path d="M234 600V632" marker-end="url(#pipe-arrow)"/>
+<path d="M608 424V632" marker-end="url(#pipe-arrow)"/>
+</g>
+<g><rect x="24" y="64" width="420" height="76" rx="8" fill="none" stroke="#c4c4c4" stroke-width="1.25"/>
+<text x="40" y="88" font-weight="600" fill="#1a1a1a">0 - Ingest: five public sources, no credentials</text>
+<text x="40" y="104" fill="#1a1a1a">NOAA ENSO, ERA5, CHIRPS, FAOSTAT, MODIS (opt-in)</text>
+<text x="40" y="120" font-size="11.5" fill="#6b6b6b">a manifest per source, so provenance is never inferred</text></g>
+<g><rect x="24" y="156" width="420" height="76" rx="8" fill="none" stroke="#c4c4c4" stroke-width="1.25"/>
+<text x="40" y="180" font-weight="600" fill="#1a1a1a">1 - Build data</text>
+<text x="40" y="196" fill="#1a1a1a">nino_indices.csv + grids.npz, months all sources share</text>
+<text x="40" y="212" font-size="11.5" fill="#6b6b6b">observed files if present, else the synthetic stand-in</text></g>
+<g><rect x="24" y="248" width="420" height="76" rx="8" fill="none" stroke="#c4c4c4" stroke-width="1.25"/>
+<text x="40" y="272" font-weight="600" fill="#1a1a1a">2 - Features</text>
+<text x="40" y="288" fill="#1a1a1a">SPI-3 (gamma fit), VCI, z-anomalies, Sc-PDSI</text>
+<text x="40" y="304" font-size="11.5" fill="#6b6b6b">Xs spatial 8x8, Xt 12-month history, Xp Fourier</text></g>
+<g><rect x="24" y="340" width="420" height="76" rx="8" fill="none" stroke="#c4c4c4" stroke-width="1.25"/>
+<text x="40" y="364" font-weight="600" fill="#1a1a1a">3 - CNN-LSTM: ENSO forecast</text>
+<text x="40" y="380" fill="#1a1a1a">Conv1d x2, LSTM(64), MLP head; Nino 3.4 at 12 leads</text>
+<text x="40" y="396" font-size="11.5" fill="#6b6b6b">scored per lead against persistence and Ridge</text></g>
+<g><rect x="24" y="432" width="420" height="76" rx="8" fill="#2563eb" fill-opacity="0.12" stroke="#2563eb" stroke-width="2"/>
+<text x="40" y="456" font-weight="600" fill="#1a1a1a">4 - SuperHybrid: drought probability</text>
+<text x="40" y="472" fill="#1a1a1a">CNN-2D + LSTM + Fourier, P(SPI-3 below -1) per cell</text>
+<text x="40" y="488" font-size="11.5" fill="#6b6b6b">ablated against CNN, LSTM, ANN and CNN-LSTM</text></g>
+<g><rect x="24" y="524" width="420" height="76" rx="8" fill="none" stroke="#c4c4c4" stroke-width="1.25"/>
+<text x="40" y="548" font-weight="600" fill="#1a1a1a">5 - Risk maps and advisory</text>
+<text x="40" y="564" fill="#1a1a1a">49 of 64 cells reported; 15 fall outside the basin</text>
+<text x="40" y="580" font-size="11.5" fill="#6b6b6b">skilful leads as probabilities, the rest as an outlook</text></g>
+<g><rect x="480" y="332" width="256" height="92" rx="8" fill="none" stroke="#c4c4c4" stroke-width="1.25"/>
+<text x="608" y="322" text-anchor="middle" font-size="11.5" fill="#6b6b6b">separate: own data and target</text>
+<text x="496" y="356" font-weight="600" fill="#1a1a1a">Crop yield regressor</text>
+<text x="496" y="372" font-size="11.5" fill="#1a1a1a">1990-2023 sheet, 306-row panel</text>
+<text x="496" y="388" font-size="11.5" fill="#1a1a1a">XGBoost, RMSE 7.06 q/ha</text>
+<text x="496" y="404" font-size="11.5" fill="#6b6b6b">ENSO features: 1.8% of gain</text></g>
+<text x="598" y="530" text-anchor="end" font-size="11.5" fill="#6b6b6b">staff only</text>
+<g><rect x="24" y="632" width="712" height="48" rx="8" fill="none" stroke="#c4c4c4" stroke-width="1.25"/>
+<text x="380" y="660" text-anchor="middle" fill="#1a1a1a">API /api/v1, then the web command centre, the offline field app and Metabase</text></g>
+</svg>
