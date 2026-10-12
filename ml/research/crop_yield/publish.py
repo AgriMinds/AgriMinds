@@ -27,11 +27,17 @@ import joblib
 import pandas as pd
 
 from ai_drews.config import DataPaths
-from ai_drews.crop_yield import CROP_LABELS, ENSO_IMPACT_METHOD, ZONE_LOCAL_NAMES, enso_impact_table
+from ai_drews.crop_yield import (
+    CROP_LABELS,
+    CROP_NAMES,
+    ENSO_IMPACT_METHOD,
+    ZONE_LOCAL_NAMES,
+    enso_impact_table,
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 
-MODEL_VERSION = "crop-yield-0.1.0"
+MODEL_VERSION = "crop-yield-0.2.0"
 UPSTREAM_REPO = "aykgeh/Chokye_Water_Shield"
 UPSTREAM_REVISION = "d0584f78f653159e1ca9d9d306506947dada5674"
 
@@ -74,7 +80,9 @@ def _series_tail(df: pd.DataFrame) -> dict[str, dict[str, float]]:
     """End of each crop-zone series: the lag features a next-season request needs.
 
     `yield_rolling3_mean` at row t is the mean of the three preceding yields, so for the season
-    after the record it is the mean of the last three observed years.
+    after the record it is the mean of the last three observed years. ``last3`` carries those
+    three values, because a projection that steps several seasons forward has to roll the window
+    itself rather than hold one precomputed mean.
     """
     out: dict[str, dict[str, float]] = {}
     for (crop, zone), g in df.groupby(["crop", "zone"], sort=False):
@@ -83,8 +91,48 @@ def _series_tail(df: pd.DataFrame) -> dict[str, dict[str, float]]:
             "last_observed_yield": round(float(s.iloc[-1]), 3),
             "yield_lag1": round(float(s.iloc[-1]), 3),
             "yield_rolling3_mean": round(float(s.tail(3).mean()), 3),
+            "last3": [round(float(v), 3) for v in s.tail(3)],
         }
     return out
+
+
+def _history(df: pd.DataFrame) -> dict:
+    """The observed record as belt averages, so a client can draw it without the panel.
+
+    Each crop's value for a year is the mean of its three altitude belts, which is what the
+    spreadsheet's own `* avg` columns hold and what the published figures plot.
+    """
+    years = sorted(int(y) for y in df["year"].unique())
+    belt_avg = df.groupby(["year", "crop"])["yield"].mean().unstack()
+    per_crop = {
+        CROP_NAMES[label]: [round(float(belt_avg.loc[y, label]), 3) for y in years]
+        for label in belt_avg.columns
+    }
+    enso = df.groupby("year")["enso_index"].first()
+    return {
+        "years": years,
+        "belt_average_yield_q_ha": per_crop,
+        "crop_average_q_ha": [round(float(belt_avg.loc[y].mean()), 3) for y in years],
+        "enso_index": [round(float(enso.loc[y]), 4) for y in years],
+    }
+
+
+def _enso_annual_reference() -> dict:
+    """Niño 3.4 annual means from the seasonal source, which reaches past the crop record.
+
+    The crop panel stops at 2023; this reference runs to 2026, so the ENSO panel of a timeline
+    chart can show observation where there is observation instead of projecting over it.
+    """
+    path = BASE_DIR / "data" / "nino34_seasonal_reference.csv"
+    if not path.exists():
+        return {"years": [], "nino34": [], "source": None}
+    ref = pd.read_csv(path)
+    annual = ref[["djf", "mam", "jja", "son"]].mean(axis=1).round(4)
+    return {
+        "years": [int(y) for y in ref["year"]],
+        "nino34": [round(float(v), 4) for v in annual],
+        "source": "nino34_seasonal_reference.csv (mean of DJF/MAM/JJA/SON)",
+    }
 
 
 def _caveats(selected: dict[str, float], importance: list[list], n_test: int, mean_yield: float) -> list[str]:
@@ -135,10 +183,23 @@ def _enso_impact(df: pd.DataFrame) -> dict:
     }
 
 
-def publish(data_dir: str | os.PathLike[str] | None = None) -> Path:
-    model_file = BASE_DIR / "models" / "best_crop_yield_model.joblib"
-    metrics_file = BASE_DIR / "models" / "metrics_summary.json"
-    panel_file = BASE_DIR / "data" / "crop_climate_clean.csv"
+def publish(
+    data_dir: str | os.PathLike[str] | None = None,
+    *,
+    run_dir: str | os.PathLike[str] | None = None,
+    panel_file: str | os.PathLike[str] | None = None,
+    corrections: list[dict] | None = None,
+) -> Path:
+    """Copy a trained artifact to the shared data root with its metadata.
+
+    ``run_dir``/``panel_file`` default to the upstream-comparable run. The corrected run passes
+    its own, and ``corrections`` records what the verified panel changed, so a served number can
+    be traced to the data it was fitted on.
+    """
+    run_dir = Path(run_dir) if run_dir is not None else BASE_DIR
+    model_file = run_dir / "models" / "best_crop_yield_model.joblib"
+    metrics_file = run_dir / "models" / "metrics_summary.json"
+    panel_file = Path(panel_file) if panel_file is not None else BASE_DIR / "data" / "crop_climate_clean.csv"
     excel_file = BASE_DIR / "data" / "climate-crop-v2.xlsx"
     for f in (model_file, metrics_file, panel_file):
         if not f.exists():
@@ -159,9 +220,11 @@ def publish(data_dir: str | os.PathLike[str] | None = None) -> Path:
         "model_version": MODEL_VERSION,
         "trained_at": datetime.now(UTC).replace(microsecond=0).isoformat(),
         "upstream": {"repo": UPSTREAM_REPO, "revision": UPSTREAM_REVISION},
+        "data_corrections": corrections or [],
         "dataset": {
             "file": excel_file.name,
             "sha256": _sha256(excel_file) if excel_file.exists() else None,
+            "panel": panel_file.name,
             "rows": int(len(df)),
             "first_year": int(df["year"].min()),
             "last_year": last_year,
@@ -192,6 +255,8 @@ def publish(data_dir: str | os.PathLike[str] | None = None) -> Path:
             "enso_index": round(float(last_row["enso_index"]), 4),
             "series": _series_tail(df),
         },
+        "history": _history(df),
+        "enso_annual_reference": _enso_annual_reference(),
         "enso_impact": _enso_impact(df),
         "caveats": _caveats(selected, importance, int(len(test)), float(df["yield"].mean())),
     }

@@ -324,7 +324,6 @@ def train_drought(
             log.warning("failed to process %s: %s; falling back to SPI proxy", hist_pdsi_file, exc)
 
     if not val_rows:
-        dates = pd.to_datetime(F["dates"])
         for lead in range(cfg.drought_leads):
             obs = F["spi"][te + lead + 1] if (te + lead + 1 < len(F["spi"])).all() else F["spi"][te]
             pred_prob = P["te"][:, lead].ravel()

@@ -250,6 +250,86 @@ class CropYieldModel:
         series = self.meta["baseline"]["series"][f"{CROP_LABELS[crop]}|{zone}"]
         return float(series["last_observed_yield"])
 
+    def last_three_yields(self, crop: Crop, zone: AgroZone) -> list[float]:
+        """The three closing yields of a crop-zone series, oldest first.
+
+        A projection that steps several seasons forward has to roll the 3-year window itself, so
+        one precomputed mean is not enough. Artifacts published before this was recorded fall back
+        to repeating the stored mean, which starts the recursion in the same place.
+        """
+        series = self.meta["baseline"]["series"][f"{CROP_LABELS[crop]}|{zone}"]
+        last3 = series.get("last3")
+        if last3:
+            return [float(v) for v in last3]
+        return [float(series["yield_rolling3_mean"])] * 2 + [float(series["last_observed_yield"])]
+
+    # ---- the observed record, as published beside the artifact ---------------------------
+    @property
+    def history(self) -> dict[str, Any]:
+        """Belt-average yields and the panel's ENSO value, year by year."""
+        return dict(self.meta.get("history", {}))
+
+    @property
+    def enso_annual_reference(self) -> dict[str, Any]:
+        """Niño 3.4 annual means from the seasonal source, which reaches past the crop record."""
+        return dict(self.meta.get("enso_annual_reference", {}))
+
+    # ---- projection ----------------------------------------------------------------------
+    def project(
+        self,
+        *,
+        through_year: int,
+        enso_by_year: dict[int, float],
+        temperature_c: float | None = None,
+        precipitation_mm: float | None = None,
+    ) -> dict[int, dict[Crop, float]]:
+        """Belt-average yield for every season after the record, out to ``through_year``.
+
+        Each season is predicted from the one before it, because ``yield_lag1`` and
+        ``yield_rolling3_mean`` are features: there is no other way to reach a year the record
+        does not contain. That also means the error compounds, and since the lag features carry
+        most of the model's gain the series converges on a level within a few steps. Treat the
+        shape as a persistence estimate conditioned on ENSO, not as a forecast.
+
+        ``enso_by_year`` supplies Niño 3.4 for each projected season. Climate defaults to the last
+        observed season, which is what every other entry point here does.
+        """
+        obs_t, obs_p, _ = self.baseline_climate
+        temp = obs_t if temperature_c is None else float(temperature_c)
+        precip = obs_p if precipitation_mm is None else float(precipitation_mm)
+        start = self.baseline_year + 1
+        if through_year < start:
+            return {}
+
+        zones: list[AgroZone] = [z.zone for z in self.zones]
+        histories = {
+            (crop, zone): self.last_three_yields(crop, zone)
+            for crop in CROP_LABELS
+            for zone in zones
+        }
+        out: dict[int, dict[Crop, float]] = {}
+        for year in range(start, through_year + 1):
+            index = float(enso_by_year.get(year, 0.0))
+            per_crop: dict[Crop, list[float]] = {}
+            for (crop, zone), history in histories.items():
+                hat = self.predict(
+                    CropYieldInputs(
+                        crop=crop,
+                        zone=zone,
+                        year=year,
+                        temperature_c=temp,
+                        precipitation_mm=precip,
+                        enso_index=index,
+                        enso_phase=enso_phase(index),
+                        yield_lag1=history[-1],
+                        yield_rolling3_mean=sum(history[-3:]) / len(history[-3:]),
+                    )
+                )
+                history.append(hat)
+                per_crop.setdefault(crop, []).append(hat)
+            out[year] = {crop: sum(v) / len(v) for crop, v in per_crop.items()}
+        return out
+
     # ---- inference -----------------------------------------------------------------------
     def inputs_for(
         self,

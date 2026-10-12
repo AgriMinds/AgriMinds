@@ -55,7 +55,6 @@ import {
 } from '@/components/ui/card'
 import { QueryError } from '@/components/ui/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Stat } from '@/components/ui/stat'
 import type { DroughtLeadMetric, EnsoLeadMetric } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
 

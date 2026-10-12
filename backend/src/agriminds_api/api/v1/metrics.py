@@ -5,7 +5,6 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Request
 
 from agriminds_api.core.config import Settings
-from agriminds_api.core.exceptions import ModelUnavailableError
 from agriminds_api.schemas.common import ErrorResponse
 from agriminds_api.schemas.metrics import ModelMetricsResponse
 from agriminds_api.services.inference import InferenceService

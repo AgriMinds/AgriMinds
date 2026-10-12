@@ -1019,6 +1019,82 @@
         ]
       }
     },
+    "/api/v1/crop-yield/timeline": {
+      "get": {
+        "tags": [
+          "Crop Yield"
+        ],
+        "summary": "Belt-average yields and Ni\u00f1o 3.4 across the record and beyond it",
+        "description": "The observed series plus one projected series per assumed ENSO state, in the shape a two-panel chart needs.\n\nObservation is used wherever it exists. Ni\u00f1o 3.4 is measured several years past the end of the crop record, so the seasons in between are projected under the ENSO that actually happened and every scenario agrees there; only after `enso_observed_through` do they diverge. Nothing here forecasts ENSO beyond about six months (`enso_forecast_limit_months`), so those later years are assumptions, not predictions, and the response keeps the two labelled apart rather than drawing one line through both.\n\nEach projected season is predicted from the one before it, because the lag features are inputs. The error compounds and the series converges on a level within a few steps.",
+        "operationId": "timeline_api_v1_crop_yield_timeline_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "through_year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 2100,
+              "minimum": 1991,
+              "description": "Last season to project",
+              "default": 2030,
+              "title": "Through Year"
+            },
+            "description": "Last season to project"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CropYieldTimeline"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "503": {
+            "description": "Model unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/crop-yield/enso-impact": {
       "get": {
         "tags": [
@@ -3231,6 +3307,179 @@
         "title": "CropYieldScenarioRequest",
         "description": "A what-if: name the climate, keep the observed lags."
       },
+      "CropYieldScenarioSeries": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key",
+            "description": "el_nino | neutral | la_nina"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "enso_index": {
+            "type": "number",
+            "title": "Enso Index",
+            "description": "Ni\u00f1o 3.4 held at this value for every assumed year"
+          },
+          "enso_phase": {
+            "type": "string",
+            "title": "Enso Phase"
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/CropYieldYear"
+            },
+            "type": "array",
+            "title": "Years",
+            "description": "Projected seasons, oldest first"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "enso_index",
+          "enso_phase",
+          "years"
+        ],
+        "title": "CropYieldScenarioSeries",
+        "description": "One assumed ENSO state, and the yields that follow from it."
+      },
+      "CropYieldTimeline": {
+        "properties": {
+          "first_year": {
+            "type": "integer",
+            "title": "First Year"
+          },
+          "through_year": {
+            "type": "integer",
+            "title": "Through Year"
+          },
+          "yields_observed_through": {
+            "type": "integer",
+            "title": "Yields Observed Through",
+            "description": "Last season in the crop record"
+          },
+          "enso_observed_through": {
+            "type": "integer",
+            "title": "Enso Observed Through",
+            "description": "Last year with an observed Ni\u00f1o 3.4 annual mean"
+          },
+          "observed": {
+            "items": {
+              "$ref": "#/components/schemas/CropYieldYear"
+            },
+            "type": "array",
+            "title": "Observed",
+            "description": "Belt-average yields, oldest first"
+          },
+          "enso": {
+            "items": {
+              "$ref": "#/components/schemas/EnsoYear"
+            },
+            "type": "array",
+            "title": "Enso",
+            "description": "Ni\u00f1o 3.4 annual means, observed then assumed"
+          },
+          "scenarios": {
+            "items": {
+              "$ref": "#/components/schemas/CropYieldScenarioSeries"
+            },
+            "type": "array",
+            "title": "Scenarios"
+          },
+          "enso_forecast_limit_months": {
+            "type": "integer",
+            "title": "Enso Forecast Limit Months",
+            "description": "Lead beyond which no candidate beat climatology, so later years are assumptions"
+          },
+          "caveats": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Caveats"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/CropYieldProvenance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "first_year",
+          "through_year",
+          "yields_observed_through",
+          "enso_observed_through",
+          "observed",
+          "enso",
+          "scenarios",
+          "enso_forecast_limit_months",
+          "caveats",
+          "provenance"
+        ],
+        "title": "CropYieldTimeline",
+        "description": "The observed record and what follows it, as one series a client can draw.\n\nThree boundaries matter and are reported rather than implied: yields are observed to\n`yields_observed_through`, Ni\u00f1o 3.4 to `enso_observed_through`, and the seasons between them\nare projected under *observed* ENSO. Only after `enso_observed_through` do the scenarios\ndiverge, which is where `scenarios` stops agreeing with itself."
+      },
+      "CropYieldYear": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "tef_q_ha": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tef Q Ha"
+          },
+          "wheat_q_ha": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wheat Q Ha"
+          },
+          "maize_q_ha": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maize Q Ha"
+          },
+          "crop_average_q_ha": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Crop Average Q Ha"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year"
+        ],
+        "title": "CropYieldYear",
+        "description": "One season of belt-average yield, per crop."
+      },
       "CropYieldZone": {
         "properties": {
           "zone": {
@@ -4038,6 +4287,33 @@
           "nino34"
         ],
         "title": "EnsoPoint"
+      },
+      "EnsoYear": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "nino34": {
+            "type": "number",
+            "title": "Nino34"
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "observed",
+              "assumed"
+            ],
+            "title": "Basis"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "nino34",
+          "basis"
+        ],
+        "title": "EnsoYear"
       },
       "ErrorBody": {
         "properties": {

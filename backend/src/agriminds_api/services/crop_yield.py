@@ -22,6 +22,7 @@ from ai_drews.crop_yield import (
     Crop,
     CropYieldModel,
     CropYieldUnavailableError,
+    enso_phase,
     load_crop_yield_model,
 )
 
@@ -37,11 +38,15 @@ from agriminds_api.schemas.crop_yield import (
     CropYieldProvenance,
     CropYieldScenario,
     CropYieldScenarioRequest,
+    CropYieldScenarioSeries,
+    CropYieldTimeline,
+    CropYieldYear,
     CropYieldZone,
     EnsoBasis,
     EnsoImpactCell,
     EnsoImpactGroup,
     EnsoImpactResponse,
+    EnsoYear,
     ZoneRecommendation,
 )
 from agriminds_api.services.inference import InferenceService
@@ -50,6 +55,13 @@ log = logging.getLogger(__name__)
 
 #: Shown in the model card; the full list is long and the tail is all but zero.
 TOP_FEATURES = 10
+
+
+def _at(values: list | None, index: int) -> float | None:
+    """One element of a published series, or None where the artifact does not carry it."""
+    if not values or index >= len(values):
+        return None
+    return round(float(values[index]), 3)
 
 
 def _pct(value: float, reference: float) -> float:
@@ -218,6 +230,98 @@ class CropYieldService:
             record_years=[int(dataset.get("first_year", 0)), int(dataset.get("last_year", 0))],
             test_rmse_q_ha=float(metrics.get("test_rmse", 0.0)),
             test_r2=float(metrics.get("test_r2", 0.0)),
+        )
+
+    #: The ENSO states a projection branches into once observation runs out. Centres of the
+    #: study's phase bands: |index| >= 0.5 is a phase, anything inside it is Neutral.
+    TIMELINE_SCENARIOS: tuple[tuple[str, str, float], ...] = (
+        ("el_nino", "El Niño", 1.0),
+        ("neutral", "Neutral", 0.0),
+        ("la_nina", "La Niña", -1.0),
+    )
+
+    #: Lead past which no candidate beat climatology on this record, so later years are assumed.
+    ENSO_FORECAST_LIMIT_MONTHS = 6
+
+    def timeline(self, *, through_year: int) -> CropYieldTimeline:
+        """The observed record plus one projected series per assumed ENSO state.
+
+        Observation is used wherever it exists: Niño 3.4 is measured several years past the end
+        of the crop record, so the seasons in between are projected under the ENSO that actually
+        happened, and only the years after that branch.
+        """
+        model = self.model
+        history = model.history
+        reference = model.enso_annual_reference
+        if not history or not reference.get("years"):
+            raise ModelUnavailableError(
+                "This artifact predates the published record series. Re-run "
+                "ml/research/crop_yield/run_training.py to publish it."
+            )
+
+        years = [int(y) for y in history["years"]]
+        belts = history["belt_average_yield_q_ha"]
+        crop_av = history.get("crop_average_q_ha") or []
+        observed = [
+            CropYieldYear(
+                year=year,
+                tef_q_ha=_at(belts.get("tef"), i),
+                wheat_q_ha=_at(belts.get("wheat"), i),
+                maize_q_ha=_at(belts.get("maize"), i),
+                crop_average_q_ha=_at(crop_av, i),
+            )
+            for i, year in enumerate(years)
+        ]
+
+        observed_enso = {
+            int(y): float(v)
+            for y, v in zip(reference["years"], reference["nino34"], strict=True)
+            if int(y) <= through_year
+        }
+        enso_observed_through = max(observed_enso) if observed_enso else model.baseline_year
+
+        scenarios: list[CropYieldScenarioSeries] = []
+        for key, label, value in self.TIMELINE_SCENARIOS:
+            by_year = {
+                year: observed_enso.get(year, value)
+                for year in range(model.baseline_year + 1, through_year + 1)
+            }
+            projected = model.project(through_year=through_year, enso_by_year=by_year)
+            scenarios.append(
+                CropYieldScenarioSeries(
+                    key=key,
+                    label=label,
+                    enso_index=value,
+                    enso_phase=enso_phase(value),
+                    years=[
+                        CropYieldYear(
+                            year=year,
+                            tef_q_ha=round(vals.get("tef", 0.0), 3),
+                            wheat_q_ha=round(vals.get("wheat", 0.0), 3),
+                            maize_q_ha=round(vals.get("maize", 0.0), 3),
+                            crop_average_q_ha=round(sum(vals.values()) / len(vals), 3) if vals else None,
+                        )
+                        for year, vals in sorted(projected.items())
+                    ],
+                )
+            )
+
+        enso_series = [
+            EnsoYear(year=year, nino34=round(observed_enso[year], 3), basis="observed")
+            for year in sorted(observed_enso)
+        ]
+
+        return CropYieldTimeline(
+            first_year=min(years),
+            through_year=through_year,
+            yields_observed_through=max(years),
+            enso_observed_through=enso_observed_through,
+            observed=observed,
+            enso=enso_series,
+            scenarios=scenarios,
+            enso_forecast_limit_months=self.ENSO_FORECAST_LIMIT_MONTHS,
+            caveats=model.caveats,
+            provenance=self._provenance(),
         )
 
     def enso_impact(self) -> EnsoImpactResponse:

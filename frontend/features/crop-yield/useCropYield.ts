@@ -7,6 +7,7 @@ export const cropYieldKeys = {
   outlook: (year?: number, leadMonth?: number) => ['crop-yield', 'outlook', year ?? null, leadMonth ?? null] as const,
   model: ['crop-yield', 'model'] as const,
   impact: ['crop-yield', 'enso-impact'] as const,
+  timeline: (throughYear: number) => ['crop-yield', 'timeline', throughYear] as const,
 }
 
 /**
@@ -38,6 +39,20 @@ export function useCropYieldModel() {
   return useQuery({
     queryKey: cropYieldKeys.model,
     queryFn: api.cropYieldModel,
+    staleTime: 60 * 60_000,
+  })
+}
+
+/**
+ * The record and what follows it, for the two-panel timeline.
+ *
+ * Changes only when the model is retrained or a new year of ENSO is ingested, so it is cached
+ * as long as the other training-time queries rather than polled.
+ */
+export function useCropYieldTimeline(throughYear = 2030) {
+  return useQuery({
+    queryKey: cropYieldKeys.timeline(throughYear),
+    queryFn: () => api.cropYieldTimeline(throughYear),
     staleTime: 60 * 60_000,
   })
 }

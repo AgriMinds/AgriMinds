@@ -8,6 +8,8 @@
  * 3  Recommended crop per belt   derived from that matrix, never hand-written
  * 4  Recommended actions         three standing practices plus two derived from the record
  * 5  Expected yield next season  the fitted model, its ENSO term, and its stated limits
+ * 6  The record and what follows  both series on one axis, with observation and assumption
+ *                                 drawn apart
  *
  * Two different claims live on this page and are deliberately kept apart. Sections 2-4 are the
  * *record*: what happened in the eight El Niño years it contains. Section 5 is the *model*: what
@@ -50,7 +52,13 @@ import { EnsoResponseChart } from './EnsoResponseChart'
 import { ImpactMatrix } from './ImpactMatrix'
 import { ModelLimits } from './ModelLimits'
 import { SectionBanner } from './SectionBanner'
-import { useCropYieldModel, useCropYieldOutlook, useEnsoImpact } from './useCropYield'
+import { YieldTimelineChart } from './YieldTimelineChart'
+import {
+  useCropYieldModel,
+  useCropYieldOutlook,
+  useCropYieldTimeline,
+  useEnsoImpact,
+} from './useCropYield'
 
 /** Leads offered for the ENSO basis: the observed month, then the skilful end of the forecast. */
 const LEADS = [null, 1, 3, 6] as const
@@ -179,6 +187,8 @@ export function CropYieldPage() {
   const outlook = useCropYieldOutlook(leadMonth ? { leadMonth } : undefined)
   const card = useCropYieldModel()
   const impact = useEnsoImpact()
+  const timeline = useCropYieldTimeline()
+  const tt = useTranslations('cropYield.timeline')
   const enso = useEnsoOutlook()
 
   const basisOptions = LEADS.map((lead, index) => ({
@@ -468,6 +478,53 @@ export function CropYieldPage() {
           ) : (
             <Skeleton className="h-40" />
           )}
+
+          {/* 6 — the whole record on one axis, observation and assumption kept apart */}
+          <section className="reveal flex flex-col gap-3" style={delay(280)}>
+            <SectionBanner index={6} title={tt('heading')} tone="navy" />
+            <Card className="p-3.5 sm:p-5">
+              <CardHeader>
+                <CardHeading>
+                  <CardIcon>
+                    <CalendarRange />
+                  </CardIcon>
+                  <div className="min-w-0">
+                    <CardTitle>
+                      {timeline.data
+                        ? tt('cardTitle', {
+                            firstYear: timeline.data.first_year,
+                            throughYear: timeline.data.through_year,
+                          })
+                        : tt('heading')}
+                    </CardTitle>
+                    <CardDescription>
+                      {timeline.data
+                        ? tt('description', {
+                            firstYear: timeline.data.first_year,
+                            throughYear: timeline.data.through_year,
+                            yieldYear: timeline.data.yields_observed_through,
+                            ensoYear: timeline.data.enso_observed_through,
+                          })
+                        : null}
+                    </CardDescription>
+                  </div>
+                </CardHeading>
+              </CardHeader>
+              <CardContent>
+                {timeline.isError ? (
+                  <QueryError
+                    error={timeline.error}
+                    onRetry={() => void timeline.refetch()}
+                    isRetrying={timeline.isFetching}
+                  />
+                ) : timeline.data ? (
+                  <YieldTimelineChart data={timeline.data} />
+                ) : (
+                  <Skeleton className="h-[460px]" />
+                )}
+              </CardContent>
+            </Card>
+          </section>
         </section>
       </div>
     </>

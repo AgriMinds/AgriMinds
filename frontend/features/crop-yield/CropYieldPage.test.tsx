@@ -25,17 +25,69 @@ const outlookQuery = vi.fn()
 const modelQuery = vi.fn()
 const impactQuery = vi.fn()
 const ensoQuery = vi.fn()
+const timelineQuery = vi.fn()
 vi.mock('@/features/crop-yield/useCropYield', () => ({
   cropYieldKeys: {
     outlook: () => ['crop-yield', 'outlook'],
     model: ['crop-yield', 'model'],
     impact: ['crop-yield', 'enso-impact'],
+    timeline: () => ['crop-yield', 'timeline'],
   },
   useCropYieldOutlook: (params?: { leadMonth?: number }) => outlookQuery(params),
   useCropYieldModel: () => modelQuery(),
   useEnsoImpact: () => impactQuery(),
+  useCropYieldTimeline: () => timelineQuery(),
 }))
 vi.mock('@/features/enso/useEnsoOutlook', () => ({ useEnsoOutlook: () => ensoQuery() }))
+
+const timeline = {
+  first_year: 1990,
+  through_year: 2030,
+  yields_observed_through: 2023,
+  enso_observed_through: 2026,
+  enso_forecast_limit_months: 6,
+  observed: [
+    { year: 1990, tef_q_ha: 11.3, wheat_q_ha: 21.6, maize_q_ha: 25.2, crop_average_q_ha: 19.4 },
+    { year: 2023, tef_q_ha: 16.1, wheat_q_ha: 21.9, maize_q_ha: 41.0, crop_average_q_ha: 26.3 },
+  ],
+  enso: [
+    { year: 1990, nino34: 0.25, basis: 'observed' as const },
+    { year: 2026, nino34: 1.35, basis: 'observed' as const },
+  ],
+  scenarios: [
+    {
+      key: 'el_nino',
+      label: 'El Niño',
+      enso_index: 1,
+      enso_phase: 'El Nino',
+      years: [{ year: 2030, tef_q_ha: 25.3, wheat_q_ha: 31.7, maize_q_ha: 51.5, crop_average_q_ha: 36.2 }],
+    },
+    {
+      key: 'neutral',
+      label: 'Neutral',
+      enso_index: 0,
+      enso_phase: 'Neutral',
+      years: [{ year: 2030, tef_q_ha: 25.1, wheat_q_ha: 30.1, maize_q_ha: 51.5, crop_average_q_ha: 35.6 }],
+    },
+    {
+      key: 'la_nina',
+      label: 'La Niña',
+      enso_index: -1,
+      enso_phase: 'La Nina',
+      years: [{ year: 2030, tef_q_ha: 25.2, wheat_q_ha: 30.8, maize_q_ha: 51.5, crop_average_q_ha: 35.9 }],
+    },
+  ],
+  caveats: ['persistence estimate'],
+  provenance: {
+    model_name: 'XGBoost',
+    model_version: 'crop-yield-0.2.0',
+    trained_at: '2026-10-12T09:22:56+00:00',
+    dataset_file: 'climate-crop-v2.xlsx',
+    record_years: [1990, 2023],
+    test_rmse_q_ha: 7.132,
+    test_r2: 0.78,
+  },
+}
 
 const { CropYieldPage } = await import('@/features/crop-yield/CropYieldPage')
 
@@ -184,6 +236,7 @@ describe('CropYieldPage', () => {
     modelQuery.mockReturnValue({ ...idle, data: card })
     impactQuery.mockReturnValue({ ...idle, data: impact })
     ensoQuery.mockReturnValue({ ...idle, data: ensoOutlook })
+    timelineQuery.mockReturnValue({ ...idle, data: timeline })
   })
 
   it('shows a prediction for every crop and belt', () => {
@@ -300,8 +353,32 @@ describe('CropYieldPage', () => {
     outlookQuery.mockReturnValue({ ...idle, isError: true, error })
     modelQuery.mockReturnValue({ ...idle, isError: true, error })
     impactQuery.mockReturnValue({ ...idle, isError: true, error })
+    timelineQuery.mockReturnValue({ ...idle, isError: true, error })
     wrap()
     expect(screen.getAllByRole('alert').length).toBeGreaterThan(0)
     expect(screen.queryByText('20.0')).not.toBeInTheDocument()
+  })
+
+  it('draws the timeline and lets the assumed ENSO state be switched', () => {
+    wrap()
+
+    expect(screen.getByRole('heading', { name: /record and what follows/i })).toBeInTheDocument()
+
+    // The three states are a control rather than three bands: the spread is a couple of percent,
+    // and a band that thin reads as a drawing error.
+    const states = screen.getByRole('radiogroup', { name: /ENSO state assumed/i })
+    const neutral = within(states).getByRole('radio', { name: 'Neutral' })
+    expect(neutral).toBeChecked()
+
+    fireEvent.click(within(states).getByRole('radio', { name: 'El Niño' }))
+    expect(within(states).getByRole('radio', { name: 'El Niño' })).toBeChecked()
+    expect(neutral).not.toBeChecked()
+  })
+
+  it('says where observation stops, separately for each panel', () => {
+    wrap()
+    // Yields end in 2023 and Nino 3.4 in 2026: the chart must not imply one boundary.
+    expect(screen.getByText(/Assumed from 2027/)).toBeInTheDocument()
+    expect(screen.getByText(/Yields observed to 2023, Niño 3.4 to 2026/)).toBeInTheDocument()
   })
 })

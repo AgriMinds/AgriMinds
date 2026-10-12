@@ -8,6 +8,7 @@ synthetic generator writes to the same tree.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import time
@@ -204,10 +205,10 @@ def _fetch(
                 retry_after_str = resp.headers.get("retry-after") if hasattr(resp, "headers") else None
                 wait_step = _RATE_LIMIT_WAIT
                 if retry_after_str:
-                    try:
+                    # A server may send `Retry-After` as an HTTP date rather than seconds; keep
+                    # the default wait rather than failing the whole download over a header.
+                    with contextlib.suppress(ValueError):
                         wait_step = float(retry_after_str)
-                    except ValueError:
-                        pass
 
                 if wait_step > 300.0:
                     raise IngestError(

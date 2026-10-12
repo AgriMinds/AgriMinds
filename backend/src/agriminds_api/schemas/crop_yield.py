@@ -186,3 +186,60 @@ class CropYieldModelCard(BaseModel):
     feature_importance: list[CropYieldFeature]
     zones: list[CropYieldZone]
     caveats: list[str]
+
+
+# ---------------------------------------------------------------------------- timeline
+
+#: Why a year's Niño 3.4 value is what it is. "observed" and "assumed" are kept apart because
+#: nothing here forecasts ENSO beyond about six months, and a chart that blurs the two invites a
+#: reader to treat an assumption as a prediction.
+EnsoYearBasis = Literal["observed", "assumed"]
+
+
+class CropYieldYear(BaseModel):
+    """One season of belt-average yield, per crop."""
+
+    year: int
+    tef_q_ha: float | None = None
+    wheat_q_ha: float | None = None
+    maize_q_ha: float | None = None
+    crop_average_q_ha: float | None = None
+
+
+class EnsoYear(BaseModel):
+    year: int
+    nino34: float
+    basis: EnsoYearBasis
+
+
+class CropYieldScenarioSeries(BaseModel):
+    """One assumed ENSO state, and the yields that follow from it."""
+
+    key: str = Field(description="el_nino | neutral | la_nina")
+    label: str
+    enso_index: float = Field(description="Niño 3.4 held at this value for every assumed year")
+    enso_phase: str
+    years: list[CropYieldYear] = Field(description="Projected seasons, oldest first")
+
+
+class CropYieldTimeline(BaseModel):
+    """The observed record and what follows it, as one series a client can draw.
+
+    Three boundaries matter and are reported rather than implied: yields are observed to
+    `yields_observed_through`, Niño 3.4 to `enso_observed_through`, and the seasons between them
+    are projected under *observed* ENSO. Only after `enso_observed_through` do the scenarios
+    diverge, which is where `scenarios` stops agreeing with itself.
+    """
+
+    first_year: int
+    through_year: int
+    yields_observed_through: int = Field(description="Last season in the crop record")
+    enso_observed_through: int = Field(description="Last year with an observed Niño 3.4 annual mean")
+    observed: list[CropYieldYear] = Field(description="Belt-average yields, oldest first")
+    enso: list[EnsoYear] = Field(description="Niño 3.4 annual means, observed then assumed")
+    scenarios: list[CropYieldScenarioSeries]
+    enso_forecast_limit_months: int = Field(
+        description="Lead beyond which no candidate beat climatology, so later years are assumptions"
+    )
+    caveats: list[str]
+    provenance: CropYieldProvenance

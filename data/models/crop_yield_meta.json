@@ -1,14 +1,36 @@
 {
   "model_name": "XGBoost",
-  "model_version": "crop-yield-0.1.0",
-  "trained_at": "2026-10-12T10:07:07+00:00",
+  "model_version": "crop-yield-0.2.0",
+  "trained_at": "2026-10-12T13:55:45+00:00",
   "upstream": {
     "repo": "aykgeh/Chokye_Water_Shield",
     "revision": "d0584f78f653159e1ca9d9d306506947dada5674"
   },
+  "data_corrections": [
+    {
+      "field": "enso_index",
+      "year": 2010,
+      "spreadsheet": -0.975,
+      "corrected_to": -0.175,
+      "source": "nino34_seasonal_reference.csv (mean of DJF/MAM/JJA/SON)"
+    },
+    {
+      "field": "enso_index",
+      "year": 2022,
+      "spreadsheet": -2.975,
+      "corrected_to": -0.975,
+      "source": "nino34_seasonal_reference.csv (mean of DJF/MAM/JJA/SON)"
+    },
+    {
+      "field": "yield_rolling3_mean",
+      "rows_changed": 16,
+      "reason": "upstream rolls across crop-zone boundaries; the rebuild rolls inside each series"
+    }
+  ],
   "dataset": {
     "file": "climate-crop-v2.xlsx",
     "sha256": "5951f157b95cb6914754f5457aa96b3865d08121d5f98a01139843eab5edbc36",
+    "panel": "crop_climate_clean_corrected.csv",
     "rows": 306,
     "first_year": 1990,
     "last_year": 2023,
@@ -45,89 +67,89 @@
       "test_mape": 43.52
     },
     "Ridge Regression": {
-      "train_rmse": 4.316,
-      "test_rmse": 9.082,
-      "test_mae": 7.285,
-      "test_r2": 0.643,
-      "test_mape": 33.82
+      "train_rmse": 4.295,
+      "test_rmse": 8.977,
+      "test_mae": 7.209,
+      "test_r2": 0.651,
+      "test_mape": 32.94
     },
     "Random Forest": {
-      "train_rmse": 1.987,
-      "test_rmse": 7.128,
-      "test_mae": 5.549,
-      "test_r2": 0.78,
-      "test_mape": 22.11
+      "train_rmse": 1.939,
+      "test_rmse": 7.303,
+      "test_mae": 5.712,
+      "test_r2": 0.769,
+      "test_mape": 23.49
     },
     "XGBoost": {
-      "train_rmse": 0.722,
-      "test_rmse": 7.056,
-      "test_mae": 5.513,
-      "test_r2": 0.784,
-      "test_mape": 23.23
+      "train_rmse": 0.751,
+      "test_rmse": 7.132,
+      "test_mae": 5.556,
+      "test_r2": 0.78,
+      "test_mape": 23.73
     },
     "LightGBM": {
-      "train_rmse": 3.079,
-      "test_rmse": 7.326,
-      "test_mae": 5.926,
-      "test_r2": 0.767,
-      "test_mape": 24.08
+      "train_rmse": 3.204,
+      "test_rmse": 7.472,
+      "test_mae": 5.996,
+      "test_r2": 0.758,
+      "test_mape": 24.11
     }
   },
   "selected_metrics": {
-    "train_rmse": 0.722,
-    "test_rmse": 7.056,
-    "test_mae": 5.513,
-    "test_r2": 0.784,
-    "test_mape": 23.23
+    "train_rmse": 0.751,
+    "test_rmse": 7.132,
+    "test_mae": 5.556,
+    "test_r2": 0.78,
+    "test_mape": 23.73
   },
   "feature_importance": [
     [
       "yield_lag1",
-      0.5317
-    ],
-    [
-      "crop_Teff",
-      0.2502
-    ],
-    [
-      "year",
-      0.0362
-    ],
-    [
-      "altitude_approx_m",
-      0.0361
-    ],
-    [
-      "precipitation_mm",
-      0.0353
+      0.6046
     ],
     [
       "yield_rolling3_mean",
-      0.0272
+      0.1572
+    ],
+    [
+      "year",
+      0.0497
+    ],
+    [
+      "altitude_approx_m",
+      0.0419
+    ],
+    [
+      "precipitation_mm",
+      0.0406
     ],
     [
       "temperature_c",
-      0.0216
+      0.0242
     ],
     [
       "pt_ratio",
-      0.0216
+      0.0181
     ],
     [
       "crop_Wheat",
-      0.0154
+      0.0177
     ],
     [
       "enso_index",
-      0.0128
+      0.0151
     ],
     [
-      "zone_Midland",
-      0.0068
+      "crop_Teff",
+      0.0131
     ],
     [
       "enso_phase_Neutral",
-      0.0051
+      0.0092
+    ],
+    [
+      "zone_Midland",
+      0.0084
     ],
     [
       "zone_Lowland",
@@ -184,49 +206,395 @@
       "Maize|Highland": {
         "last_observed_yield": 29.686,
         "yield_lag1": 29.686,
-        "yield_rolling3_mean": 29.987
+        "yield_rolling3_mean": 29.987,
+        "last3": [
+          30.589,
+          29.686,
+          29.686
+        ]
       },
       "Maize|Lowland": {
         "last_observed_yield": 44.371,
         "yield_lag1": 44.371,
-        "yield_rolling3_mean": 46.058
+        "yield_rolling3_mean": 46.058,
+        "last3": [
+          46.414,
+          47.389,
+          44.371
+        ]
       },
       "Maize|Midland": {
         "last_observed_yield": 48.805,
         "yield_lag1": 48.805,
-        "yield_rolling3_mean": 46.187
+        "yield_rolling3_mean": 46.187,
+        "last3": [
+          44.231,
+          45.524,
+          48.805
+        ]
       },
       "Teff|Highland": {
         "last_observed_yield": 12.222,
         "yield_lag1": 12.222,
-        "yield_rolling3_mean": 14.732
+        "yield_rolling3_mean": 14.732,
+        "last3": [
+          15.893,
+          16.082,
+          12.222
+        ]
       },
       "Teff|Lowland": {
         "last_observed_yield": 13.206,
         "yield_lag1": 13.206,
-        "yield_rolling3_mean": 10.68
+        "yield_rolling3_mean": 10.68,
+        "last3": [
+          11.052,
+          7.783,
+          13.206
+        ]
       },
       "Teff|Midland": {
         "last_observed_yield": 22.834,
         "yield_lag1": 22.834,
-        "yield_rolling3_mean": 22.215
+        "yield_rolling3_mean": 22.215,
+        "last3": [
+          19.15,
+          24.662,
+          22.834
+        ]
       },
       "Wheat|Highland": {
         "last_observed_yield": 28.0,
         "yield_lag1": 28.0,
-        "yield_rolling3_mean": 25.05
+        "yield_rolling3_mean": 25.05,
+        "last3": [
+          18.934,
+          28.216,
+          28.0
+        ]
       },
       "Wheat|Lowland": {
         "last_observed_yield": 20.608,
         "yield_lag1": 20.608,
-        "yield_rolling3_mean": 27.593
+        "yield_rolling3_mean": 27.593,
+        "last3": [
+          32.832,
+          29.339,
+          20.608
+        ]
       },
       "Wheat|Midland": {
         "last_observed_yield": 17.012,
         "yield_lag1": 17.012,
-        "yield_rolling3_mean": 29.401
+        "yield_rolling3_mean": 29.401,
+        "last3": [
+          38.123,
+          33.067,
+          17.012
+        ]
       }
     }
+  },
+  "history": {
+    "years": [
+      1990,
+      1991,
+      1992,
+      1993,
+      1994,
+      1995,
+      1996,
+      1997,
+      1998,
+      1999,
+      2000,
+      2001,
+      2002,
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+    ],
+    "belt_average_yield_q_ha": {
+      "maize": [
+        25.189,
+        22.999,
+        29.631,
+        30.071,
+        27.672,
+        23.129,
+        27.971,
+        27.511,
+        29.162,
+        29.137,
+        30.158,
+        32.168,
+        31.028,
+        35.075,
+        34.258,
+        33.998,
+        36.946,
+        39.108,
+        41.399,
+        48.441,
+        50.937,
+        54.337,
+        32.885,
+        49.572,
+        50.107,
+        50.896,
+        52.558,
+        50.124,
+        48.107,
+        48.336,
+        33.295,
+        40.411,
+        40.866,
+        40.954
+      ],
+      "tef": [
+        11.317,
+        10.192,
+        11.228,
+        11.614,
+        11.648,
+        11.853,
+        12.715,
+        12.222,
+        12.239,
+        12.521,
+        13.386,
+        13.217,
+        13.127,
+        13.174,
+        13.927,
+        15.354,
+        15.182,
+        16.726,
+        18.335,
+        20.269,
+        20.104,
+        20.007,
+        18.228,
+        19.415,
+        21.724,
+        19.205,
+        20.808,
+        22.348,
+        21.644,
+        19.603,
+        16.571,
+        15.365,
+        16.176,
+        16.087
+      ],
+      "wheat": [
+        21.571,
+        16.893,
+        20.681,
+        19.801,
+        20.264,
+        20.087,
+        22.014,
+        21.572,
+        21.876,
+        22.494,
+        23.742,
+        22.762,
+        21.923,
+        24.261,
+        25.181,
+        32.975,
+        30.153,
+        30.431,
+        38.292,
+        42.863,
+        40.803,
+        39.981,
+        34.488,
+        38.247,
+        38.143,
+        42.443,
+        39.851,
+        40.324,
+        40.996,
+        36.719,
+        30.667,
+        29.963,
+        30.207,
+        21.873
+      ]
+    },
+    "crop_average_q_ha": [
+      19.359,
+      16.695,
+      20.513,
+      20.495,
+      19.861,
+      18.356,
+      20.9,
+      20.435,
+      21.093,
+      21.384,
+      22.429,
+      22.716,
+      22.026,
+      24.17,
+      24.455,
+      27.443,
+      27.427,
+      28.755,
+      32.675,
+      37.191,
+      37.281,
+      38.108,
+      28.534,
+      35.745,
+      36.658,
+      37.515,
+      37.739,
+      37.599,
+      36.916,
+      34.886,
+      26.844,
+      28.58,
+      29.083,
+      26.305
+    ],
+    "enso_index": [
+      0.25,
+      0.55,
+      0.8,
+      0.3,
+      0.375,
+      0.025,
+      -0.5,
+      0.925,
+      0.25,
+      -1.225,
+      -0.925,
+      -0.35,
+      0.525,
+      0.325,
+      0.45,
+      0.15,
+      -0.1,
+      -0.375,
+      -0.85,
+      0.1,
+      -0.175,
+      -0.9,
+      -0.225,
+      -0.325,
+      0.025,
+      1.275,
+      0.575,
+      -0.175,
+      -0.125,
+      0.5,
+      -0.225,
+      -0.725,
+      -0.975,
+      0.6
+    ]
+  },
+  "enso_annual_reference": {
+    "years": [
+      1990,
+      1991,
+      1992,
+      1993,
+      1994,
+      1995,
+      1996,
+      1997,
+      1998,
+      1999,
+      2000,
+      2001,
+      2002,
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025,
+      2026
+    ],
+    "nino34": [
+      0.25,
+      0.55,
+      0.8,
+      0.3,
+      0.375,
+      0.025,
+      -0.5,
+      0.925,
+      0.25,
+      -1.225,
+      -0.925,
+      -0.35,
+      0.525,
+      0.325,
+      0.45,
+      0.15,
+      -0.1,
+      -0.375,
+      -0.85,
+      0.1,
+      -0.175,
+      -0.9,
+      -0.225,
+      -0.325,
+      0.025,
+      1.275,
+      0.575,
+      -0.175,
+      -0.125,
+      0.5,
+      -0.225,
+      -0.725,
+      -0.975,
+      0.6,
+      0.4675,
+      -0.26,
+      1.345
+    ],
+    "source": "nino34_seasonal_reference.csv (mean of DJF/MAM/JJA/SON)"
   },
   "enso_impact": {
     "method": "Yields rise steeply across the record, so a plain El Ni\u00f1o-vs-rest average would mostly measure which decades happened to be El Ni\u00f1o years. Each crop-zone series is therefore detrended first (least-squares line on year) and each year expressed as a percentage deviation from its trend value; the effect is the mean deviation of El Ni\u00f1o years minus that of all other years, and p comes from Welch's t-test between the two groups.",
@@ -316,8 +684,8 @@
     ]
   },
   "caveats": [
-    "The lag features carry 56% of the model's gain (yield_lag1 alone 53%) and the ENSO features 1.8%. This is a persistence estimate nudged by climate, not evidence of an ENSO response.",
-    "Holdout RMSE is 7.06 q/ha on 63 observations against a mean yield of 27.7 q/ha, so a single crop-zone figure is planning-grade, not a guarantee.",
+    "The lag features carry 76% of the model's gain (yield_lag1 alone 60%) and the ENSO features 2.4%. This is a persistence estimate nudged by climate, not evidence of an ENSO response.",
+    "Holdout RMSE is 7.13 q/ha on 63 observations against a mean yield of 27.7 q/ha, so a single crop-zone figure is planning-grade, not a guarantee.",
     "Yields are zone-wide averages from a 34-year spreadsheet, not plot-level measurements: they describe an altitude belt, never one farm."
   ]
 }

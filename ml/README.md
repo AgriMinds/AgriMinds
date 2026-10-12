@@ -144,6 +144,18 @@ that unit, so the moisture anomaly is computed in inches internally.
 
 - Synthetic data only checks that the code runs; real skill must be measured on real data (`data/outputs/*_metrics.csv`).
 - ENSO forecasts feeding the drought model are in-sample for the training years (optimistic). Use cross-fitted forecasts later.
+- The CNN-LSTM has never beaten a Ridge regression on this record, so `enso_forecast.csv` is written from
+  Ridge at every lead (see `data/models/enso_meta.json`). Objective 1's architecture is unproven here;
+  what is served is the baseline that measured best, not the one the design asked for.
+- The drought head clears the skill gate at lead 1 only. Improving the ENSO input from
+  correlation -0.26 to +0.35 at lead 12 moved its lead-1 BSS from 0.058 to 0.061;
+  the binding constraint is its own 157-sample training window, not the teleconnection input.
+- `climate-crop (2).xlsx` is **not** a revision of `climate-crop.xlsx`: its 2010 and 2022 ENSO values are
+  transcription errors against the seasonal source both sheets are built from (-0.175 became -0.975,
+  -0.975 became -2.975). The published crop-yield model is now fitted on the verified panel
+  (`research/crop_yield/corrected.py`), which also rolls the 3-year mean inside each crop-zone series
+  instead of across their boundaries. Neither correction moves the El Nino impact table, because both
+  bad years sit outside the El Nino group either way.
 - Advisory rules are placeholders to co-design with farmers and experts; `RULES_VERSION` tracks changes.
 - Artifacts are tracked in git while small. Move `data/` to DVC or Git LFS before adding real CHIRPS/ERA5 cubes.
 

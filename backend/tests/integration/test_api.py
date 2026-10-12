@@ -242,11 +242,14 @@ class TestCatchmentBoundary:
 class TestDataSourceInventory:
     """What the forecast is built from, reported from disk rather than from a fixed list."""
 
-    def test_it_reports_the_study_s_five_inputs(self, client, minister_headers):
+    def test_it_reports_every_input_the_forecast_is_built_from(self, client, minister_headers):
         body = client.get("/api/v1/system/data-sources", headers=minister_headers).json()
         keys = [s["key"] for s in body["sources"]]
-        assert keys == ["nino34", "era5", "chirps_emi", "csa_crops", "scpdsi"]
-        assert body["total"] == 5
+        # Six entries, not five sources: `scpdsi` is computed here rather than downloaded, and
+        # `wind` is a second ERA5 product, fetched hourly and separately because the daily
+        # archive cannot reproduce a vector mean. Both are listed because both feed the model.
+        assert keys == ["nino34", "era5", "chirps_emi", "csa_crops", "scpdsi", "wind"]
+        assert body["total"] == 6
         assert body["connected"] == sum(1 for s in body["sources"] if s["status"] == "connected")
 
     def test_synthetic_training_data_is_declared_not_hidden(self, client, minister_headers):
@@ -342,6 +345,10 @@ class TestIngestedSourcesAreReported:
             "chirps_emi": "connected",
             "csa_crops": "connected",
             "scpdsi": "connected",
+            # Wind is opt-in and hours long, so this fixture does not write its manifest. That it
+            # reports not_connected rather than riding on ERA5's manifest is the point: the
+            # inventory distinguishes what was downloaded from what was not.
+            "wind": "not_connected",
         }
         assert body["connected"] == 5
 

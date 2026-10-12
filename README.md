@@ -19,10 +19,15 @@ Signing in puts each person in front of the view that matches their job:
 Every ministry figure is counted from registered rows — farmers, plots, hectares and advisory records
 that exist in the database. Risk is attached from the live model. Nothing on either dashboard is estimated.
 
-> **Status:** the committed model weights were trained on **synthetic** data to validate the pipeline.
-> `make ingest` downloads the study's real inputs — every source is public and needs no credentials —
-> and `make train` retrains on them. Until that has run, every API response carries `provenance`
-> and both clients show a banner, so a demonstration is never mistaken for a forecast.
+> **Status:** the committed weights are trained on **real** observations — `make ingest` pulls them
+> from five public sources, none of which needs credentials. What is published is gated on measured
+> skill rather than on having trained: the drought head serves probabilities only at
+> **lead 1** (the lead that clears a Brier skill score of
+> 0.02 against climatology) and the rest as a qualitative outlook, and every ENSO lead is
+> served by whichever candidate beat persistence on validation — currently
+> **Ridge** at all 12 leads, the CNN-LSTM at none.
+> Every API response carries `provenance`, so a run on the synthetic stand-in can never be mistaken
+> for a forecast.
 
 ---
 

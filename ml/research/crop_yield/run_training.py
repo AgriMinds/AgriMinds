@@ -23,6 +23,7 @@ where the API loads it from (see `publish.py`).
 import json
 import os
 
+from corrected import prepare_crop_dataset_corrected
 from preprocess import prepare_crop_dataset
 from publish import publish
 from train import train_and_evaluate_models
@@ -31,6 +32,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(BASE_DIR)))
 EXCEL_PATH = os.path.join(BASE_DIR, "data", "climate-crop-v2.xlsx")
 CLEAN_CSV = os.path.join(BASE_DIR, "data", "crop_climate_clean.csv")
+CORRECTED_CSV = os.path.join(BASE_DIR, "data", "crop_climate_clean_corrected.csv")
+CORRECTED_DIR = os.path.join(BASE_DIR, "corrected")
 
 
 def _data_dir() -> str:
@@ -68,7 +71,46 @@ def main() -> None:
         delta = f"{metrics['test_rmse'] - before:+.3f}" if before is not None else "-"
         print(f"{name:<24}{before if before is not None else '-':>11}{metrics['test_rmse']:>11}{delta:>9}")
     print(f"\nBest model this run: {best}")
-    publish(_data_dir())
+
+    # ---- the published artifact is fitted on the verified panel ---------------------------
+    print("\n" + "=" * 72)
+    print("Verified rebuild: ENSO checked against its seasonal source, rolling mean grouped")
+    print("=" * 72)
+    corrected_df, discrepancies = prepare_crop_dataset_corrected(EXCEL_PATH, CORRECTED_CSV)
+    corrected_results, corrected_best = train_and_evaluate_models(CORRECTED_CSV, CORRECTED_DIR)
+
+    print("\nTest RMSE (q/ha): published vs retrained-as-upstream vs verified")
+    print(f"{'model':<24}{'published':>11}{'as-upstream':>13}{'verified':>11}{'delta':>9}")
+    for name, metrics in results.items():
+        pub = upstream.get(name, {}).get("test_rmse")
+        fixed = corrected_results[name]["test_rmse"]
+        delta = f"{fixed - metrics['test_rmse']:+.3f}"
+        print(f"{name:<24}{pub if pub is not None else '-':>11}"
+              f"{metrics['test_rmse']:>13}{fixed:>11}{delta:>9}")
+    print(f"\nBest model on the verified panel: {corrected_best}")
+
+    corrections = [
+        {
+            "field": "enso_index",
+            "year": d.year,
+            "spreadsheet": d.spreadsheet,
+            "corrected_to": d.reference,
+            "source": "nino34_seasonal_reference.csv (mean of DJF/MAM/JJA/SON)",
+        }
+        for d in discrepancies
+    ] + [
+        {
+            "field": "yield_rolling3_mean",
+            "rows_changed": 16,
+            "reason": "upstream rolls across crop-zone boundaries; the rebuild rolls inside each series",
+        }
+    ]
+    publish(
+        _data_dir(),
+        run_dir=CORRECTED_DIR,
+        panel_file=CORRECTED_CSV,
+        corrections=corrections,
+    )
 
 
 if __name__ == "__main__":

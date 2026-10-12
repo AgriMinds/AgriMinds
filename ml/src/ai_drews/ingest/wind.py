@@ -28,7 +28,15 @@ import pandas as pd
 
 from ai_drews.config import DEFAULT_CONFIG, DataPaths, PipelineConfig
 from ai_drews.geo.watershed import cell_centres
-from ai_drews.ingest.base import IngestError, Manifest, coverage_of, fetch_json, sources_dir, write_manifest, _WIND_TIMEOUT
+from ai_drews.ingest.base import (
+    _WIND_TIMEOUT,
+    IngestError,
+    Manifest,
+    coverage_of,
+    fetch_json,
+    sources_dir,
+    write_manifest,
+)
 
 log = logging.getLogger(__name__)
 

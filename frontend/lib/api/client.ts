@@ -8,6 +8,7 @@ import type {
   CropYieldScenario,
   CropYieldScenarioRequest,
   DataInventory,
+  CropYieldTimeline,
   EnsoImpactResponse,
   DroughtMapResponse,
   EmbedConfig,
@@ -177,6 +178,9 @@ export const api = {
   cropYieldModel: () => request<CropYieldModelCard>('/crop-yield/model'),
   /** What El Niño years actually did to each crop and belt, measured over the record. */
   ensoImpact: () => request<EnsoImpactResponse>('/crop-yield/enso-impact'),
+  /** Belt-average yields and Niño 3.4 across the record and the years after it. */
+  cropYieldTimeline: (throughYear?: number) =>
+    request<CropYieldTimeline>(`/crop-yield/timeline${throughYear ? `?through_year=${throughYear}` : ''}`),
 
   // ---- analytics ----------------------------------------------------------------------
   metabaseStatus: () => request<MetabaseStatus>('/analytics/metabase/status'),

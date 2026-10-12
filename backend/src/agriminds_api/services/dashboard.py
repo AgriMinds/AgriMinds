@@ -8,6 +8,7 @@ flat as the number of registered farms grows, and keeps model output out of the 
 from __future__ import annotations
 
 import uuid
+from collections import Counter
 from datetime import UTC, datetime, timedelta
 
 import pandas as pd
@@ -266,15 +267,35 @@ class DashboardService:
     async def _farmers_per_level(
         self, cube: RiskCube, lead_month: int, woreda_id: uuid.UUID | None
     ) -> dict[str, int]:
-        """Owners are counted once per level, even when they hold several plots in it."""
-        cells_by_level: dict[str, list[tuple[int, int]]] = {lvl: [] for lvl in LEVEL_ORDER}
-        for row in range(self._grid.rows):
-            for col in range(self._grid.cols):
-                cells_by_level[risk_level(float(cube.probs[lead_month - 1, row, col]))].append((row, col))
-        return {
-            lvl: await self._distinct_owners_in_cells(cells, woreda_id)
-            for lvl, cells in cells_by_level.items()
-        }
+        """Each owner once, at the worst level any of their plots sits in.
+
+        Counting distinct owners inside each level separately looks right and is not: a farmer
+        holding one plot in a Low cell and another in a Severe cell would be counted in both, and
+        the buckets would then sum past the headcount — a ministry reading "4 farmers exposed"
+        against a roll of 3. Exposure is a property of the farmer rather than of the plot, and the
+        level that decides what they are told is the worst one they are exposed to, so that is the
+        bucket they are counted in. Farms and hectares stay per-plot: those are properties of the
+        land and belong to the cell they sit in.
+        """
+        rows = (
+            await self._session.execute(
+                self._scoped(
+                    select(Farm.owner_id, Farm.grid_row, Farm.grid_col).distinct(),
+                    woreda_id,
+                    Farm.woreda_id,
+                )
+            )
+        ).all()
+
+        severity = {lvl: rank for rank, lvl in enumerate(LEVEL_ORDER)}
+        worst: dict[uuid.UUID, str] = {}
+        for owner_id, row, col in rows:
+            level = risk_level(float(cube.probs[lead_month - 1, int(row), int(col)]))
+            if owner_id not in worst or severity[level] > severity[worst[owner_id]]:
+                worst[owner_id] = level
+
+        counts = Counter(worst.values())
+        return {lvl: counts.get(lvl, 0) for lvl in LEVEL_ORDER}
 
     async def _distinct_owners_in_cells(
         self, cells: list[tuple[int, int]], woreda_id: uuid.UUID | None

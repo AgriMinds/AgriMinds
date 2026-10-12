@@ -1,0 +1,18 @@
+{
+  "key": "nino34_seasonal_reference",
+  "provider": "AgriMinds research material (elnino.xlsx)",
+  "source_file": "AgriMindCodeResource/elnino.xlsx",
+  "extracted_at": "2026-10-12T13:44:21.364385+00:00",
+  "sha256_of_extract": "62cb03fc427ccaec6cd45b4d5a946c5df96c1d7066dbbbf18780b8c8cf78375d",
+  "records": 37,
+  "coverage_start": 1990,
+  "coverage_end": 2026,
+  "variables": [
+    "djf",
+    "mam",
+    "jja",
+    "son",
+    "annual_mean"
+  ],
+  "notes": "Seasonal Nino 3.4 behind the `ElniNo` column of climate-crop.xlsx: that column is the mean of the four seasonal values. Used to verify the spreadsheet's ENSO series year by year instead of trusting whichever revision is newest."
+}

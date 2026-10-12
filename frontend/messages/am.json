@@ -576,6 +576,26 @@
       "favour": "በ{zone} ቀጠና {crop}ን ያስቀድሙ።",
       "caution": "በ{zone} ቀጠና {crop}ን በጥንቃቄ ያምርቱ።",
       "fromRecord": "ከዚህ መዝገብ"
+    },
+    "timeline": {
+      "heading": "መዝገቡና ከዚያ በኋላ የሚከተለው",
+      "description": "ከ{firstYear} እስከ {throughYear} የሚደርስ የቀጠና አማካይ ምርት ከኒኞ 3.4 ጋር። ምርቱ እስከ {yieldYear}፣ ኒኞ 3.4 ደግሞ እስከ {ensoYear} ተመዝግቧል፤ በመካከል ያሉት ወቅቶች በትክክል በተከሰተው ኤንሶ ላይ ተመስርተው የተገመቱ ናቸው። በጥላ የተመለከቱት ዓመታት ብቻ በግምት ላይ የተመሰረቱ ናቸው።",
+      "yieldPanel": "የቀጠና አማካይ ምርት (ኩንታል በሄክታር)",
+      "ensoPanel": "ኒኞ 3.4 (°C ልዩነት)",
+      "yieldUnit": "ኩ/ሄ",
+      "projected": "የተገመተ",
+      "observedEnso": "የተመዘገበ",
+      "assumedEnso": "የተገመተ",
+      "scenarioLabel": "ከተመዘገበው መዝገብ በኋላ የሚገመት የኤንሶ ሁኔታ",
+      "scenario": {
+        "el_nino": "ኤል ኒኞ",
+        "neutral": "ገለልተኛ",
+        "la_nina": "ላ ኒኛ"
+      },
+      "assumedFrom": "ከ{year} ጀምሮ ግምት ነው፦ ከ{months} ወራት በኋላ ከአማካይ የተሻለ ትንበያ የለም",
+      "footnote": "ምርት እስከ {yieldYear}፣ ኒኞ 3.4 እስከ {ensoYear} ተመዝግቧል። የተገመቱት ወቅቶች ከቀደመው ወቅት ተነስተው ይተነበያሉ፤ የባለፈው ዓመት ምርት ግብዓት ስለሆነ ስህተቱ ይከማቻል እና ተከታታዩ ወደ አንድ ደረጃ ይረጋጋል። የፈተና RMSE {rmse} ኩ/ሄ።",
+      "unavailable": "የምርት ትንበያ ሞዴሉ በዚህ ተከላ ስላልተጫነ የጊዜ ሰንጠረዡ መሳል አልተቻለም።",
+      "cardTitle": "ምርት ከኒኞ 3.4 ጋር፣ {firstYear}–{throughYear}"
     }
   }
 }

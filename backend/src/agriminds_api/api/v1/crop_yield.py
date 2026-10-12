@@ -8,6 +8,7 @@ from agriminds_api.schemas.crop_yield import (
     CropYieldOutlook,
     CropYieldScenario,
     CropYieldScenarioRequest,
+    CropYieldTimeline,
     EnsoImpactResponse,
 )
 from agriminds_api.services.crop_yield import CropYieldService
@@ -54,6 +55,30 @@ def simulate(
     req: CropYieldScenarioRequest, service: CropYieldService = Depends(get_crop_yield)
 ) -> CropYieldScenario:
     return service.simulate(req)
+
+
+@router.get(
+    "/timeline",
+    response_model=CropYieldTimeline,
+    summary="Belt-average yields and Niño 3.4 across the record and beyond it",
+    description=(
+        "The observed series plus one projected series per assumed ENSO state, in the shape a "
+        "two-panel chart needs.\n\n"
+        "Observation is used wherever it exists. Niño 3.4 is measured several years past the end "
+        "of the crop record, so the seasons in between are projected under the ENSO that actually "
+        "happened and every scenario agrees there; only after `enso_observed_through` do they "
+        "diverge. Nothing here forecasts ENSO beyond about six months "
+        "(`enso_forecast_limit_months`), so those later years are assumptions, not predictions, "
+        "and the response keeps the two labelled apart rather than drawing one line through both."
+        "\n\nEach projected season is predicted from the one before it, because the lag features "
+        "are inputs. The error compounds and the series converges on a level within a few steps."
+    ),
+)
+def timeline(
+    through_year: int = Query(2030, ge=1991, le=2100, description="Last season to project"),
+    service: CropYieldService = Depends(get_crop_yield),
+) -> CropYieldTimeline:
+    return service.timeline(through_year=through_year)
 
 
 @router.get(

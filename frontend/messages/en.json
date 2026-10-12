@@ -576,6 +576,26 @@
       "favour": "Favour {crop} in the {zone} belt.",
       "caution": "Cultivate {crop} with caution in the {zone} belt.",
       "fromRecord": "From this record"
+    },
+    "timeline": {
+      "heading": "The record and what follows it",
+      "description": "Belt-average yields over Niño 3.4, {firstYear} to {throughYear}. Yields are observed to {yieldYear} and Niño 3.4 to {ensoYear}; the seasons between them are projected under the ENSO that actually happened. Only the shaded years rest on an assumption.",
+      "yieldPanel": "Belt-average yield (quintal per hectare)",
+      "ensoPanel": "Niño 3.4 (°C anomaly)",
+      "yieldUnit": "q/ha",
+      "projected": "projected",
+      "observedEnso": "Observed",
+      "assumedEnso": "Assumed",
+      "scenarioLabel": "ENSO state assumed after the observed record",
+      "scenario": {
+        "el_nino": "El Niño",
+        "neutral": "Neutral",
+        "la_nina": "La Niña"
+      },
+      "assumedFrom": "Assumed from {year}: no candidate beat climatology past {months} months",
+      "footnote": "Yields observed to {yieldYear}, Niño 3.4 to {ensoYear}. Projected seasons are predicted from the season before them, because last year's yield is an input: the error compounds and the series settles on a level. Holdout RMSE {rmse} q/ha.",
+      "unavailable": "The crop-yield model is not loaded on this deployment, so the timeline cannot be drawn.",
+      "cardTitle": "Yields over Niño 3.4, {firstYear}–{throughYear}"
     }
   }
 }

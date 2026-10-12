@@ -213,3 +213,65 @@ class TestEnsoImpact:
     def test_unavailable_without_an_artifact(self, empty_client) -> None:
         res = empty_client.get("/api/v1/crop-yield/enso-impact")
         assert res.status_code == 503
+
+
+@pytest.fixture
+def timeline(client):
+    res = client.get("/api/v1/crop-yield/timeline")
+    if res.status_code == 503:
+        pytest.skip("no crop-yield artifact published in data/models")
+    assert res.status_code == 200, res.text
+    return res.json()
+
+
+class TestTimeline:
+    """The record and what follows it. The point of this endpoint is the boundaries."""
+
+    def test_observed_yields_cover_the_whole_training_record(self, timeline) -> None:
+        years = [y["year"] for y in timeline["observed"]]
+        assert years == sorted(years)
+        assert years[0] == timeline["first_year"]
+        assert years[-1] == timeline["yields_observed_through"]
+
+    def test_enso_is_observed_past_the_end_of_the_crop_record(self, timeline) -> None:
+        # The crop panel stops years before the ENSO panel does. A client that assumed one
+        # boundary would project over observations it already has.
+        assert timeline["enso_observed_through"] > timeline["yields_observed_through"]
+        assert {e["basis"] for e in timeline["enso"]} == {"observed"}
+
+    def test_every_scenario_agrees_while_enso_is_still_observed(self, timeline) -> None:
+        """Seasons before the branch are driven by the ENSO that happened, not by an assumption."""
+        shared = timeline["enso_observed_through"]
+        by_scenario = {
+            s["key"]: {y["year"]: y["wheat_q_ha"] for y in s["years"]} for s in timeline["scenarios"]
+        }
+        for year in range(timeline["yields_observed_through"] + 1, shared + 1):
+            values = {s[year] for s in by_scenario.values()}
+            assert len(values) == 1, f"scenarios disagree in {year}, before ENSO stops being observed"
+
+    def test_scenarios_diverge_once_enso_is_only_assumed(self, timeline) -> None:
+        last = timeline["through_year"]
+        values = {
+            s["key"]: next(y["wheat_q_ha"] for y in s["years"] if y["year"] == last)
+            for s in timeline["scenarios"]
+        }
+        assert len(set(values.values())) > 1, "an assumed ENSO state must change something"
+
+    def test_names_the_three_states_and_their_indices(self, timeline) -> None:
+        states = {s["key"]: s["enso_index"] for s in timeline["scenarios"]}
+        assert states == {"el_nino": 1.0, "neutral": 0.0, "la_nina": -1.0}
+        phases = {s["key"]: s["enso_phase"] for s in timeline["scenarios"]}
+        assert phases == {"el_nino": "El Nino", "neutral": "Neutral", "la_nina": "La Nina"}
+
+    def test_projected_yields_stay_in_quintals_per_hectare(self, timeline) -> None:
+        for scenario in timeline["scenarios"]:
+            for year in scenario["years"]:
+                for crop in ("tef_q_ha", "wheat_q_ha", "maize_q_ha"):
+                    assert 0 < year[crop] < 120
+
+    def test_declares_how_far_ahead_enso_is_worth_anything(self, timeline) -> None:
+        assert 1 <= timeline["enso_forecast_limit_months"] <= 12
+        assert timeline["caveats"]
+
+    def test_refuses_a_horizon_outside_the_allowed_range(self, client) -> None:
+        assert client.get("/api/v1/crop-yield/timeline?through_year=1800").status_code == 422

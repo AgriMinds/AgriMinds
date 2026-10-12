@@ -576,6 +576,26 @@
       "favour": "Sadarkaa {zone} keessatti {crop} dursi.",
       "caution": "Sadarkaa {zone} keessatti {crop} of eeggannoodhaan misoomsi.",
       "fromRecord": "Galmee kana irraa"
+    },
+    "timeline": {
+      "heading": "Galmee fi waan isa booda dhufu",
+      "description": "Oomisha giddu-galeessa naannoo fi Niñoo 3.4, {firstYear} hanga {throughYear}. Oomishni hanga {yieldYear}, Niñoo 3.4 immoo hanga {ensoYear} galmaa'eera; waqtiileen gidduu jiran ENSO dhugumaan uumame irratti hundaa'anii tilmaamaman. Waggoonni gaaddidduu qabantu qofti tilmaama irratti hundaa'u.",
+      "yieldPanel": "Oomisha giddu-galeessa naannoo (kuntaala hektaaraatti)",
+      "ensoPanel": "Niñoo 3.4 (garaagarummaa °C)",
+      "yieldUnit": "ku/he",
+      "projected": "tilmaamame",
+      "observedEnso": "Galmaa'e",
+      "assumedEnso": "Tilmaamame",
+      "scenarioLabel": "Haala ENSO galmee booda tilmaamamu",
+      "scenario": {
+        "el_nino": "El Niñoo",
+        "neutral": "Walqixa",
+        "la_nina": "La Niñaa"
+      },
+      "assumedFrom": "{year} irraa kaasee tilmaama: ji'oota {months} booda kan klaayimaatoloojii caalu hin jiru",
+      "footnote": "Oomishni hanga {yieldYear}, Niñoo 3.4 hanga {ensoYear} galmaa'eera. Waqtiileen tilmaamaman waqtii isaan dura jiru irraa tilmaamamu, sababni isaas oomishni waggaa darbee galtee waan ta'eef: dogoggorri walitti ida'ama, tartiibnis sadarkaa tokko irratti dhaabata. RMSE qormaataa {rmse} ku/he.",
+      "unavailable": "Moodeelli tilmaama oomishaa diriirsa kana irratti waan hin fe'amneef sararri yeroo fakkaasuun hin danda'amu.",
+      "cardTitle": "Oomisha fi Niñoo 3.4, {firstYear}–{throughYear}"
     }
   }
 }

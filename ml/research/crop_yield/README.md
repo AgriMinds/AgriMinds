@@ -13,6 +13,10 @@ pair of files into `data/models/`.
 | path | what |
 |---|---|
 | `preprocess.py`, `train.py`, `predict.py` | upstream scripts, unmodified |
+| `corrected.py` | the verified panel builder: ENSO checked against its own seasonal source, rolling mean grouped |
+| `data/nino34_seasonal_reference.csv` | the seasonal Niño 3.4 the spreadsheet's `ElniNo` column is the mean of |
+| `corrected/` | the run on the verified panel — this is what gets published |
+| `figure_enso_crop_1990_2030.py` | the two-panel record-and-outlook figure |
 | `UPSTREAM_MODEL_CARD.md` | the Hugging Face model card as published |
 | `run_training.py` | points the upstream scripts at the spreadsheet below, then publishes |
 | `publish.py` | writes the servable artifact + metadata into `data/models/` |
@@ -23,6 +27,23 @@ pair of files into `data/models/`.
 | `models/metrics_summary.json` | all five candidates, this retrain |
 | `models/upstream_metrics_summary.json` | the published metrics |
 | `plots/*.png` | model comparison, actual vs predicted, MAE slices |
+
+## The spreadsheet's ENSO column is wrong in two years
+
+`ElniNo` is the mean of four seasonal Niño 3.4 values, and those are in
+`data/nino34_seasonal_reference.csv`. Recomputing the mean reproduces 32 of the 34 years exactly.
+Both failures are in the *newer* spreadsheet:
+
+| year | seasonal source | `climate-crop.xlsx` (v1) | `climate-crop (2).xlsx` (v2) |
+|---|---|---|---|
+| 2010 | −0.175 | −0.175 | **−0.975** |
+| 2022 | −0.975 | −0.975 | **−2.975** |
+
+Each is a single digit. So v2 is not a revision of v1, it is a transcription error against it, and
+the 2010 error also flips that year's phase label from Neutral to La Niña. `corrected.py` verifies
+every year against the seasonal source and repairs what disagrees, recording the repair in the
+published metadata (`data_corrections`). Neither year moves the El Niño impact table, because both
+sit outside the El Niño group either way.
 
 ## Run
 
@@ -52,7 +73,8 @@ the belt altitudes, every candidate's score, the gain-weighted feature importanc
 | `GET /api/v1/crop-yield/outlook` | all nine crop-belt cells, each with its ENSO-neutral counterpart and its inputs |
 | `POST /api/v1/crop-yield/simulate` | one cell under named climate inputs |
 | `GET /api/v1/crop-yield/model` | candidate scores, feature importance, caveats |
-| `/crop-yield` (web, staff only) | the yield matrix, the ENSO term on its own, and the model's limits |
+| `GET /api/v1/crop-yield/timeline` | the observed record and one projected series per assumed ENSO state |
+| `/crop-yield` (web, staff only) | the yield matrix, the ENSO term, the model's limits, and the 1990-2030 timeline |
 
 xgboost is an extra, not a core dependency, because `joblib.load` has to reconstruct the fitted
 estimator. An API deployment without it logs the reason at startup and answers 503 on these three
@@ -100,11 +122,12 @@ Until that source is known, this page reports what this repository's record supp
 
 ## What the retrain showed
 
-**The spreadsheet is the one the published model was already fitted on.** `climate-crop (2).xlsx`
-differs from `climate-crop.xlsx` in two ENSO values only (2010: −0.175 → −0.975, which flips that
-year from Neutral to La Niña; 2022: −0.975 → −2.975), and the panel built from it matches
-`upstream_crop_climate_clean.csv` in every column of all 306 rows. So this is a reproduction, not
-a new fit, and the remaining metric drift is library versions (xgboost 3.4.1, scikit-learn 1.9.1):
+**The spreadsheet is the one the published model was already fitted on.** The panel built from
+`climate-crop (2).xlsx` matches `upstream_crop_climate_clean.csv` in every column of all 306 rows,
+so the as-upstream run is a reproduction rather than a new fit, and the remaining metric drift is
+library versions (xgboost 3.4.1, scikit-learn 1.9.1). It also means the published model inherited
+both of that spreadsheet's bad ENSO years — which is why the artifact this repo serves is now the
+verified rebuild instead:
 
 | model | published test RMSE | retrained test RMSE |
 |---|---|---|

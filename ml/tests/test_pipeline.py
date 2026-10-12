@@ -1,5 +1,7 @@
 """End-to-end smoke test of the pipeline on a tiny synthetic dataset (a few seconds on CPU)."""
 
+import json
+
 import numpy as np
 import torch
 
@@ -29,8 +31,19 @@ def test_full_pipeline_smoke(paths, test_cfg):
     assert feats["train"] > 0
 
     enso_metrics = train_enso(paths, test_cfg, plot=False)
-    assert set(enso_metrics["model"]) == {"CNN-LSTM", "Persistence", "Ridge"}
+    # Every candidate is scored, and "Selected" is the per-lead winner actually published.
+    assert set(enso_metrics["model"]) == {"CNN-LSTM", "Persistence", "Ridge", "Selected"}
     assert paths.enso_forecast_csv.exists()
+
+    # The published lead must be traceable to the estimator that produced it.
+    meta = json.loads((paths.models / "enso_meta.json").read_text())
+    assert set(meta["selected_per_lead"]) == {str(i + 1) for i in range(test_cfg.enso_leads)}
+    assert set(meta["selected_per_lead"].values()) <= {"CNN-LSTM", "Persistence", "Ridge"}
+    # Selection happens on validation, so it may lose on test, but never by a wide margin:
+    # a published lead that is far worse than persistence means the gate is wired up wrong.
+    chosen = enso_metrics[enso_metrics.model == "Selected"].set_index("lead")["RMSE"]
+    naive = enso_metrics[enso_metrics.model == "Persistence"].set_index("lead")["RMSE"]
+    assert (chosen <= naive * 1.5 + 1e-9).all()
 
     drought_metrics = train_drought(paths, test_cfg, data_source="synthetic")
     assert len(drought_metrics) == test_cfg.drought_leads

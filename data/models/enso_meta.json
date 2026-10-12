@@ -1,0 +1,384 @@
+{
+  "model_version": "enso-cnnlstm-0.2.0",
+  "package_version": "0.2.0",
+  "trained_at": "2026-10-12T13:41:26.497877+00:00",
+  "data_source": "noaa-full-record",
+  "record_start": "1951-01-01",
+  "record_end": "2026-07-01",
+  "n_features": 4,
+  "leads": 12,
+  "samples": {
+    "train": 745,
+    "val": 60,
+    "test": 79
+  },
+  "selection_rule": "persistence unless a challenger cuts validation RMSE by >= 5%",
+  "min_baseline_gain": 0.05,
+  "selected_per_lead": {
+    "1": "Ridge",
+    "2": "Ridge",
+    "3": "Ridge",
+    "4": "Ridge",
+    "5": "Ridge",
+    "6": "Ridge",
+    "7": "Ridge",
+    "8": "Ridge",
+    "9": "Ridge",
+    "10": "Ridge",
+    "11": "Ridge",
+    "12": "Ridge"
+  },
+  "validation_gain_over_persistence": {
+    "1": 0.1555,
+    "2": 0.2311,
+    "3": 0.2725,
+    "4": 0.296,
+    "5": 0.3007,
+    "6": 0.2866,
+    "7": 0.2654,
+    "8": 0.2436,
+    "9": 0.2189,
+    "10": 0.1925,
+    "11": 0.1611,
+    "12": 0.1268
+  },
+  "cnn_lstm_wins_leads": [],
+  "test_metrics": [
+    {
+      "model": "CNN-LSTM",
+      "lead": 1,
+      "RMSE": 0.339,
+      "MAE": 0.275,
+      "corr": 0.921
+    },
+    {
+      "model": "CNN-LSTM",
+      "lead": 2,
+      "RMSE": 0.43,
+      "MAE": 0.352,
+      "corr": 0.845
+    },
+    {
+      "model": "CNN-LSTM",
+      "lead": 3,
+      "RMSE": 0.532,
+      "MAE": 0.44,
+      "corr": 0.742
+    },
+    {
+      "model": "CNN-LSTM",
+      "lead": 4,
+      "RMSE": 0.626,
+      "MAE": 0.521,
+      "corr": 0.606
+    },
+    {
+      "model": "CNN-LSTM",
+      "lead": 5,
+      "RMSE": 0.726,
+      "MAE": 0.614,
+      "corr": 0.421
+    },
+    {
+      "model": "CNN-LSTM",
+      "lead": 6,
+      "RMSE": 0.804,
+      "MAE": 0.694,
+      "corr": 0.271
+    },
+    {
+      "model": "CNN-LSTM",
+      "lead": 7,
+      "RMSE": 0.851,
+      "MAE": 0.752,
+      "corr": 0.163
+    },
+    {
+      "model": "CNN-LSTM",
+      "lead": 8,
+      "RMSE": 0.897,
+      "MAE": 0.791,
+      "corr": 0.097
+    },
+    {
+      "model": "CNN-LSTM",
+      "lead": 9,
+      "RMSE": 0.942,
+      "MAE": 0.835,
+      "corr": -0.017
+    },
+    {
+      "model": "CNN-LSTM",
+      "lead": 10,
+      "RMSE": 0.959,
+      "MAE": 0.857,
+      "corr": -0.001
+    },
+    {
+      "model": "CNN-LSTM",
+      "lead": 11,
+      "RMSE": 0.98,
+      "MAE": 0.881,
+      "corr": -0.025
+    },
+    {
+      "model": "CNN-LSTM",
+      "lead": 12,
+      "RMSE": 0.957,
+      "MAE": 0.861,
+      "corr": 0.003
+    },
+    {
+      "model": "Persistence",
+      "lead": 1,
+      "RMSE": 0.226,
+      "MAE": 0.178,
+      "corr": 0.955
+    },
+    {
+      "model": "Persistence",
+      "lead": 2,
+      "RMSE": 0.368,
+      "MAE": 0.306,
+      "corr": 0.881
+    },
+    {
+      "model": "Persistence",
+      "lead": 3,
+      "RMSE": 0.479,
+      "MAE": 0.414,
+      "corr": 0.798
+    },
+    {
+      "model": "Persistence",
+      "lead": 4,
+      "RMSE": 0.59,
+      "MAE": 0.492,
+      "corr": 0.693
+    },
+    {
+      "model": "Persistence",
+      "lead": 5,
+      "RMSE": 0.692,
+      "MAE": 0.561,
+      "corr": 0.577
+    },
+    {
+      "model": "Persistence",
+      "lead": 6,
+      "RMSE": 0.784,
+      "MAE": 0.632,
+      "corr": 0.456
+    },
+    {
+      "model": "Persistence",
+      "lead": 7,
+      "RMSE": 0.854,
+      "MAE": 0.676,
+      "corr": 0.35
+    },
+    {
+      "model": "Persistence",
+      "lead": 8,
+      "RMSE": 0.911,
+      "MAE": 0.692,
+      "corr": 0.259
+    },
+    {
+      "model": "Persistence",
+      "lead": 9,
+      "RMSE": 0.966,
+      "MAE": 0.709,
+      "corr": 0.169
+    },
+    {
+      "model": "Persistence",
+      "lead": 10,
+      "RMSE": 1.023,
+      "MAE": 0.743,
+      "corr": 0.073
+    },
+    {
+      "model": "Persistence",
+      "lead": 11,
+      "RMSE": 1.077,
+      "MAE": 0.795,
+      "corr": -0.009
+    },
+    {
+      "model": "Persistence",
+      "lead": 12,
+      "RMSE": 1.129,
+      "MAE": 0.857,
+      "corr": -0.082
+    },
+    {
+      "model": "Ridge",
+      "lead": 1,
+      "RMSE": 0.218,
+      "MAE": 0.173,
+      "corr": 0.958
+    },
+    {
+      "model": "Ridge",
+      "lead": 2,
+      "RMSE": 0.333,
+      "MAE": 0.268,
+      "corr": 0.899
+    },
+    {
+      "model": "Ridge",
+      "lead": 3,
+      "RMSE": 0.402,
+      "MAE": 0.33,
+      "corr": 0.849
+    },
+    {
+      "model": "Ridge",
+      "lead": 4,
+      "RMSE": 0.47,
+      "MAE": 0.385,
+      "corr": 0.789
+    },
+    {
+      "model": "Ridge",
+      "lead": 5,
+      "RMSE": 0.534,
+      "MAE": 0.453,
+      "corr": 0.714
+    },
+    {
+      "model": "Ridge",
+      "lead": 6,
+      "RMSE": 0.585,
+      "MAE": 0.495,
+      "corr": 0.634
+    },
+    {
+      "model": "Ridge",
+      "lead": 7,
+      "RMSE": 0.611,
+      "MAE": 0.503,
+      "corr": 0.577
+    },
+    {
+      "model": "Ridge",
+      "lead": 8,
+      "RMSE": 0.627,
+      "MAE": 0.506,
+      "corr": 0.533
+    },
+    {
+      "model": "Ridge",
+      "lead": 9,
+      "RMSE": 0.65,
+      "MAE": 0.499,
+      "corr": 0.477
+    },
+    {
+      "model": "Ridge",
+      "lead": 10,
+      "RMSE": 0.673,
+      "MAE": 0.514,
+      "corr": 0.417
+    },
+    {
+      "model": "Ridge",
+      "lead": 11,
+      "RMSE": 0.7,
+      "MAE": 0.546,
+      "corr": 0.381
+    },
+    {
+      "model": "Ridge",
+      "lead": 12,
+      "RMSE": 0.733,
+      "MAE": 0.589,
+      "corr": 0.35
+    },
+    {
+      "model": "Selected",
+      "lead": 1,
+      "RMSE": 0.218,
+      "MAE": 0.173,
+      "corr": 0.958
+    },
+    {
+      "model": "Selected",
+      "lead": 2,
+      "RMSE": 0.333,
+      "MAE": 0.268,
+      "corr": 0.899
+    },
+    {
+      "model": "Selected",
+      "lead": 3,
+      "RMSE": 0.402,
+      "MAE": 0.33,
+      "corr": 0.849
+    },
+    {
+      "model": "Selected",
+      "lead": 4,
+      "RMSE": 0.47,
+      "MAE": 0.385,
+      "corr": 0.789
+    },
+    {
+      "model": "Selected",
+      "lead": 5,
+      "RMSE": 0.534,
+      "MAE": 0.453,
+      "corr": 0.714
+    },
+    {
+      "model": "Selected",
+      "lead": 6,
+      "RMSE": 0.585,
+      "MAE": 0.495,
+      "corr": 0.634
+    },
+    {
+      "model": "Selected",
+      "lead": 7,
+      "RMSE": 0.611,
+      "MAE": 0.503,
+      "corr": 0.577
+    },
+    {
+      "model": "Selected",
+      "lead": 8,
+      "RMSE": 0.627,
+      "MAE": 0.506,
+      "corr": 0.533
+    },
+    {
+      "model": "Selected",
+      "lead": 9,
+      "RMSE": 0.65,
+      "MAE": 0.499,
+      "corr": 0.477
+    },
+    {
+      "model": "Selected",
+      "lead": 10,
+      "RMSE": 0.673,
+      "MAE": 0.514,
+      "corr": 0.417
+    },
+    {
+      "model": "Selected",
+      "lead": 11,
+      "RMSE": 0.7,
+      "MAE": 0.546,
+      "corr": 0.381
+    },
+    {
+      "model": "Selected",
+      "lead": 12,
+      "RMSE": 0.733,
+      "MAE": 0.589,
+      "corr": 0.35
+    }
+  ]
+}

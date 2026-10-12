@@ -248,6 +248,30 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crop-yield/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Belt-average yields and Niño 3.4 across the record and beyond it
+         * @description The observed series plus one projected series per assumed ENSO state, in the shape a two-panel chart needs.
+         *
+         *     Observation is used wherever it exists. Niño 3.4 is measured several years past the end of the crop record, so the seasons in between are projected under the ENSO that actually happened and every scenario agrees there; only after `enso_observed_through` do they diverge. Nothing here forecasts ENSO beyond about six months (`enso_forecast_limit_months`), so those later years are assumptions, not predictions, and the response keeps the two labelled apart rather than drawing one line through both.
+         *
+         *     Each projected season is predicted from the one before it, because the lag features are inputs. The error compounds and the series converges on a level within a few steps.
+         */
+        get: operations["timeline_api_v1_crop_yield_timeline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/dashboard/farmer": {
         parameters: {
             query?: never;
@@ -1060,6 +1084,92 @@ export type components = {
              */
             zone: "Lowland" | "Midland" | "Highland";
         };
+        /**
+         * CropYieldScenarioSeries
+         * @description One assumed ENSO state, and the yields that follow from it.
+         */
+        CropYieldScenarioSeries: {
+            /**
+             * Enso Index
+             * @description Niño 3.4 held at this value for every assumed year
+             */
+            enso_index: number;
+            /** Enso Phase */
+            enso_phase: string;
+            /**
+             * Key
+             * @description el_nino | neutral | la_nina
+             */
+            key: string;
+            /** Label */
+            label: string;
+            /**
+             * Years
+             * @description Projected seasons, oldest first
+             */
+            years: components["schemas"]["CropYieldYear"][];
+        };
+        /**
+         * CropYieldTimeline
+         * @description The observed record and what follows it, as one series a client can draw.
+         *
+         *     Three boundaries matter and are reported rather than implied: yields are observed to
+         *     `yields_observed_through`, Niño 3.4 to `enso_observed_through`, and the seasons between them
+         *     are projected under *observed* ENSO. Only after `enso_observed_through` do the scenarios
+         *     diverge, which is where `scenarios` stops agreeing with itself.
+         */
+        CropYieldTimeline: {
+            /** Caveats */
+            caveats: string[];
+            /**
+             * Enso
+             * @description Niño 3.4 annual means, observed then assumed
+             */
+            enso: components["schemas"]["EnsoYear"][];
+            /**
+             * Enso Forecast Limit Months
+             * @description Lead beyond which no candidate beat climatology, so later years are assumptions
+             */
+            enso_forecast_limit_months: number;
+            /**
+             * Enso Observed Through
+             * @description Last year with an observed Niño 3.4 annual mean
+             */
+            enso_observed_through: number;
+            /** First Year */
+            first_year: number;
+            /**
+             * Observed
+             * @description Belt-average yields, oldest first
+             */
+            observed: components["schemas"]["CropYieldYear"][];
+            provenance: components["schemas"]["CropYieldProvenance"];
+            /** Scenarios */
+            scenarios: components["schemas"]["CropYieldScenarioSeries"][];
+            /** Through Year */
+            through_year: number;
+            /**
+             * Yields Observed Through
+             * @description Last season in the crop record
+             */
+            yields_observed_through: number;
+        };
+        /**
+         * CropYieldYear
+         * @description One season of belt-average yield, per crop.
+         */
+        CropYieldYear: {
+            /** Crop Average Q Ha */
+            crop_average_q_ha?: number | null;
+            /** Maize Q Ha */
+            maize_q_ha?: number | null;
+            /** Tef Q Ha */
+            tef_q_ha?: number | null;
+            /** Wheat Q Ha */
+            wheat_q_ha?: number | null;
+            /** Year */
+            year: number;
+        };
         /** CropYieldZone */
         CropYieldZone: {
             /** Altitude Approx M */
@@ -1470,6 +1580,18 @@ export type components = {
             is_forecast: boolean;
             /** Nino34 */
             nino34: number;
+        };
+        /** EnsoYear */
+        EnsoYear: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "observed" | "assumed";
+            /** Nino34 */
+            nino34: number;
+            /** Year */
+            year: number;
         };
         /** ErrorBody */
         ErrorBody: {
@@ -2832,6 +2954,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CropYieldScenario"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Model unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    timeline_api_v1_crop_yield_timeline_get: {
+        parameters: {
+            query?: {
+                /** @description Last season to project */
+                through_year?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CropYieldTimeline"];
                 };
             };
             /** @description Unauthorized */
