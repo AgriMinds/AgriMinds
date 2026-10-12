@@ -476,8 +476,13 @@
   },
   "cropYield": {
     "eyebrow": "Karoora midhaanii",
-    "title": "Tilmaama oomisha midhaanii",
-    "intro": "Oomishni xiiqii, qamadii fi boqqolloo tokkoon tokkoon sadarkaa olka'iinsaa keessatti eegamu, moodeela adda ta'e galmee midhaanii fi haala qilleensaa {firstYear}–{lastYear} irratti leenji'e irraa. Kun tilmaama itti fufiinsa oomisha darbee Niño 3.4 irratti hundaa'e dha, oomisha dhufu tilmaamuu miti — daangaawwan armaan gadii waliin dubbisi.",
+    "title": "Dhiibbaa El Niño fi gorsa midhaanii",
+    "intro": "Galmee {firstYear}–{lastYear} keessatti El Niño xiiqii, qamadii fi boqqolloo sadarkaa olka'iinsaa tokkoon tokkoon isaanii keessatti maal akka godhe, kun yeroo facaasaatiif maal akka agarsiisu, akkasumas moodeelli galmee sanuma irratti leenji'e waqtii dhufu maal akka eegu. Galmeen fi moodeelli himannaa adda addaa waan ta'aniif adda addatti dhiyaatan.",
+    "heroOverall": "Midhaan hunda, waggoota El Niño",
+    "heroSample": "Waggoota El Niño",
+    "heroYears": "{from}–{to} keessatti",
+    "bannerBelts": "Midhaan sadarkaadhaan gorfame",
+    "bannerModel": "Oomisha waqtii dhufu eegamu",
     "basis": "Niño 3.4 fayyadame",
     "basisObserved": "Kan dhumaa ilaalame",
     "basisForecast": "Tilmaama +{months} ji'a",
@@ -512,6 +517,65 @@
     "fromRepo": "Pipeline {repo} irraa",
     "holdout": "RMSE deetaa alaa {rmse} kuntaala/hek · R² {r2}",
     "trainedAt": "Leenji'e {date}",
-    "notPlotLevel": "Giddu-galeessa sadarkaa, tilmaama sadarkaa qonnaa miti"
+    "notPlotLevel": "Giddu-galeessa sadarkaa, tilmaama sadarkaa qonnaa miti",
+    "driver": {
+      "title": "Kaastuu ENSO",
+      "index": "Agarsiiftuu Niño 3.4, ilaalcha dhumaa",
+      "cooler": "Qabbanaa'aa · La Niña",
+      "neutralBand": "±0.5 °C walakkaa",
+      "warmer": "Ho'aa · El Niño",
+      "state": "Yeroo ammaa sadarkaa {category} keessa jira.",
+      "elNino": "El Niño",
+      "elNinoCloud": "Ol ka'iinsi bu'uura duumessaa ni dabala",
+      "elNinoRain": "Roobni Kiremt ni hir'ata",
+      "elNinoResult": "Haala hongee",
+      "laNina": "La Niña",
+      "laNinaCloud": "Ol ka'iinsi bu'uura duumessaa ni hir'ata",
+      "laNinaRain": "Roobni ni dabala",
+      "laNinaResult": "Balaa lolaa fi dhiqamaa biyyee"
+    },
+    "impact": {
+      "title": "Dhiibbaa El Niño oomisha midhaanii irratti (%)",
+      "cardTitle": "Galmee irraa safarame malee kan tilmaamame miti",
+      "cardDesc": "Tartiibni midhaan-sadarkaa tokkoon tokkoon isaa dura dabaa irraa qulqulleeffama; sana booda waggoonni El Niño waggoota kaan hunda waliin walbira qabamu. Lakkoofsi kun qabxii dhibbeentaa dabaa ofii isaa irraa fagaate dha.",
+      "caption": "Dhiibbaa El Niño midhaanii fi sadarkaa olka'iinsaatiin, gatii p waliin",
+      "crop": "Midhaan",
+      "average": "Giddu-galeessa",
+      "allCrops": "Midhaan hunda",
+      "band": {
+        "Lowland": "< 1,500 m",
+        "Midland": "1,500–2,500 m",
+        "Highland": "> 2,500 m"
+      },
+      "legendLoss": "Waggoota El Niño keessatti dabaa gadi",
+      "legendGain": "Dabaa ol",
+      "legendNotSignificant": "Istaatistikaan cimaa miti (p ≥ 0.05)",
+      "takeawaysTitle": "Qabxiilee ijoo",
+      "takeawayOverall": "Midhaanii fi sadarkaa hunda keessatti waggoonni El Niño dabaa irraa {pct}% gadi jiru.",
+      "takeawayWorst": "Sadarkaa {zone} keessatti {crop} caalaa miidhame, dabaa irraa {pct}% gadi.",
+      "takeawayBest": "{crop} caalaa dandamate, sadarkaa {zone} keessattis midhaan dabaa ol jiru qofa.",
+      "takeawaySignificance": "Waggoota El Niño {years} {from}–{to} keessatti, keellaa {total} keessaa {significant} p < 0.05 ga'an — galmeen kallattii agarsiisa malee guddina dhiibbaa mirkanaa'e miti.",
+      "methodTitle": "Akkaataa itti safarame",
+      "elNinoYears": "Waggoonni El Niño galmee keessaa: {years}."
+    },
+    "belts": {
+      "title": "Midhaan sadarkaa olka'iinsaatiin gorfame",
+      "cardTitle": "Gabatee armaan olii irraa argame",
+      "cardDesc": "Tokkoon tokkoon sadarkaa keessatti midhaan waggoota El Niño keessatti oomishni isaa caalaa dandamate. Yoo midhaan caalu iyyuu hir'ate, kaardichi \"hir'ina xiqqaa\" jedha malee bu'aa hin jedhu.",
+      "gains": "Waggoota El Niño keessatti dabaa irraa +{pct}% ol",
+      "leastLoss": "Hir'ina xiqqaa: dabaa irraa {pct}% gadi",
+      "supported": "cimaa",
+      "notSupported": "cimaa miti",
+      "caution": "Sadarkaa {zone} keessatti {crop} of eeggannoodhaan misoomsi — galmee keessatti walitti dhufeenya hamaa, waggoota El Niño keessatti dabaa irraa {pct}% gadi — yoo jallisii, eegumsa jiidhina biyyee fi sanyii hongee dandamatu hin deeggaramne."
+    },
+    "actions": {
+      "title": "Tarkaanfiiwwan gorfaman",
+      "forecasts": "Tilmaama waqtii guyyaa facaasaa murteessuuf fayyadami.",
+      "irrigation": "Jallisii fi eegumsa jiidhina biyyee babalisi.",
+      "varieties": "Sanyiiwwan hongee dandamatanii fi dafanii bilchaatan babalisi.",
+      "favour": "Sadarkaa {zone} keessatti {crop} dursi.",
+      "caution": "Sadarkaa {zone} keessatti {crop} of eeggannoodhaan misoomsi.",
+      "fromRecord": "Galmee kana irraa"
+    }
   }
 }

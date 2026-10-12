@@ -1,7 +1,7 @@
 {
   "model_name": "XGBoost",
   "model_version": "crop-yield-0.1.0",
-  "trained_at": "2026-10-12T09:22:56+00:00",
+  "trained_at": "2026-10-12T10:07:07+00:00",
   "upstream": {
     "repo": "aykgeh/Chokye_Water_Shield",
     "revision": "d0584f78f653159e1ca9d9d306506947dada5674"
@@ -227,6 +227,93 @@
         "yield_rolling3_mean": 29.401
       }
     }
+  },
+  "enso_impact": {
+    "method": "Yields rise steeply across the record, so a plain El Ni\u00f1o-vs-rest average would mostly measure which decades happened to be El Ni\u00f1o years. Each crop-zone series is therefore detrended first (least-squares line on year) and each year expressed as a percentage deviation from its trend value; the effect is the mean deviation of El Ni\u00f1o years minus that of all other years, and p comes from Welch's t-test between the two groups.",
+    "el_nino_years": [
+      1991,
+      1992,
+      1997,
+      2002,
+      2015,
+      2016,
+      2019,
+      2023
+    ],
+    "cells": [
+      {
+        "crop": "maize",
+        "zone": "Highland",
+        "effect_pct": -0.22,
+        "p_value": 0.9817,
+        "n_el_nino": 8,
+        "n_other": 26
+      },
+      {
+        "crop": "maize",
+        "zone": "Lowland",
+        "effect_pct": -2.0,
+        "p_value": 0.78,
+        "n_el_nino": 8,
+        "n_other": 26
+      },
+      {
+        "crop": "maize",
+        "zone": "Midland",
+        "effect_pct": 2.35,
+        "p_value": 0.7186,
+        "n_el_nino": 8,
+        "n_other": 26
+      },
+      {
+        "crop": "tef",
+        "zone": "Highland",
+        "effect_pct": -2.03,
+        "p_value": 0.7704,
+        "n_el_nino": 8,
+        "n_other": 26
+      },
+      {
+        "crop": "tef",
+        "zone": "Lowland",
+        "effect_pct": -8.52,
+        "p_value": 0.2684,
+        "n_el_nino": 8,
+        "n_other": 26
+      },
+      {
+        "crop": "tef",
+        "zone": "Midland",
+        "effect_pct": -4.25,
+        "p_value": 0.0634,
+        "n_el_nino": 8,
+        "n_other": 26
+      },
+      {
+        "crop": "wheat",
+        "zone": "Highland",
+        "effect_pct": -6.64,
+        "p_value": 0.2806,
+        "n_el_nino": 8,
+        "n_other": 26
+      },
+      {
+        "crop": "wheat",
+        "zone": "Lowland",
+        "effect_pct": -11.57,
+        "p_value": 0.135,
+        "n_el_nino": 8,
+        "n_other": 26
+      },
+      {
+        "crop": "wheat",
+        "zone": "Midland",
+        "effect_pct": -7.65,
+        "p_value": 0.5132,
+        "n_el_nino": 8,
+        "n_other": 26
+      }
+    ]
   },
   "caveats": [
     "The lag features carry 56% of the model's gain (yield_lag1 alone 53%) and the ENSO features 1.8%. This is a persistence estimate nudged by climate, not evidence of an ENSO response.",

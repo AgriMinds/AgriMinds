@@ -167,6 +167,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crop-yield/enso-impact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What El Niño years did to each crop and belt, measured over the record
+         * @description A property of the 1990-2023 record rather than of the regressor: each crop-belt series is detrended, and El Niño years are compared with all other years by Welch's t-test. The response reports the effect, its p-value and the group sizes for every cell, so a reader can see where the record does and does not support a claim, and derives the per-belt recommendation from the same table.
+         */
+        get: operations["enso_impact_api_v1_crop_yield_enso_impact_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crop-yield/model": {
         parameters: {
             query?: never;
@@ -1287,6 +1307,98 @@ export type components = {
             scoped: boolean;
         };
         /**
+         * EnsoImpactCell
+         * @description What El Niño years did to one crop in one belt, over the whole record.
+         */
+        EnsoImpactCell: {
+            /**
+             * Crop
+             * @enum {string}
+             */
+            crop: "tef" | "wheat" | "maize";
+            /**
+             * Effect Pct
+             * @description Percentage points away from the series trend, El Niño years minus all others
+             */
+            effect_pct: number;
+            /** N El Nino */
+            n_el_nino: number;
+            /** N Other */
+            n_other: number;
+            /**
+             * P Value
+             * @description Welch's t-test between the two groups of years
+             */
+            p_value: number;
+            /**
+             * Significant
+             * @description p < 0.05
+             */
+            significant: boolean;
+            /**
+             * Zone
+             * @enum {string}
+             */
+            zone: "Lowland" | "Midland" | "Highland";
+        };
+        /**
+         * EnsoImpactGroup
+         * @description A row or column average of the matrix.
+         */
+        EnsoImpactGroup: {
+            /** Effect Pct */
+            effect_pct: number;
+            /**
+             * Key
+             * @description A crop name or a belt name
+             */
+            key: string;
+            /** Significant Cells */
+            significant_cells: number;
+        };
+        /**
+         * EnsoImpactResponse
+         * @description The measured El Niño effect: a property of the record, not of the regressor.
+         *
+         *     Kept apart from `/crop-yield/outlook` on purpose. One answers "what happened in El Niño
+         *     years", the other "what does the fitted model predict for next season"; they are different
+         *     claims and are never merged into one number.
+         */
+        EnsoImpactResponse: {
+            /** By Crop */
+            by_crop: components["schemas"]["EnsoImpactGroup"][];
+            /** By Zone */
+            by_zone: components["schemas"]["EnsoImpactGroup"][];
+            /**
+             * Cautions
+             * @description The worst crop-belt pairings, worst first
+             */
+            cautions: components["schemas"]["ZoneRecommendation"][];
+            /** Cells */
+            cells: components["schemas"]["EnsoImpactCell"][];
+            /** El Nino Years */
+            el_nino_years: number[];
+            /**
+             * Method
+             * @description How the effect was measured, in one paragraph
+             */
+            method: string;
+            /** Overall Effect Pct */
+            overall_effect_pct: number;
+            /**
+             * Recommendations
+             * @description Per belt, the crop that held up best in El Niño years
+             */
+            recommendations: components["schemas"]["ZoneRecommendation"][];
+            /** Record Years */
+            record_years: number[];
+            /**
+             * Significant Cells
+             * @description How many of the nine reach p < 0.05
+             */
+            significant_cells: number;
+        };
+        /**
          * EnsoLeadMetric
          * @description One row of enso_metrics.csv — RMSE / MAE / correlation for one model × lead.
          */
@@ -2167,6 +2279,29 @@ export type components = {
             /** Zone Name En */
             zone_name_en: string;
         };
+        /** ZoneRecommendation */
+        ZoneRecommendation: {
+            /**
+             * Crop
+             * @enum {string}
+             */
+            crop: "tef" | "wheat" | "maize";
+            /** Effect Pct */
+            effect_pct: number;
+            /** P Value */
+            p_value: number;
+            /** Significant */
+            significant: boolean;
+            /** Still Negative */
+            still_negative: boolean;
+            /**
+             * Zone
+             * @enum {string}
+             */
+            zone: "Lowland" | "Midland" | "Highland";
+            /** Zone Local Name */
+            zone_local_name: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -2545,6 +2680,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    enso_impact_api_v1_crop_yield_enso_impact_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnsoImpactResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Model unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

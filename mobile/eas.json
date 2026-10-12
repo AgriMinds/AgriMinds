@@ -1,7 +1,8 @@
 {
   "cli": {
     "version": ">= 16.0.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "remote",
+    "requireCommit": false
   },
   "build": {
     "development": {
@@ -15,14 +16,14 @@
       "android": { "buildType": "apk" },
       "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://YOUR-BACKEND.railway.app/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://YOUR-BACKEND/api/v1"
       }
     },
     "production": {
       "autoIncrement": true,
       "channel": "production",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://YOUR-BACKEND.railway.app/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://YOUR-BACKEND/api/v1"
       }
     }
   },

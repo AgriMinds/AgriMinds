@@ -26,6 +26,8 @@ export function EnsoResponseChart({ cells }: { cells: CropYieldCell[] }) {
   const ta = useTranslations('advisory')
 
   const rows: Row[] = cells.map((cell) => ({
+    // Local belt name rather than "Lowland/Midland/Highland": it is shorter, which keeps the
+    // category axis narrow enough to leave the bars room on a phone.
     label: `${ta(`crops.${cell.crop}.label`)} · ${cell.zone_local_name}`,
     delta: cell.enso_delta_pct,
     expected: cell.predicted_yield_q_ha,
@@ -38,31 +40,35 @@ export function EnsoResponseChart({ cells }: { cells: CropYieldCell[] }) {
     loss: { label: t('ensoLoss'), theme: LOSS },
   }
 
-  // A symmetric domain keeps the zero line in the middle, so a 2% move cannot be mistaken for a
-  // large one by a bar that happens to reach the edge of the plot.
-  const reach = Math.max(2, ...rows.map((r) => Math.abs(r.delta))) * 1.35
+  // A symmetric domain keeps zero in the middle, and explicit ticks keep the labels round:
+  // recharts left to itself picks values like -8, -3, +2, +7 off a domain of +-8.37.
+  const reach = Math.ceil(Math.max(2, ...rows.map((r) => Math.abs(r.delta))) * 1.3)
+  const ticks = [-reach, -reach / 2, 0, reach / 2, reach]
 
   return (
     <div className="flex flex-col gap-3">
       <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-fg-muted">
+        {/* The chart's `--color-*` variables are scoped to its own container, so the legend
+            outside it uses the same literals rather than variables that resolve to nothing. */}
         {(
           [
-            ['gain', t('ensoGain')],
-            ['loss', t('ensoLoss')],
+            [GAIN.light, t('ensoGain')],
+            [LOSS.light, t('ensoLoss')],
           ] as const
-        ).map(([key, label]) => (
-          <li key={key} className="flex items-center gap-1.5">
-            <span className="size-2.5 rounded-[2px]" style={{ background: `var(--color-${key})` }} aria-hidden />
+        ).map(([colour, label]) => (
+          <li key={label} className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-[2px]" style={{ background: colour }} aria-hidden />
             {label}
           </li>
         ))}
       </ul>
-      <ChartContainer config={config} className="aspect-auto h-[320px] w-full">
-        <BarChart data={rows} layout="vertical" margin={{ top: 4, right: 44, bottom: 4, left: 4 }}>
+      <ChartContainer config={config} className="aspect-auto h-[300px] w-full sm:h-[340px]">
+        <BarChart data={rows} layout="vertical" margin={{ top: 4, right: 48, bottom: 4, left: 0 }}>
           <CartesianGrid horizontal={false} />
           <XAxis
             type="number"
             domain={[-reach, reach]}
+            ticks={ticks}
             tickFormatter={(v: number) => `${v > 0 ? '+' : ''}${v.toFixed(0)}%`}
             tickLine={false}
             axisLine={false}
@@ -70,7 +76,8 @@ export function EnsoResponseChart({ cells }: { cells: CropYieldCell[] }) {
           <YAxis
             type="category"
             dataKey="label"
-            width={132}
+            width={104}
+            tick={{ fontSize: 11 }}
             tickLine={false}
             axisLine={false}
             interval={0}

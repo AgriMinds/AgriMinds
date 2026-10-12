@@ -13,10 +13,8 @@ RUN pnpm install --frozen-lockfile --filter "@agriminds/mobile..."
 COPY packages/api-types packages/api-types
 COPY mobile mobile
 
-ENV CI=1 \
-    EXPO_NO_TELEMETRY=1 \
-    # Set to the LAN IP of the docker host so Expo Go on a phone can reach Metro.
+ENV EXPO_NO_TELEMETRY=1 \
     REACT_NATIVE_PACKAGER_HOSTNAME=localhost
-EXPOSE 8081
+EXPOSE 8085
 WORKDIR /workspace/mobile
-CMD ["pnpm", "exec", "expo", "start", "--lan", "--port", "8081"]
+CMD ["pnpm", "exec", "expo", "start", "--lan", "--port", "8085"]

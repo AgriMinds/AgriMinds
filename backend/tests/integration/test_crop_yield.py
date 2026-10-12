@@ -156,3 +156,60 @@ class TestUnavailable:
     def test_simulate_is_unavailable_too(self, empty_client) -> None:
         res = empty_client.post("/api/v1/crop-yield/simulate", json={"crop": "tef", "zone": "Midland"})
         assert res.status_code == 503
+
+
+class TestEnsoImpact:
+    """What the record shows, kept apart from what the model predicts."""
+
+    @pytest.fixture
+    def impact(self, client):
+        res = client.get("/api/v1/crop-yield/enso-impact")
+        if res.status_code == 503:
+            pytest.skip("no crop-yield artifact published in data/models")
+        assert res.status_code == 200, res.text
+        return res.json()
+
+    def test_measures_every_crop_and_belt(self, impact) -> None:
+        assert len(impact["cells"]) == CELLS
+        assert {(c["crop"], c["zone"]) for c in impact["cells"]} == {
+            (crop, zone) for crop in CROPS for zone in ZONES
+        }
+
+    def test_every_cell_carries_its_p_value_and_sample_sizes(self, impact) -> None:
+        for cell in impact["cells"]:
+            assert 0 <= cell["p_value"] <= 1
+            assert cell["significant"] == (cell["p_value"] < 0.05)
+            assert cell["n_el_nino"] + cell["n_other"] == 34
+
+    def test_names_the_el_nino_years_it_used(self, impact) -> None:
+        assert len(impact["el_nino_years"]) == impact["cells"][0]["n_el_nino"]
+        assert impact["record_years"] == [1990, 2023]
+        assert "detrended" in impact["method"]
+
+    def test_recommends_one_crop_per_belt_from_the_same_table(self, impact) -> None:
+        assert {r["zone"] for r in impact["recommendations"]} == set(ZONES)
+        for rec in impact["recommendations"]:
+            best = max(
+                (c for c in impact["cells"] if c["zone"] == rec["zone"]), key=lambda c: c["effect_pct"]
+            )
+            assert (rec["crop"], rec["effect_pct"]) == (best["crop"], best["effect_pct"])
+
+    def test_a_recommended_crop_that_still_loses_is_flagged_as_such(self, impact) -> None:
+        for rec in impact["recommendations"]:
+            assert rec["still_negative"] == (rec["effect_pct"] < 0)
+
+    def test_cautions_are_the_worst_pairings_worst_first(self, impact) -> None:
+        worst = sorted(impact["cells"], key=lambda c: c["effect_pct"])[: len(impact["cautions"])]
+        assert [c["crop"] for c in impact["cautions"]] == [c["crop"] for c in worst]
+        assert impact["cautions"][0]["effect_pct"] <= impact["cautions"][-1]["effect_pct"]
+
+    def test_the_impact_table_is_not_the_models_enso_term(self, client, impact) -> None:
+        """Two different claims: the record's effect, and the regressor's response."""
+        outlook = client.get("/api/v1/crop-yield/outlook").json()
+        measured = {(c["crop"], c["zone"]): c["effect_pct"] for c in impact["cells"]}
+        predicted = {(c["crop"], c["zone"]): c["enso_delta_pct"] for c in outlook["cells"]}
+        assert measured != predicted
+
+    def test_unavailable_without_an_artifact(self, empty_client) -> None:
+        res = empty_client.get("/api/v1/crop-yield/enso-impact")
+        assert res.status_code == 503

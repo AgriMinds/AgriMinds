@@ -21,6 +21,9 @@ from ai_drews.crop_yield import (
     enso_phase,
     load_crop_yield_model,
 )
+from ai_drews.crop_yield import (
+    CROP_NAMES as CROP_LABELS_INVERSE,
+)
 
 #: Anchored to the repository root so the tests find the artifact wherever pytest is launched from.
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -122,3 +125,54 @@ class TestInference:
         el_nino = model.predict(model.inputs_for("tef", "Lowland", enso_index=1.4))
         assert neutral != el_nino
         assert abs(el_nino - neutral) / neutral < 0.5
+
+
+@requires_artifact
+class TestEnsoImpactTable:
+    """The measured effect: detrended, so it is not just which decades were El Niño years."""
+
+    @pytest.fixture(scope="class")
+    def panel(self):
+        pd = pytest.importorskip("pandas")
+        csv = REPO_ROOT / "ml/research/crop_yield/data/crop_climate_clean.csv"
+        if not csv.exists():
+            pytest.skip("training panel not present")
+        return pd.read_csv(csv)
+
+    def test_one_entry_per_crop_zone_series(self, panel) -> None:
+        pytest.importorskip("scipy")
+        from ai_drews.crop_yield import enso_impact_table
+
+        table = enso_impact_table(panel)
+        assert {(e.crop, e.zone) for e in table} == {(c, z) for c in CROPS for z in ZONES}
+
+    def test_groups_cover_the_whole_record(self, panel) -> None:
+        pytest.importorskip("scipy")
+        from ai_drews.crop_yield import enso_impact_table
+
+        for e in enso_impact_table(panel):
+            assert e.n_el_nino + e.n_other == 34
+            assert e.n_el_nino > 0
+            assert 0 <= e.p_value <= 1
+            assert e.significant == (e.p_value < 0.05)
+
+    def test_detrending_changes_the_answer(self, panel) -> None:
+        """Yields nearly double over the record, so a raw comparison measures the trend."""
+        pytest.importorskip("scipy")
+        from ai_drews.crop_yield import enso_impact_table
+
+        detrended = {(e.crop, e.zone): e.effect_pct for e in enso_impact_table(panel)}
+        raw = {}
+        for (crop, zone), g in panel.groupby(["crop", "zone"]):
+            el = g[g["enso_phase"] == "El Nino"]["yield"].mean()
+            rest = g[g["enso_phase"] != "El Nino"]["yield"].mean()
+            raw[(CROP_LABELS_INVERSE[crop], zone)] = (el - rest) / rest * 100
+        assert detrended != raw
+
+    def test_the_published_metadata_matches_a_fresh_computation(self, model, panel) -> None:
+        pytest.importorskip("scipy")
+        from ai_drews.crop_yield import enso_impact_table
+
+        fresh = {(e.crop, e.zone): e.effect_pct for e in enso_impact_table(panel)}
+        published = {(e.crop, e.zone): e.effect_pct for e in model.enso_impact}
+        assert published == fresh

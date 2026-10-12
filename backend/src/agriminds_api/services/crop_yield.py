@@ -39,6 +39,10 @@ from agriminds_api.schemas.crop_yield import (
     CropYieldScenarioRequest,
     CropYieldZone,
     EnsoBasis,
+    EnsoImpactCell,
+    EnsoImpactGroup,
+    EnsoImpactResponse,
+    ZoneRecommendation,
 )
 from agriminds_api.services.inference import InferenceService
 
@@ -214,6 +218,72 @@ class CropYieldService:
             record_years=[int(dataset.get("first_year", 0)), int(dataset.get("last_year", 0))],
             test_rmse_q_ha=float(metrics.get("test_rmse", 0.0)),
             test_r2=float(metrics.get("test_r2", 0.0)),
+        )
+
+    def enso_impact(self) -> EnsoImpactResponse:
+        model = self.model
+        cells = model.enso_impact
+        if not cells:
+            raise ModelUnavailableError(
+                "This artifact predates the El Niño impact analysis. Re-run "
+                "ml/research/crop_yield/run_training.py to publish it."
+            )
+        out = [
+            EnsoImpactCell(
+                crop=c.crop,
+                zone=c.zone,
+                effect_pct=c.effect_pct,
+                p_value=c.p_value,
+                significant=c.significant,
+                n_el_nino=c.n_el_nino,
+                n_other=c.n_other,
+            )
+            for c in cells
+        ]
+
+        def group(by: str) -> list[EnsoImpactGroup]:
+            keys = sorted({getattr(c, by) for c in cells})
+            return [
+                EnsoImpactGroup(
+                    key=key,
+                    effect_pct=round(
+                        sum(c.effect_pct for c in cells if getattr(c, by) == key)
+                        / len([c for c in cells if getattr(c, by) == key]),
+                        2,
+                    ),
+                    significant_cells=sum(1 for c in cells if getattr(c, by) == key and c.significant),
+                )
+                for key in keys
+            ]
+
+        def as_recommendation(cell) -> ZoneRecommendation:
+            return ZoneRecommendation(
+                crop=cell.crop,
+                zone=cell.zone,
+                zone_local_name=model.zone_profile(cell.zone).local_name,
+                effect_pct=cell.effect_pct,
+                p_value=cell.p_value,
+                significant=cell.significant,
+                still_negative=cell.effect_pct < 0,
+            )
+
+        best = [
+            as_recommendation(max((c for c in cells if c.zone == zone), key=lambda c: c.effect_pct))
+            for zone in ZONES
+        ]
+        worst = sorted(cells, key=lambda c: c.effect_pct)[:2]
+        dataset = model.dataset
+        return EnsoImpactResponse(
+            cells=out,
+            by_crop=group("crop"),
+            by_zone=group("zone"),
+            overall_effect_pct=round(sum(c.effect_pct for c in cells) / len(cells), 2),
+            significant_cells=sum(1 for c in cells if c.significant),
+            el_nino_years=[int(y) for y in model.meta["enso_impact"].get("el_nino_years", [])],
+            record_years=[int(dataset.get("first_year", 0)), int(dataset.get("last_year", 0))],
+            method=model.enso_impact_method,
+            recommendations=best,
+            cautions=[as_recommendation(c) for c in worst],
         )
 
     def model_card(self) -> CropYieldModelCard:

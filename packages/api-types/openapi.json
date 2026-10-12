@@ -1019,6 +1019,56 @@
         ]
       }
     },
+    "/api/v1/crop-yield/enso-impact": {
+      "get": {
+        "tags": [
+          "Crop Yield"
+        ],
+        "summary": "What El Ni\u00f1o years did to each crop and belt, measured over the record",
+        "description": "A property of the 1990-2023 record rather than of the regressor: each crop-belt series is detrended, and El Ni\u00f1o years are compared with all other years by Welch's t-test. The response reports the effect, its p-value and the group sizes for every cell, so a reader can see where the record does and does not support a claim, and derives the per-belt recommendation from the same table.",
+        "operationId": "enso_impact_api_v1_crop_yield_enso_impact_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnsoImpactResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Model unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/crop-yield/model": {
       "get": {
         "tags": [
@@ -3667,6 +3717,172 @@
         "title": "EmbedConfig",
         "description": "Everything the browser needs to render the dashboard, and nothing more.\n\nThe embedding secret stays on the server; what goes out is a signed URL valid for minutes,\nscoped to one dashboard and \u2014 where a locked parameter is configured \u2014 to one viewer's\ndistrict. The scope is inside the signature, so it cannot be edited client-side."
       },
+      "EnsoImpactCell": {
+        "properties": {
+          "crop": {
+            "type": "string",
+            "enum": [
+              "tef",
+              "wheat",
+              "maize"
+            ],
+            "title": "Crop"
+          },
+          "zone": {
+            "type": "string",
+            "enum": [
+              "Lowland",
+              "Midland",
+              "Highland"
+            ],
+            "title": "Zone"
+          },
+          "effect_pct": {
+            "type": "number",
+            "title": "Effect Pct",
+            "description": "Percentage points away from the series trend, El Ni\u00f1o years minus all others"
+          },
+          "p_value": {
+            "type": "number",
+            "title": "P Value",
+            "description": "Welch's t-test between the two groups of years"
+          },
+          "significant": {
+            "type": "boolean",
+            "title": "Significant",
+            "description": "p < 0.05"
+          },
+          "n_el_nino": {
+            "type": "integer",
+            "title": "N El Nino"
+          },
+          "n_other": {
+            "type": "integer",
+            "title": "N Other"
+          }
+        },
+        "type": "object",
+        "required": [
+          "crop",
+          "zone",
+          "effect_pct",
+          "p_value",
+          "significant",
+          "n_el_nino",
+          "n_other"
+        ],
+        "title": "EnsoImpactCell",
+        "description": "What El Ni\u00f1o years did to one crop in one belt, over the whole record."
+      },
+      "EnsoImpactGroup": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key",
+            "description": "A crop name or a belt name"
+          },
+          "effect_pct": {
+            "type": "number",
+            "title": "Effect Pct"
+          },
+          "significant_cells": {
+            "type": "integer",
+            "title": "Significant Cells"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "effect_pct",
+          "significant_cells"
+        ],
+        "title": "EnsoImpactGroup",
+        "description": "A row or column average of the matrix."
+      },
+      "EnsoImpactResponse": {
+        "properties": {
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/EnsoImpactCell"
+            },
+            "type": "array",
+            "title": "Cells"
+          },
+          "by_crop": {
+            "items": {
+              "$ref": "#/components/schemas/EnsoImpactGroup"
+            },
+            "type": "array",
+            "title": "By Crop"
+          },
+          "by_zone": {
+            "items": {
+              "$ref": "#/components/schemas/EnsoImpactGroup"
+            },
+            "type": "array",
+            "title": "By Zone"
+          },
+          "overall_effect_pct": {
+            "type": "number",
+            "title": "Overall Effect Pct"
+          },
+          "significant_cells": {
+            "type": "integer",
+            "title": "Significant Cells",
+            "description": "How many of the nine reach p < 0.05"
+          },
+          "el_nino_years": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "El Nino Years"
+          },
+          "record_years": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Record Years"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method",
+            "description": "How the effect was measured, in one paragraph"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/ZoneRecommendation"
+            },
+            "type": "array",
+            "title": "Recommendations",
+            "description": "Per belt, the crop that held up best in El Ni\u00f1o years"
+          },
+          "cautions": {
+            "items": {
+              "$ref": "#/components/schemas/ZoneRecommendation"
+            },
+            "type": "array",
+            "title": "Cautions",
+            "description": "The worst crop-belt pairings, worst first"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cells",
+          "by_crop",
+          "by_zone",
+          "overall_effect_pct",
+          "significant_cells",
+          "el_nino_years",
+          "record_years",
+          "method",
+          "recommendations",
+          "cautions"
+        ],
+        "title": "EnsoImpactResponse",
+        "description": "The measured El Ni\u00f1o effect: a property of the record, not of the regressor.\n\nKept apart from `/crop-yield/outlook` on purpose. One answers \"what happened in El Ni\u00f1o\nyears\", the other \"what does the fitted model predict for next season\"; they are different\nclaims and are never merged into one number."
+      },
       "EnsoLeadMetric": {
         "properties": {
           "model": {
@@ -5834,6 +6050,59 @@
           "worst_risk_level"
         ],
         "title": "WoredaRisk"
+      },
+      "ZoneRecommendation": {
+        "properties": {
+          "crop": {
+            "type": "string",
+            "enum": [
+              "tef",
+              "wheat",
+              "maize"
+            ],
+            "title": "Crop"
+          },
+          "zone": {
+            "type": "string",
+            "enum": [
+              "Lowland",
+              "Midland",
+              "Highland"
+            ],
+            "title": "Zone"
+          },
+          "zone_local_name": {
+            "type": "string",
+            "title": "Zone Local Name"
+          },
+          "effect_pct": {
+            "type": "number",
+            "title": "Effect Pct"
+          },
+          "p_value": {
+            "type": "number",
+            "title": "P Value"
+          },
+          "significant": {
+            "type": "boolean",
+            "title": "Significant"
+          },
+          "still_negative": {
+            "type": "boolean",
+            "title": "Still Negative"
+          }
+        },
+        "type": "object",
+        "required": [
+          "crop",
+          "zone",
+          "zone_local_name",
+          "effect_pct",
+          "p_value",
+          "significant",
+          "still_negative"
+        ],
+        "title": "ZoneRecommendation"
       }
     },
     "securitySchemes": {

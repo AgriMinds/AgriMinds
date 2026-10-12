@@ -95,6 +95,63 @@ class CropYieldInputs:
 
 
 @dataclass(frozen=True)
+class EnsoImpact:
+    """What El Niño years did to one crop in one belt, over the whole record."""
+
+    crop: Crop
+    zone: AgroZone
+    effect_pct: float  # percentage points away from the trend, El Niño years vs the rest
+    p_value: float
+    n_el_nino: int
+    n_other: int
+
+    @property
+    def significant(self) -> bool:
+        return self.p_value < 0.05
+
+
+#: How the effect is measured, carried into every response that reports it.
+ENSO_IMPACT_METHOD = (
+    "Yields rise steeply across the record, so a plain El Niño-vs-rest average would mostly "
+    "measure which decades happened to be El Niño years. Each crop-zone series is therefore "
+    "detrended first (least-squares line on year) and each year expressed as a percentage "
+    "deviation from its trend value; the effect is the mean deviation of El Niño years minus "
+    "that of all other years, and p comes from Welch's t-test between the two groups."
+)
+
+
+def enso_impact_table(panel: Any) -> list[EnsoImpact]:
+    """Measure the El Niño effect per crop and belt from the training panel.
+
+    Takes the long panel (`crop`, `zone`, `year`, `yield`, `enso_phase`) and returns one entry
+    per crop-zone series. Computed once at publish time and carried in the metadata, so serving
+    it needs neither the panel nor scipy.
+    """
+    import numpy as np
+    from scipy import stats
+
+    out: list[EnsoImpact] = []
+    for (crop_label, zone), g in panel.groupby(["crop", "zone"], sort=True):
+        g = g.sort_values("year")
+        trend = np.polyval(np.polyfit(g["year"], g["yield"], 1), g["year"])
+        deviation = (g["yield"] - trend) / trend * 100
+        el_nino = deviation[g["enso_phase"] == "El Nino"]
+        rest = deviation[g["enso_phase"] != "El Nino"]
+        _, p = stats.ttest_ind(el_nino, rest, equal_var=False)
+        out.append(
+            EnsoImpact(
+                crop=CROP_NAMES[str(crop_label)],
+                zone=str(zone),  # type: ignore[arg-type]
+                effect_pct=round(float(el_nino.mean() - rest.mean()), 2),
+                p_value=round(float(p), 4),
+                n_el_nino=int(len(el_nino)),
+                n_other=int(len(rest)),
+            )
+        )
+    return out
+
+
+@dataclass(frozen=True)
 class CropYieldModel:
     """A fitted scikit-learn pipeline plus the metadata written beside it."""
 
@@ -125,6 +182,25 @@ class CropYieldModel:
     @property
     def feature_importance(self) -> list[tuple[str, float]]:
         return [(str(k), float(v)) for k, v in self.meta.get("feature_importance", [])]
+
+    @property
+    def enso_impact(self) -> list[EnsoImpact]:
+        """The measured El Niño effect per crop-zone, as recorded at publish time."""
+        return [
+            EnsoImpact(
+                crop=e["crop"],
+                zone=e["zone"],
+                effect_pct=float(e["effect_pct"]),
+                p_value=float(e["p_value"]),
+                n_el_nino=int(e["n_el_nino"]),
+                n_other=int(e["n_other"]),
+            )
+            for e in self.meta.get("enso_impact", {}).get("cells", [])
+        ]
+
+    @property
+    def enso_impact_method(self) -> str:
+        return str(self.meta.get("enso_impact", {}).get("method", ENSO_IMPACT_METHOD))
 
     @property
     def caveats(self) -> list[str]:

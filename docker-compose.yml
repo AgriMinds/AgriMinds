@@ -146,9 +146,8 @@ services:
       REACT_NATIVE_PACKAGER_HOSTNAME: ${HOST_IP:?set HOST_IP (your LAN IP) in .env so phones can reach the dev server}
       EXPO_PUBLIC_API_URL: http://${HOST_IP}:${BACKEND_PORT:-8000}/api/v1
       EXPO_PUBLIC_API_KEY: ${EXPO_PUBLIC_API_KEY:-}
-      CI: "1"
     ports:
-      - "8081:8081"
+      - "${MOBILE_PORT:-8085}:8085"
     volumes:
       - ./mobile/app:/workspace/mobile/app:z
       - ./mobile/src:/workspace/mobile/src:z

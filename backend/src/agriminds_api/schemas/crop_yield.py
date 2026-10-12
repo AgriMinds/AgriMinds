@@ -116,6 +116,61 @@ class CropYieldZone(BaseModel):
     altitude_max_m: int
 
 
+class EnsoImpactCell(BaseModel):
+    """What El Niño years did to one crop in one belt, over the whole record."""
+
+    crop: CropName
+    zone: AgroZoneName
+    effect_pct: float = Field(
+        description="Percentage points away from the series trend, El Niño years minus all others"
+    )
+    p_value: float = Field(description="Welch's t-test between the two groups of years")
+    significant: bool = Field(description="p < 0.05")
+    n_el_nino: int
+    n_other: int
+
+
+class EnsoImpactGroup(BaseModel):
+    """A row or column average of the matrix."""
+
+    key: str = Field(description="A crop name or a belt name")
+    effect_pct: float
+    significant_cells: int
+
+
+class ZoneRecommendation(BaseModel):
+    crop: CropName
+    zone: AgroZoneName
+    zone_local_name: str
+    effect_pct: float
+    p_value: float
+    significant: bool
+    #: True where the recommended crop still loses yield — the best of a bad set, not a gain.
+    still_negative: bool
+
+
+class EnsoImpactResponse(BaseModel):
+    """The measured El Niño effect: a property of the record, not of the regressor.
+
+    Kept apart from `/crop-yield/outlook` on purpose. One answers "what happened in El Niño
+    years", the other "what does the fitted model predict for next season"; they are different
+    claims and are never merged into one number.
+    """
+
+    cells: list[EnsoImpactCell]
+    by_crop: list[EnsoImpactGroup]
+    by_zone: list[EnsoImpactGroup]
+    overall_effect_pct: float
+    significant_cells: int = Field(description="How many of the nine reach p < 0.05")
+    el_nino_years: list[int]
+    record_years: list[int]
+    method: str = Field(description="How the effect was measured, in one paragraph")
+    recommendations: list[ZoneRecommendation] = Field(
+        description="Per belt, the crop that held up best in El Niño years"
+    )
+    cautions: list[ZoneRecommendation] = Field(description="The worst crop-belt pairings, worst first")
+
+
 class CropYieldModelCard(BaseModel):
     """Everything needed to present the model honestly: scores, what it leans on, and the limits."""
 

@@ -27,7 +27,7 @@ import joblib
 import pandas as pd
 
 from ai_drews.config import DataPaths
-from ai_drews.crop_yield import CROP_LABELS, ZONE_LOCAL_NAMES
+from ai_drews.crop_yield import CROP_LABELS, ENSO_IMPACT_METHOD, ZONE_LOCAL_NAMES, enso_impact_table
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -109,6 +109,32 @@ def _caveats(selected: dict[str, float], importance: list[list], n_test: int, me
     ]
 
 
+def _enso_impact(df: pd.DataFrame) -> dict:
+    """What El Niño years did to each crop-zone series, measured once and carried in the metadata.
+
+    This is a property of the *record*, not of the regressor: it answers "what happened in El
+    Niño years" rather than "what will the model predict", and the two are reported separately
+    because they are different claims.
+    """
+    cells = [
+        {
+            "crop": e.crop,
+            "zone": e.zone,
+            "effect_pct": e.effect_pct,
+            "p_value": e.p_value,
+            "n_el_nino": e.n_el_nino,
+            "n_other": e.n_other,
+        }
+        for e in enso_impact_table(df)
+    ]
+    el_nino_years = sorted(df.loc[df["enso_phase"] == "El Nino", "year"].unique().tolist())
+    return {
+        "method": ENSO_IMPACT_METHOD,
+        "el_nino_years": [int(y) for y in el_nino_years],
+        "cells": cells,
+    }
+
+
 def publish(data_dir: str | os.PathLike[str] | None = None) -> Path:
     model_file = BASE_DIR / "models" / "best_crop_yield_model.joblib"
     metrics_file = BASE_DIR / "models" / "metrics_summary.json"
@@ -166,6 +192,7 @@ def publish(data_dir: str | os.PathLike[str] | None = None) -> Path:
             "enso_index": round(float(last_row["enso_index"]), 4),
             "series": _series_tail(df),
         },
+        "enso_impact": _enso_impact(df),
         "caveats": _caveats(selected, importance, int(len(test)), float(df["yield"].mean())),
     }
 

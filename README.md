@@ -132,6 +132,7 @@ Everything lives under `/api/v1`. Sign in, then send `Authorization: Bearer <acc
 | POST | `/advisories/evaluate` | signed in or service key | crop advisory with IEK consensus |
 | GET | `/enso/outlook` | signed in or service key | Niño 3.4 history and CNN-LSTM forecast |
 | GET | `/crop-yield/outlook`, `/crop-yield/model` | signed in or service key | expected yield per crop and altitude belt, and that model's scores and limits |
+| GET | `/crop-yield/enso-impact` | signed in or service key | what El Niño years did to each crop and belt in the record, with p-values |
 | POST | `/crop-yield/simulate` | signed in or service key | one crop and belt under named climate inputs |
 | GET / POST / PATCH / DELETE | `/farms`, `/farms/{id}` | farmer | the farmer's own plots |
 | GET | `/farms/{id}/advisory` | farmer | advisory for one plot, logged for delivery reporting |

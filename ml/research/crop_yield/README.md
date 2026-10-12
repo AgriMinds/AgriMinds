@@ -61,6 +61,43 @@ endpoints while serving everything else — the web page then shows its "model u
 The farmer app is deliberately **not** wired to this: these are belt-wide averages and the climate
 term moves them by a couple of percent, which is not something a smallholder can act on.
 
+## The El Niño impact table
+
+`enso_impact_table()` (in `ai_drews.crop_yield`) measures what El Niño years did to each
+crop-belt series, and `publish.py` records the result in the metadata. It answers a different
+question from the regressor — "what happened" rather than "what is predicted" — so the API keeps
+the two apart (`/crop-yield/enso-impact` vs `/crop-yield/outlook`) and the page never merges them.
+
+Yields nearly double across 1990-2023, so a plain El Niño-vs-rest average would mostly measure
+which decades happened to be El Niño years. Each series is therefore detrended (least-squares
+line on year), each year expressed as a percentage deviation from its trend value, and the effect
+is the mean deviation of the eight El Niño years minus that of the other 26, with Welch's t-test
+for p.
+
+| | Lowland | Midland | Highland | crop mean |
+|---|---|---|---|---|
+| Tef | −8.52% (p=0.27) | −4.25% (p=0.06) | −2.03% (p=0.77) | −4.93% |
+| Wheat | −11.57% (p=0.14) | −7.65% (p=0.51) | −6.64% (p=0.28) | −8.62% |
+| Maize | −2.00% (p=0.78) | **+2.35%** (p=0.72) | −0.22% (p=0.98) | +0.04% |
+| belt mean | −7.36% | −3.18% | −2.96% | **−4.50%** |
+
+**None of the nine cells reaches p < 0.05.** Eight El Niño years is a small sample against
+year-to-year variation this large, so the record supports a *direction* — wheat worst, maize most
+resilient, the lowlands hit hardest — and not a proven effect size. The page states that in the
+table, in the legend and in the takeaways, and a non-significant cell is drawn hollow.
+
+### The published infographic's figures are not these
+
+The project's El Niño infographic reports −2.87% / −25.36% / +21.90% and p-values of 0.0039,
+0.0048 and 0.0037. Those cannot be reproduced from `climate-crop (2).xlsx` by any of the obvious
+definitions — El Niño vs the rest, vs neutral years only, vs La Niña years, detrended residuals,
+year-on-year change, strong El Niño only, or a regression with a year term and an El Niño dummy.
+The closest (detrended residuals, and the regression) agree with the infographic on the *sign* of
+all nine cells but are about three times smaller, and none of them produces a significant p.
+
+So the figures on that poster come from somewhere else — a different dataset, period or method.
+Until that source is known, this page reports what this repository's record supports.
+
 ## What the retrain showed
 
 **The spreadsheet is the one the published model was already fitted on.** `climate-crop (2).xlsx`

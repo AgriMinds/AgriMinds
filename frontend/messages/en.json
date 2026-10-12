@@ -476,8 +476,13 @@
   },
   "cropYield": {
     "eyebrow": "Crop planning",
-    "title": "Crop yield outlook",
-    "intro": "Expected yield for tef, wheat and maize in each altitude belt, from a separate model fitted on the {firstYear}–{lastYear} crop and climate record. It is a persistence estimate conditioned on Niño 3.4, not a forecast of the coming harvest — read it with the limits below.",
+    "title": "El Niño impacts & crop recommendations",
+    "intro": "What El Niño did to tef, wheat and maize in each altitude belt over the {firstYear}–{lastYear} record, what that implies for planting, and what a model fitted on the same record expects next season. The record and the model are separate claims and are reported separately.",
+    "heroOverall": "All crops, El Niño years",
+    "heroSample": "El Niño years",
+    "heroYears": "in {from}–{to}",
+    "bannerBelts": "Recommended crop by belt",
+    "bannerModel": "Expected yield next season",
     "basis": "Niño 3.4 used",
     "basisObserved": "Last observed",
     "basisForecast": "Forecast +{months} mo",
@@ -512,6 +517,65 @@
     "fromRepo": "Pipeline from {repo}",
     "holdout": "Holdout RMSE {rmse} q/ha · R² {r2}",
     "trainedAt": "Trained {date}",
-    "notPlotLevel": "Belt average, not a plot-level prediction"
+    "notPlotLevel": "Belt average, not a plot-level prediction",
+    "driver": {
+      "title": "ENSO driver",
+      "index": "Niño 3.4 index, latest observation",
+      "cooler": "Cooler · La Niña",
+      "neutralBand": "±0.5 °C neutral",
+      "warmer": "Warmer · El Niño",
+      "state": "Currently in the {category} band.",
+      "elNino": "El Niño",
+      "elNinoCloud": "Cloud base height rises",
+      "elNinoRain": "Kiremt rainfall suppressed",
+      "elNinoResult": "Drought conditions",
+      "laNina": "La Niña",
+      "laNinaCloud": "Cloud base height falls",
+      "laNinaRain": "Rainfall enhanced",
+      "laNinaResult": "Flood and erosion risk"
+    },
+    "impact": {
+      "title": "El Niño impact on crop yields (%)",
+      "cardTitle": "Measured over the record, not predicted",
+      "cardDesc": "Each crop-belt series is detrended first, then El Niño years are compared with all other years. The number is percentage points away from that series’ own trend.",
+      "caption": "El Niño effect on yield by crop and altitude belt, with p-values",
+      "crop": "Crop",
+      "average": "Average",
+      "allCrops": "All crops",
+      "band": {
+        "Lowland": "< 1,500 m",
+        "Midland": "1,500–2,500 m",
+        "Highland": "> 2,500 m"
+      },
+      "legendLoss": "Yield below trend in El Niño years",
+      "legendGain": "Yield above trend",
+      "legendNotSignificant": "Not statistically significant (p ≥ 0.05)",
+      "takeawaysTitle": "Key takeaways",
+      "takeawayOverall": "Across all crops and belts, El Niño years sit {pct}% below trend.",
+      "takeawayWorst": "{crop} in the {zone} belt is hit hardest, {pct}% below trend.",
+      "takeawayBest": "{crop} holds up best, and is the only crop above trend in the {zone} belt.",
+      "takeawaySignificance": "On {years} El Niño years in {from}–{to}, {significant} of {total} cells reach p < 0.05 — the record shows a direction, not a proven effect size.",
+      "methodTitle": "How this was measured",
+      "elNinoYears": "El Niño years in the record: {years}."
+    },
+    "belts": {
+      "title": "Recommended crop by altitude belt",
+      "cardTitle": "Derived from the matrix above",
+      "cardDesc": "For each belt, the crop whose yield held up best in El Niño years. Where even the best crop lost ground, the card says \"least loss\" rather than a gain.",
+      "gains": "+{pct}% above trend in El Niño years",
+      "leastLoss": "Smallest loss: {pct}% below trend",
+      "supported": "significant",
+      "notSupported": "not significant",
+      "caution": "Cultivate {crop} with caution in the {zone} belt — the worst pairing in the record, {pct}% below trend in El Niño years — unless supported by irrigation, soil moisture conservation and drought-tolerant varieties."
+    },
+    "actions": {
+      "title": "Recommended actions",
+      "forecasts": "Use the seasonal outlook to guide planting dates.",
+      "irrigation": "Expand irrigation and soil moisture conservation.",
+      "varieties": "Promote drought-tolerant and early-maturing varieties.",
+      "favour": "Favour {crop} in the {zone} belt.",
+      "caution": "Cultivate {crop} with caution in the {zone} belt.",
+      "fromRecord": "From this record"
+    }
   }
 }

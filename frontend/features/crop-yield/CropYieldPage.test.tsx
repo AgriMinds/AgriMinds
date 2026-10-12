@@ -2,7 +2,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { CropYieldCell, CropYieldModelCard, CropYieldOutlook } from '@agriminds/api-types'
+import type {
+  CropYieldCell,
+  CropYieldModelCard,
+  CropYieldOutlook,
+  EnsoImpactResponse,
+  EnsoOutlookResponse,
+} from '@agriminds/api-types'
 import { FORMATS } from '@/i18n/config'
 import messages from '@/messages/en.json'
 
@@ -17,11 +23,19 @@ beforeAll(() => {
 
 const outlookQuery = vi.fn()
 const modelQuery = vi.fn()
+const impactQuery = vi.fn()
+const ensoQuery = vi.fn()
 vi.mock('@/features/crop-yield/useCropYield', () => ({
-  cropYieldKeys: { outlook: () => ['crop-yield', 'outlook'], model: ['crop-yield', 'model'] },
+  cropYieldKeys: {
+    outlook: () => ['crop-yield', 'outlook'],
+    model: ['crop-yield', 'model'],
+    impact: ['crop-yield', 'enso-impact'],
+  },
   useCropYieldOutlook: (params?: { leadMonth?: number }) => outlookQuery(params),
   useCropYieldModel: () => modelQuery(),
+  useEnsoImpact: () => impactQuery(),
 }))
+vi.mock('@/features/enso/useEnsoOutlook', () => ({ useEnsoOutlook: () => ensoQuery() }))
 
 const { CropYieldPage } = await import('@/features/crop-yield/CropYieldPage')
 
@@ -107,6 +121,52 @@ const card: CropYieldModelCard = {
   caveats: outlook.caveats,
 }
 
+/** Nothing significant on eight El Niño years — the real shape of this table. */
+const impact: EnsoImpactResponse = {
+  cells: [
+    { crop: 'maize', zone: 'Highland', effect_pct: -0.22, p_value: 0.9817, significant: false, n_el_nino: 8, n_other: 26 },
+    { crop: 'maize', zone: 'Lowland', effect_pct: -2.0, p_value: 0.78, significant: false, n_el_nino: 8, n_other: 26 },
+    { crop: 'maize', zone: 'Midland', effect_pct: 2.35, p_value: 0.7186, significant: false, n_el_nino: 8, n_other: 26 },
+    { crop: 'tef', zone: 'Highland', effect_pct: -2.03, p_value: 0.7704, significant: false, n_el_nino: 8, n_other: 26 },
+    { crop: 'tef', zone: 'Lowland', effect_pct: -8.52, p_value: 0.2684, significant: false, n_el_nino: 8, n_other: 26 },
+    { crop: 'tef', zone: 'Midland', effect_pct: -4.25, p_value: 0.0634, significant: false, n_el_nino: 8, n_other: 26 },
+    { crop: 'wheat', zone: 'Highland', effect_pct: -6.64, p_value: 0.2806, significant: false, n_el_nino: 8, n_other: 26 },
+    { crop: 'wheat', zone: 'Lowland', effect_pct: -11.57, p_value: 0.135, significant: false, n_el_nino: 8, n_other: 26 },
+    { crop: 'wheat', zone: 'Midland', effect_pct: -7.65, p_value: 0.5132, significant: false, n_el_nino: 8, n_other: 26 },
+  ],
+  by_crop: [
+    { key: 'maize', effect_pct: 0.04, significant_cells: 0 },
+    { key: 'tef', effect_pct: -4.93, significant_cells: 0 },
+    { key: 'wheat', effect_pct: -8.62, significant_cells: 0 },
+  ],
+  by_zone: [
+    { key: 'Highland', effect_pct: -2.96, significant_cells: 0 },
+    { key: 'Lowland', effect_pct: -7.36, significant_cells: 0 },
+    { key: 'Midland', effect_pct: -3.18, significant_cells: 0 },
+  ],
+  overall_effect_pct: -4.5,
+  significant_cells: 0,
+  el_nino_years: [1991, 1992, 1997, 2002, 2015, 2016, 2019, 2023],
+  record_years: [1990, 2023],
+  method: 'Each crop-zone series is detrended first, then Welch\u2019s t-test compares the groups.',
+  recommendations: [
+    { crop: 'maize', zone: 'Lowland', zone_local_name: 'Kolla', effect_pct: -2.0, p_value: 0.78, significant: false, still_negative: true },
+    { crop: 'maize', zone: 'Midland', zone_local_name: 'Woina Dega', effect_pct: 2.35, p_value: 0.7186, significant: false, still_negative: false },
+    { crop: 'maize', zone: 'Highland', zone_local_name: 'Dega', effect_pct: -0.22, p_value: 0.9817, significant: false, still_negative: true },
+  ],
+  cautions: [
+    { crop: 'wheat', zone: 'Lowland', zone_local_name: 'Kolla', effect_pct: -11.57, p_value: 0.135, significant: false, still_negative: true },
+    { crop: 'tef', zone: 'Lowland', zone_local_name: 'Kolla', effect_pct: -8.52, p_value: 0.2684, significant: false, still_negative: true },
+  ],
+}
+
+const ensoOutlook = {
+  current_nino34: 1.58,
+  current_state: 'El Niño',
+  current_category: 'High El Niño',
+  is_extreme: true,
+} as unknown as EnsoOutlookResponse
+
 const idle = { data: undefined, isError: false, error: null, isFetching: false, refetch: vi.fn() }
 
 const wrap = () =>
@@ -122,6 +182,8 @@ describe('CropYieldPage', () => {
   beforeEach(() => {
     outlookQuery.mockReturnValue({ ...idle, data: outlook })
     modelQuery.mockReturnValue({ ...idle, data: card })
+    impactQuery.mockReturnValue({ ...idle, data: impact })
+    ensoQuery.mockReturnValue({ ...idle, data: ensoOutlook })
   })
 
   it('shows a prediction for every crop and belt', () => {
@@ -189,6 +251,47 @@ describe('CropYieldPage', () => {
     expect(screen.getByText('Read as a table')).toBeInTheDocument()
   })
 
+  it('puts the live Niño 3.4 reading and its phase at the top', () => {
+    wrap()
+    expect(screen.getByText('+1.58 °C')).toBeInTheDocument()
+    expect(screen.getByText(/Currently in the High El Niño band/)).toBeInTheDocument()
+  })
+
+  it('prints a p-value beside every measured effect', () => {
+    wrap()
+    // The matrix is rendered twice — stacked cards below `sm`, a table above it — and jsdom
+    // applies no media queries, so both copies are in the document here.
+    expect(screen.getAllByText('-11.57%').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('p = 0.135').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('+2.35%').length).toBeGreaterThan(0)
+  })
+
+  it('says plainly that nothing in the matrix reaches significance', () => {
+    wrap()
+    expect(
+      screen.getByText(/0 of 9 cells reach p < 0.05 — the record shows a direction/),
+    ).toBeInTheDocument()
+  })
+
+  it('calls the best crop in a losing belt a smallest loss, not a gain', () => {
+    wrap()
+    expect(screen.getByText('Smallest loss: 2.00% below trend')).toBeInTheDocument()
+    expect(screen.getByText('+2.35% above trend in El Niño years')).toBeInTheDocument()
+  })
+
+  it('derives the caution from the worst pairing in the record, with its number', () => {
+    wrap()
+    expect(
+      screen.getByText(/the worst pairing in the record, 11.57% below trend in El Niño years/),
+    ).toBeInTheDocument()
+  })
+
+  it('marks which recommended actions came from this record', () => {
+    wrap()
+    expect(screen.getAllByText('From this record').length).toBe(2)
+    expect(screen.getByText('Favour Maize in the Midland belt.')).toBeInTheDocument()
+  })
+
   it('reports an unavailable model instead of inventing yields', () => {
     const error = Object.assign(new Error('The crop-yield model is not available on this server.'), {
       status: 503,
@@ -196,6 +299,7 @@ describe('CropYieldPage', () => {
     })
     outlookQuery.mockReturnValue({ ...idle, isError: true, error })
     modelQuery.mockReturnValue({ ...idle, isError: true, error })
+    impactQuery.mockReturnValue({ ...idle, isError: true, error })
     wrap()
     expect(screen.getAllByRole('alert').length).toBeGreaterThan(0)
     expect(screen.queryByText('20.0')).not.toBeInTheDocument()

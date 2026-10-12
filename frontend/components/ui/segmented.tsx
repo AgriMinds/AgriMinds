@@ -64,10 +64,16 @@ export function SegmentedControl<T extends string | number>({
         variant === 'pill'
           ? 'inline-flex items-center gap-1 rounded-xl border border-border bg-surface-sunken p-1'
           : 'grid gap-2',
-        variant === 'tile' && `grid-cols-${options.length}`,
+        variant === 'tile' && 'grid-cols-[repeat(auto-fit,minmax(8.5rem,1fr))]',
         className,
       )}
-      style={variant === 'tile' ? { gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` } : undefined}
+      // Tiles carry a label and a hint, so they need a readable minimum rather than a fixed
+      // column count: four options sit in one row on a card and fold to two on a phone.
+      style={
+        variant === 'tile'
+          ? { gridTemplateColumns: `repeat(auto-fit, minmax(min(8.5rem, 100%), 1fr))` }
+          : undefined
+      }
     >
       {options.map((opt, i) => {
         const selected = opt.value === value

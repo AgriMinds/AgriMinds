@@ -8,6 +8,7 @@ from agriminds_api.schemas.crop_yield import (
     CropYieldOutlook,
     CropYieldScenario,
     CropYieldScenarioRequest,
+    EnsoImpactResponse,
 )
 from agriminds_api.services.crop_yield import CropYieldService
 
@@ -53,6 +54,22 @@ def simulate(
     req: CropYieldScenarioRequest, service: CropYieldService = Depends(get_crop_yield)
 ) -> CropYieldScenario:
     return service.simulate(req)
+
+
+@router.get(
+    "/enso-impact",
+    response_model=EnsoImpactResponse,
+    summary="What El Niño years did to each crop and belt, measured over the record",
+    description=(
+        "A property of the 1990-2023 record rather than of the regressor: each crop-belt series "
+        "is detrended, and El Niño years are compared with all other years by Welch's t-test. "
+        "The response reports the effect, its p-value and the group sizes for every cell, so a "
+        "reader can see where the record does and does not support a claim, and derives the "
+        "per-belt recommendation from the same table."
+    ),
+)
+def enso_impact(service: CropYieldService = Depends(get_crop_yield)) -> EnsoImpactResponse:
+    return service.enso_impact()
 
 
 @router.get(

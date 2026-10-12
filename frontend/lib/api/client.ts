@@ -8,6 +8,7 @@ import type {
   CropYieldScenario,
   CropYieldScenarioRequest,
   DataInventory,
+  EnsoImpactResponse,
   DroughtMapResponse,
   EmbedConfig,
   EnsoOutlookResponse,
@@ -174,6 +175,8 @@ export const api = {
     request<CropYieldScenario>('/crop-yield/simulate', { method: 'POST', body: JSON.stringify(payload) }),
   /** Every candidate's holdout score, what the model leans on, and its stated limits. */
   cropYieldModel: () => request<CropYieldModelCard>('/crop-yield/model'),
+  /** What El Niño years actually did to each crop and belt, measured over the record. */
+  ensoImpact: () => request<EnsoImpactResponse>('/crop-yield/enso-impact'),
 
   // ---- analytics ----------------------------------------------------------------------
   metabaseStatus: () => request<MetabaseStatus>('/analytics/metabase/status'),

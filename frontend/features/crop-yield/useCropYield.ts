@@ -6,6 +6,7 @@ import { api } from '@/lib/api/client'
 export const cropYieldKeys = {
   outlook: (year?: number, leadMonth?: number) => ['crop-yield', 'outlook', year ?? null, leadMonth ?? null] as const,
   model: ['crop-yield', 'model'] as const,
+  impact: ['crop-yield', 'enso-impact'] as const,
 }
 
 /**
@@ -20,6 +21,15 @@ export function useCropYieldOutlook(params?: { year?: number; leadMonth?: number
     queryKey: cropYieldKeys.outlook(params?.year, params?.leadMonth),
     queryFn: () => api.cropYieldOutlook(params),
     staleTime: 10 * 60_000,
+  })
+}
+
+/** What El Niño years did to each crop and belt. Changes only with a retrain. */
+export function useEnsoImpact() {
+  return useQuery({
+    queryKey: cropYieldKeys.impact,
+    queryFn: api.ensoImpact,
+    staleTime: 60 * 60_000,
   })
 }
 
