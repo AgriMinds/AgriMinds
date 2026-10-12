@@ -3,6 +3,10 @@ import type {
   AnalyticsConnection,
   AdvisoryResponse,
   CellRiskResponse,
+  CropYieldModelCard,
+  CropYieldOutlook,
+  CropYieldScenario,
+  CropYieldScenarioRequest,
   DataInventory,
   DroughtMapResponse,
   EmbedConfig,
@@ -155,6 +159,21 @@ export const api = {
 
   /** Full model-performance scorecard from training-time CSVs. */
   droughtMetrics: () => request<ModelMetricsResponse>('/drought/metrics'),
+
+  // ---- crop yield ---------------------------------------------------------------------
+  /** Yield per crop and altitude belt. `leadMonth` conditions it on the ENSO forecast. */
+  cropYieldOutlook: (params?: { year?: number; leadMonth?: number }) => {
+    const q = new URLSearchParams()
+    if (params?.year) q.set('year', String(params.year))
+    if (params?.leadMonth) q.set('lead_month', String(params.leadMonth))
+    const suffix = q.size ? `?${q}` : ''
+    return request<CropYieldOutlook>(`/crop-yield/outlook${suffix}`)
+  },
+  /** What-if for one crop and belt under named climate inputs. */
+  cropYieldSimulate: (payload: CropYieldScenarioRequest) =>
+    request<CropYieldScenario>('/crop-yield/simulate', { method: 'POST', body: JSON.stringify(payload) }),
+  /** Every candidate's holdout score, what the model leans on, and its stated limits. */
+  cropYieldModel: () => request<CropYieldModelCard>('/crop-yield/model'),
 
   // ---- analytics ----------------------------------------------------------------------
   metabaseStatus: () => request<MetabaseStatus>('/analytics/metabase/status'),

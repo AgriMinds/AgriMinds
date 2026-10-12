@@ -124,6 +124,30 @@ export function homePathFor(role: Role): '/farm' | '/ministry' {
   return role === 'farmer' ? '/farm' : '/ministry'
 }
 
+// ---- crop yield (separate model: one spreadsheet, not the watershed grid) -------------
+export type AgroZone = Schemas['CropYieldCell']['zone']
+export type CropYieldCell = Schemas['CropYieldCell']
+export type CropYieldInputs = Schemas['CropYieldInputs']
+export type CropYieldOutlook = Schemas['CropYieldOutlook']
+export type CropYieldProvenance = Schemas['CropYieldProvenance']
+export type CropYieldScenario = Schemas['CropYieldScenario']
+export type CropYieldScenarioRequest = Schemas['CropYieldScenarioRequest']
+export type CropYieldModelCard = Schemas['CropYieldModelCard']
+export type CropYieldCandidate = Schemas['CropYieldCandidate']
+export type CropYieldZone = Schemas['CropYieldZone']
+export type CropYieldFeature = Schemas['CropYieldFeature']
+export type EnsoBasis = CropYieldOutlook['enso_basis']
+
+/** Lowest belt first, so a zone axis reads the way the land rises. */
+export const AGRO_ZONES = ['Lowland', 'Midland', 'Highland'] as const satisfies readonly AgroZone[]
+
+/** The Amharic names the belts are known by on the ground. */
+export const AGRO_ZONE_LOCAL_NAMES: Record<AgroZone, string> = {
+  Lowland: 'Kolla',
+  Midland: 'Woina Dega',
+  Highland: 'Dega',
+}
+
 // ---- analytics (Power BI) ------------------------------------------------------------
 export type MetabaseStatus = Schemas['MetabaseStatus']
 export type EmbedConfig = Schemas['EmbedConfig']

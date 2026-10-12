@@ -40,6 +40,7 @@ export function navForRole(role: Role): NavItem[] {
     { href: '/ministry', key: 'ministry', icon: Map },
     { href: '/watershed', key: 'watershed', icon: Map },
     { href: '/prediction', key: 'prediction', icon: CalendarRange },
+    { href: '/crop-yield', key: 'cropYield', icon: Wheat },
     { href: '/analytics', key: 'analytics', icon: BarChart3 },
     { href: '/data-sources', key: 'dataSources', icon: Database },
   ]

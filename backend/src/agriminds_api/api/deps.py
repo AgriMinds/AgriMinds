@@ -22,6 +22,7 @@ from agriminds_api.db.models import User, UserRole
 from agriminds_api.domain.geo import GridSpec
 from agriminds_api.services.advisory import AdvisoryService
 from agriminds_api.services.auth import AuthService
+from agriminds_api.services.crop_yield import CropYieldService
 from agriminds_api.services.dashboard import DashboardService
 from agriminds_api.services.drought import DroughtService
 from agriminds_api.services.enso import EnsoService
@@ -57,6 +58,10 @@ def get_advisory(request: Request) -> AdvisoryService:
 
 def get_enso(request: Request) -> EnsoService:
     return request.app.state.enso
+
+
+def get_crop_yield(request: Request) -> CropYieldService:
+    return request.app.state.crop_yield
 
 
 def get_metabase(request: Request) -> MetabaseService:

@@ -32,6 +32,9 @@ geo = ["pyshp>=2.3"]
 # this extra exists so the requirement is named where an operator looks for it.
 ingest = ["httpx>=0.27"]
 research = ["matplotlib>=3.9", "streamlit>=1.38"]
+# Retraining the Hugging Face crop-yield model in research/crop_yield/. Separate from the
+# operational pipeline: gradient-boosted trees on a 306-row spreadsheet, no torch involved.
+crop-yield = ["openpyxl>=3.1", "xgboost>=2.1", "lightgbm>=4.5", "seaborn>=0.13", "joblib>=1.4", "matplotlib>=3.9"]
 dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11", "matplotlib>=3.9", "xarray>=2024.0", "netCDF4>=1.7", "cftime>=1.6", "pyshp>=2.3"]
 
 [project.scripts]
@@ -44,6 +47,14 @@ packages = ["src/ai_drews"]
 line-length = 110
 target-version = "py312"
 src = ["src", "tests"]
+# Upstream copies, kept byte-identical to the Hugging Face repository they came from so the
+# retrained artifact stays comparable with the published one. Reformatting them would break that.
+extend-exclude = [
+  "research/crop_yield/preprocess.py",
+  "research/crop_yield/train.py",
+  "research/crop_yield/predict.py",
+  "research/crop_yield/UPSTREAM_MODEL_CARD.md",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "W", "SIM"]

@@ -18,6 +18,7 @@ from agriminds_api.core.exceptions import register_exception_handlers
 from agriminds_api.core.logging import RequestContextMiddleware, configure_logging
 from agriminds_api.db.session import create_engine, create_session_factory
 from agriminds_api.services.advisory import AdvisoryService
+from agriminds_api.services.crop_yield import CropYieldService
 from agriminds_api.services.drought import DroughtService
 from agriminds_api.services.enso import EnsoService
 from agriminds_api.services.grid import build_grid
@@ -38,6 +39,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         await run_in_threadpool(inference.load)  # torch load off the event loop
         grid = build_grid(settings)
         drought = DroughtService(inference, grid)
+        crop_yield = CropYieldService(settings, inference)
+        await run_in_threadpool(crop_yield.load)  # joblib/xgboost load off the event loop
 
         engine = create_engine(settings)
         app.state.engine = engine
@@ -58,16 +61,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.drought = drought
         app.state.advisory = AdvisoryService(inference, drought)
         app.state.enso = EnsoService(inference, settings)
+        app.state.crop_yield = crop_yield
         app.state.metabase = MetabaseService(settings)
 
         if settings.is_production and not settings.service_auth_enabled:
             log.warning("AGRIMINDS_API_KEYS is empty in production: machine clients are unauthenticated")
         log.info(
-            "%s %s ready (env=%s, model=%s)",
+            "%s %s ready (env=%s, model=%s, crop_yield=%s)",
             settings.project_name,
             __version__,
             settings.env,
             inference.source,
+            "loaded" if crop_yield.available else "unavailable",
         )
         try:
             yield

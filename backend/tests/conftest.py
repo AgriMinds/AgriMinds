@@ -79,6 +79,15 @@ def artifacts_dir(tmp_path_factory) -> DataPaths:
     if survey.exists():
         paths.watershed_geojson.parent.mkdir(parents=True, exist_ok=True)
         paths.watershed_geojson.write_bytes(survey.read_bytes())
+
+    # The crop-yield model is fitted outside this pipeline (one spreadsheet, 306 rows), so there
+    # is nothing to train here: the published artifact is copied in when the repository has one.
+    # Without it the crop-yield endpoints answer 503, which its own tests also cover.
+    repo_models = BACKEND_ROOT.parent / "data/models"
+    for name in ("crop_yield_model.joblib", "crop_yield_meta.json"):
+        published = repo_models / name
+        if published.exists():
+            (paths.models / name).write_bytes(published.read_bytes())
     return paths
 
 

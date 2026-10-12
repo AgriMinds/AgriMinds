@@ -39,6 +39,7 @@ describe('navForRole', () => {
         '/ministry',
         '/watershed',
         '/prediction',
+        '/crop-yield',
         '/analytics',
         '/data-sources',
       ])
@@ -46,7 +47,14 @@ describe('navForRole', () => {
   })
 
   it('never offers a farmer a link they would be redirected away from', () => {
-    for (const href of ['/analytics', '/ministry', '/watershed', '/prediction', '/data-sources']) {
+    for (const href of [
+      '/analytics',
+      '/ministry',
+      '/watershed',
+      '/prediction',
+      '/crop-yield',
+      '/data-sources',
+    ]) {
       expect(navForRole('farmer').some((i) => i.href === href)).toBe(false)
     }
   })

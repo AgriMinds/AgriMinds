@@ -5,6 +5,7 @@ from agriminds_api.api.v1 import (
     advisory,
     analytics,
     auth,
+    crop_yield,
     dashboard,
     drought,
     enso,
@@ -37,6 +38,7 @@ _forecast.include_router(drought.router)
 _forecast.include_router(horizon.router)
 _forecast.include_router(advisory.router)
 _forecast.include_router(enso.router)
+_forecast.include_router(crop_yield.router)
 _forecast.include_router(metrics.router)
 api_router.include_router(_forecast)
 

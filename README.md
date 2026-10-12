@@ -131,6 +131,8 @@ Everything lives under `/api/v1`. Sign in, then send `Authorization: Bearer <acc
 | GET | `/drought/map`, `/drought/cell` | signed in or service key | 8×8 drought probability, or one cell by row/col or GPS |
 | POST | `/advisories/evaluate` | signed in or service key | crop advisory with IEK consensus |
 | GET | `/enso/outlook` | signed in or service key | Niño 3.4 history and CNN-LSTM forecast |
+| GET | `/crop-yield/outlook`, `/crop-yield/model` | signed in or service key | expected yield per crop and altitude belt, and that model's scores and limits |
+| POST | `/crop-yield/simulate` | signed in or service key | one crop and belt under named climate inputs |
 | GET / POST / PATCH / DELETE | `/farms`, `/farms/{id}` | farmer | the farmer's own plots |
 | GET | `/farms/{id}/advisory` | farmer | advisory for one plot, logged for delivery reporting |
 | GET | `/dashboard/farmer` | farmer | plots, risk, the advisory that needs attention first |
@@ -138,6 +140,9 @@ Everything lives under `/api/v1`. Sign in, then send `Authorization: Bearer <acc
 | POST | `/dashboard/farmer/advisories/{id}/acknowledge` | farmer | confirm an advisory was read |
 
 Every forecast response includes `provenance: { model_version, data_source, source, issued_date }`.
+The crop-yield endpoints are the exception: they come from a separate model with its own record, so
+they carry their own provenance block and return **503** where that artifact has not been published
+(see `ml/research/crop_yield/`).
 Errors are `{ "error": { "code", "message" } }`. Changing a schema → `make api-types` regenerates the shared TypeScript types; CI fails if they drift.
 
 ### Authentication

@@ -847,6 +847,277 @@
         ]
       }
     },
+    "/api/v1/crop-yield/outlook": {
+      "get": {
+        "tags": [
+          "Crop Yield"
+        ],
+        "summary": "Predicted yield for every crop and altitude belt",
+        "description": "Yield in quintals per hectare for tef, wheat and maize across the Kolla, Woina Dega and Dega belts, conditioned on Ni\u00f1o 3.4 and on the last observed season.\n\nEach cell also carries the same prediction with the ENSO anomaly removed, because the model leans overwhelmingly on last year's yield: the two numbers side by side are the whole of its climate response. Pass `lead_month` to condition on the platform's own ENSO forecast instead of the last observed month.\n\n`year` defaults to the season after the crop record. The year is itself a fitted feature, so a year beyond the record adds no information \u2014 a gradient-boosted tree can only treat it as the last year it was trained on.",
+        "operationId": "outlook_api_v1_crop_yield_outlook_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 1990
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Season to predict",
+              "title": "Year"
+            },
+            "description": "Season to predict"
+          },
+          {
+            "name": "lead_month",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 12,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Use the ENSO forecast at this lead instead of the last observation",
+              "title": "Lead Month"
+            },
+            "description": "Use the ENSO forecast at this lead instead of the last observation"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CropYieldOutlook"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "503": {
+            "description": "Model unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/crop-yield/simulate": {
+      "post": {
+        "tags": [
+          "Crop Yield"
+        ],
+        "summary": "What-if: one crop and belt under named climate inputs",
+        "description": "Anything left out falls back to the last observed season. The lag features are always the observed ones: this is a scenario over climate, not over history.",
+        "operationId": "simulate_api_v1_crop_yield_simulate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CropYieldScenarioRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CropYieldScenario"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Model unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/crop-yield/model": {
+      "get": {
+        "tags": [
+          "Crop Yield"
+        ],
+        "summary": "Scores for all five candidates, what the model leans on, and its limits",
+        "operationId": "model_card_api_v1_crop_yield_model_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CropYieldModelCard"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Model unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/drought/metrics": {
+      "get": {
+        "tags": [
+          "Drought Early Warning"
+        ],
+        "summary": "CNN-LSTM drought model performance metrics vs baselines",
+        "description": "Returns the full set of evaluation metrics produced at training time:\n\n- **drought**: per-lead classification metrics for the drought model (AUC, Brier Score, BSS vs climatology, POD, FAR) with the persistence baseline AUC.\n- **enso**: per-model regression metrics (RMSE, MAE, correlation) for the ENSO CNN-LSTM, a Persistence baseline, and a Ridge baseline, across all twelve leads.\n\nThese figures were measured once on held-out data at training time and are served unchanged. Nothing here is re-derived at request time.",
+        "operationId": "model_metrics_api_v1_drought_metrics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelMetricsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No trained model is loaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/farms": {
       "get": {
         "tags": [
@@ -2406,6 +2677,548 @@
         ],
         "title": "CropMixEntry"
       },
+      "CropYieldCandidate": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "train_rmse": {
+            "type": "number",
+            "title": "Train Rmse"
+          },
+          "test_rmse": {
+            "type": "number",
+            "title": "Test Rmse"
+          },
+          "test_mae": {
+            "type": "number",
+            "title": "Test Mae"
+          },
+          "test_r2": {
+            "type": "number",
+            "title": "Test R2"
+          },
+          "test_mape": {
+            "type": "number",
+            "title": "Test Mape"
+          },
+          "selected": {
+            "type": "boolean",
+            "title": "Selected"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model",
+          "train_rmse",
+          "test_rmse",
+          "test_mae",
+          "test_r2",
+          "test_mape",
+          "selected"
+        ],
+        "title": "CropYieldCandidate",
+        "description": "One of the five candidates scored on the same chronological holdout."
+      },
+      "CropYieldCell": {
+        "properties": {
+          "crop": {
+            "type": "string",
+            "enum": [
+              "tef",
+              "wheat",
+              "maize"
+            ],
+            "title": "Crop"
+          },
+          "zone": {
+            "type": "string",
+            "enum": [
+              "Lowland",
+              "Midland",
+              "Highland"
+            ],
+            "title": "Zone"
+          },
+          "zone_local_name": {
+            "type": "string",
+            "title": "Zone Local Name",
+            "description": "Kolla | Woina Dega | Dega"
+          },
+          "altitude_approx_m": {
+            "type": "integer",
+            "title": "Altitude Approx M"
+          },
+          "predicted_yield_q_ha": {
+            "type": "number",
+            "title": "Predicted Yield Q Ha",
+            "description": "Predicted yield under `inputs` (quintals/hectare)"
+          },
+          "neutral_yield_q_ha": {
+            "type": "number",
+            "title": "Neutral Yield Q Ha",
+            "description": "Same inputs with Ni\u00f1o 3.4 forced to 0.0, so the ENSO term can be read on its own"
+          },
+          "enso_delta_pct": {
+            "type": "number",
+            "title": "Enso Delta Pct",
+            "description": "Predicted vs neutral, as a percentage of neutral"
+          },
+          "last_observed_yield_q_ha": {
+            "type": "number",
+            "title": "Last Observed Yield Q Ha",
+            "description": "Final year of the training record"
+          },
+          "change_vs_last_observed_pct": {
+            "type": "number",
+            "title": "Change Vs Last Observed Pct"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/CropYieldInputs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "crop",
+          "zone",
+          "zone_local_name",
+          "altitude_approx_m",
+          "predicted_yield_q_ha",
+          "neutral_yield_q_ha",
+          "enso_delta_pct",
+          "last_observed_yield_q_ha",
+          "change_vs_last_observed_pct",
+          "inputs"
+        ],
+        "title": "CropYieldCell"
+      },
+      "CropYieldFeature": {
+        "properties": {
+          "feature": {
+            "type": "string",
+            "title": "Feature"
+          },
+          "importance": {
+            "type": "number",
+            "title": "Importance",
+            "description": "Share of the model's gain (tree models) in [0, 1]"
+          }
+        },
+        "type": "object",
+        "required": [
+          "feature",
+          "importance"
+        ],
+        "title": "CropYieldFeature"
+      },
+      "CropYieldInputs": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "temperature_c": {
+            "type": "number",
+            "title": "Temperature C",
+            "description": "Watershed mean temperature (\u00b0C)"
+          },
+          "precipitation_mm": {
+            "type": "number",
+            "title": "Precipitation Mm",
+            "description": "Watershed mean monthly rainfall (mm/month)"
+          },
+          "enso_index": {
+            "type": "number",
+            "title": "Enso Index",
+            "description": "Ni\u00f1o 3.4 anomaly (\u00b0C)"
+          },
+          "enso_phase": {
+            "type": "string",
+            "title": "Enso Phase",
+            "description": "El Nino | La Nina | Neutral, as the training panel labelled it"
+          },
+          "yield_lag1": {
+            "type": "number",
+            "title": "Yield Lag1",
+            "description": "Last observed yield for this crop and belt (q/ha)"
+          },
+          "yield_rolling3_mean": {
+            "type": "number",
+            "title": "Yield Rolling3 Mean",
+            "description": "Mean of the three last observed yields (q/ha)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "temperature_c",
+          "precipitation_mm",
+          "enso_index",
+          "enso_phase",
+          "yield_lag1",
+          "yield_rolling3_mean"
+        ],
+        "title": "CropYieldInputs",
+        "description": "Everything the regressor saw. Shown next to a number so it can be argued with."
+      },
+      "CropYieldModelCard": {
+        "properties": {
+          "provenance": {
+            "$ref": "#/components/schemas/CropYieldProvenance"
+          },
+          "upstream_repo": {
+            "type": "string",
+            "title": "Upstream Repo",
+            "description": "Hugging Face repository the pipeline came from"
+          },
+          "upstream_revision": {
+            "type": "string",
+            "title": "Upstream Revision"
+          },
+          "record_rows": {
+            "type": "integer",
+            "title": "Record Rows"
+          },
+          "train_years": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Train Years"
+          },
+          "test_years": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Test Years"
+          },
+          "test_rows": {
+            "type": "integer",
+            "title": "Test Rows"
+          },
+          "mean_yield_q_ha": {
+            "type": "number",
+            "title": "Mean Yield Q Ha"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/CropYieldCandidate"
+            },
+            "type": "array",
+            "title": "Candidates"
+          },
+          "feature_importance": {
+            "items": {
+              "$ref": "#/components/schemas/CropYieldFeature"
+            },
+            "type": "array",
+            "title": "Feature Importance"
+          },
+          "zones": {
+            "items": {
+              "$ref": "#/components/schemas/CropYieldZone"
+            },
+            "type": "array",
+            "title": "Zones"
+          },
+          "caveats": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Caveats"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provenance",
+          "upstream_repo",
+          "upstream_revision",
+          "record_rows",
+          "train_years",
+          "test_years",
+          "test_rows",
+          "mean_yield_q_ha",
+          "candidates",
+          "feature_importance",
+          "zones",
+          "caveats"
+        ],
+        "title": "CropYieldModelCard",
+        "description": "Everything needed to present the model honestly: scores, what it leans on, and the limits."
+      },
+      "CropYieldOutlook": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year",
+            "description": "Season being predicted"
+          },
+          "enso_index": {
+            "type": "number",
+            "title": "Enso Index"
+          },
+          "enso_phase": {
+            "type": "string",
+            "title": "Enso Phase"
+          },
+          "enso_basis": {
+            "type": "string",
+            "enum": [
+              "forecast",
+              "observed",
+              "dataset",
+              "requested"
+            ],
+            "title": "Enso Basis",
+            "description": "'forecast': the platform's own CNN-LSTM Ni\u00f1o 3.4 forecast for `lead_month`. 'observed': the last observed month. 'dataset': the last year of the crop record, used when the drought pipeline has not been trained on this deployment."
+          },
+          "lead_month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Month",
+            "description": "ENSO lead used, when the basis is a forecast"
+          },
+          "baseline_year": {
+            "type": "integer",
+            "title": "Baseline Year",
+            "description": "Last year of the crop record, where the lag features come from"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/CropYieldCell"
+            },
+            "type": "array",
+            "title": "Cells",
+            "description": "One entry per crop and belt"
+          },
+          "caveats": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Caveats",
+            "description": "What this model cannot support, carried from the artifact"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/CropYieldProvenance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "enso_index",
+          "enso_phase",
+          "enso_basis",
+          "baseline_year",
+          "cells",
+          "caveats",
+          "provenance"
+        ],
+        "title": "CropYieldOutlook"
+      },
+      "CropYieldProvenance": {
+        "properties": {
+          "model_name": {
+            "type": "string",
+            "title": "Model Name",
+            "description": "Winning candidate, e.g. XGBoost"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "trained_at": {
+            "type": "string",
+            "title": "Trained At",
+            "description": "ISO-8601 timestamp of the training run"
+          },
+          "dataset_file": {
+            "type": "string",
+            "title": "Dataset File",
+            "description": "Spreadsheet the model was fitted on"
+          },
+          "record_years": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Record Years",
+            "description": "[first_year, last_year] of the training record"
+          },
+          "test_rmse_q_ha": {
+            "type": "number",
+            "title": "Test Rmse Q Ha",
+            "description": "Holdout RMSE on the final seven years"
+          },
+          "test_r2": {
+            "type": "number",
+            "title": "Test R2"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_name",
+          "model_version",
+          "trained_at",
+          "dataset_file",
+          "record_years",
+          "test_rmse_q_ha",
+          "test_r2"
+        ],
+        "title": "CropYieldProvenance"
+      },
+      "CropYieldScenario": {
+        "properties": {
+          "cell": {
+            "$ref": "#/components/schemas/CropYieldCell"
+          },
+          "caveats": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Caveats"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/CropYieldProvenance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cell",
+          "caveats",
+          "provenance"
+        ],
+        "title": "CropYieldScenario"
+      },
+      "CropYieldScenarioRequest": {
+        "properties": {
+          "crop": {
+            "type": "string",
+            "enum": [
+              "tef",
+              "wheat",
+              "maize"
+            ],
+            "title": "Crop",
+            "default": "tef"
+          },
+          "zone": {
+            "type": "string",
+            "enum": [
+              "Lowland",
+              "Midland",
+              "Highland"
+            ],
+            "title": "Zone",
+            "default": "Midland"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2100.0,
+                "minimum": 1990.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year",
+            "description": "Default: the season after the record"
+          },
+          "temperature_c": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 50.0,
+                "minimum": -10.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature C"
+          },
+          "precipitation_mm": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precipitation Mm"
+          },
+          "enso_index": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 5.0,
+                "minimum": -5.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enso Index",
+            "description": "Ni\u00f1o 3.4 anomaly (\u00b0C)"
+          }
+        },
+        "type": "object",
+        "title": "CropYieldScenarioRequest",
+        "description": "A what-if: name the climate, keep the observed lags."
+      },
+      "CropYieldZone": {
+        "properties": {
+          "zone": {
+            "type": "string",
+            "enum": [
+              "Lowland",
+              "Midland",
+              "Highland"
+            ],
+            "title": "Zone"
+          },
+          "local_name": {
+            "type": "string",
+            "title": "Local Name"
+          },
+          "altitude_approx_m": {
+            "type": "integer",
+            "title": "Altitude Approx M"
+          },
+          "altitude_min_m": {
+            "type": "integer",
+            "title": "Altitude Min M"
+          },
+          "altitude_max_m": {
+            "type": "integer",
+            "title": "Altitude Max M"
+          }
+        },
+        "type": "object",
+        "required": [
+          "zone",
+          "local_name",
+          "altitude_approx_m",
+          "altitude_min_m",
+          "altitude_max_m"
+        ],
+        "title": "CropYieldZone"
+      },
       "DataInventory": {
         "properties": {
           "model_version": {
@@ -2606,6 +3419,105 @@
         ],
         "title": "DatabaseStatus"
       },
+      "DroughtLeadMetric": {
+        "properties": {
+          "lead": {
+            "type": "integer",
+            "title": "Lead"
+          },
+          "AUC": {
+            "type": "number",
+            "title": "Auc"
+          },
+          "AUC_persistence": {
+            "type": "number",
+            "title": "Auc Persistence"
+          },
+          "Brier": {
+            "type": "number",
+            "title": "Brier"
+          },
+          "BSS_vs_climatology": {
+            "type": "number",
+            "title": "Bss Vs Climatology"
+          },
+          "POD": {
+            "type": "number",
+            "title": "Pod"
+          },
+          "FAR": {
+            "type": "number",
+            "title": "Far"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold"
+          },
+          "skilful": {
+            "type": "boolean",
+            "title": "Skilful"
+          },
+          "Accuracy": {
+            "type": "number",
+            "title": "Accuracy",
+            "default": 0.0
+          },
+          "Precision": {
+            "type": "number",
+            "title": "Precision",
+            "default": 0.0
+          },
+          "Recall": {
+            "type": "number",
+            "title": "Recall",
+            "default": 0.0
+          },
+          "F1": {
+            "type": "number",
+            "title": "F1",
+            "default": 0.0
+          },
+          "PearsonR": {
+            "type": "number",
+            "title": "Pearsonr",
+            "default": 0.0
+          },
+          "TP": {
+            "type": "integer",
+            "title": "Tp",
+            "default": 0
+          },
+          "FP": {
+            "type": "integer",
+            "title": "Fp",
+            "default": 0
+          },
+          "TN": {
+            "type": "integer",
+            "title": "Tn",
+            "default": 0
+          },
+          "FN": {
+            "type": "integer",
+            "title": "Fn",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "lead",
+          "AUC",
+          "AUC_persistence",
+          "Brier",
+          "BSS_vs_climatology",
+          "POD",
+          "FAR",
+          "threshold",
+          "skilful"
+        ],
+        "title": "DroughtLeadMetric",
+        "description": "One row of drought_metrics.csv \u2014 full scorecard per lead on held-out data."
+      },
       "DroughtMapResponse": {
         "properties": {
           "lead_month": {
@@ -2754,6 +3666,40 @@
         ],
         "title": "EmbedConfig",
         "description": "Everything the browser needs to render the dashboard, and nothing more.\n\nThe embedding secret stays on the server; what goes out is a signed URL valid for minutes,\nscoped to one dashboard and \u2014 where a locked parameter is configured \u2014 to one viewer's\ndistrict. The scope is inside the signature, so it cannot be edited client-side."
+      },
+      "EnsoLeadMetric": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "lead": {
+            "type": "integer",
+            "title": "Lead"
+          },
+          "RMSE": {
+            "type": "number",
+            "title": "Rmse"
+          },
+          "MAE": {
+            "type": "number",
+            "title": "Mae"
+          },
+          "corr": {
+            "type": "number",
+            "title": "Corr"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model",
+          "lead",
+          "RMSE",
+          "MAE",
+          "corr"
+        ],
+        "title": "EnsoLeadMetric",
+        "description": "One row of enso_metrics.csv \u2014 RMSE / MAE / correlation for one model \u00d7 lead."
       },
       "EnsoOutlookResponse": {
         "properties": {
@@ -3650,6 +4596,50 @@
         ],
         "title": "HealthResponse"
       },
+      "HistoricalValidationPoint": {
+        "properties": {
+          "lead": {
+            "type": "integer",
+            "title": "Lead"
+          },
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "observed": {
+            "type": "number",
+            "title": "Observed"
+          },
+          "predicted": {
+            "type": "number",
+            "title": "Predicted"
+          },
+          "PearsonR": {
+            "type": "number",
+            "title": "Pearsonr"
+          },
+          "RMSE": {
+            "type": "number",
+            "title": "Rmse"
+          },
+          "MAE": {
+            "type": "number",
+            "title": "Mae"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lead",
+          "date",
+          "observed",
+          "predicted",
+          "PearsonR",
+          "RMSE",
+          "MAE"
+        ],
+        "title": "HistoricalValidationPoint",
+        "description": "One row of historical_validation.csv \u2014 Figure 2: observed vs predicted per date \u00d7 lead."
+      },
       "HorizonResponse": {
         "properties": {
           "issued_date": {
@@ -4074,6 +5064,114 @@
           "advisories"
         ],
         "title": "MinistryDashboard"
+      },
+      "ModelComparisonRow": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "lead": {
+            "type": "integer",
+            "title": "Lead"
+          },
+          "RMSE": {
+            "type": "number",
+            "title": "Rmse"
+          },
+          "MAE": {
+            "type": "number",
+            "title": "Mae"
+          },
+          "AUC": {
+            "type": "number",
+            "title": "Auc"
+          },
+          "Accuracy": {
+            "type": "number",
+            "title": "Accuracy"
+          },
+          "F1": {
+            "type": "number",
+            "title": "F1"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model",
+          "lead",
+          "RMSE",
+          "MAE",
+          "AUC",
+          "Accuracy",
+          "F1"
+        ],
+        "title": "ModelComparisonRow",
+        "description": "One row of model_comparison.csv \u2014 Figure 1: all models at one lead."
+      },
+      "ModelMetricsResponse": {
+        "properties": {
+          "drought": {
+            "items": {
+              "$ref": "#/components/schemas/DroughtLeadMetric"
+            },
+            "type": "array",
+            "title": "Drought",
+            "description": "Per-lead classification metrics (AUC, BSS, Accuracy, Precision, Recall, F1, confusion matrix)"
+          },
+          "enso": {
+            "items": {
+              "$ref": "#/components/schemas/EnsoLeadMetric"
+            },
+            "type": "array",
+            "title": "Enso",
+            "description": "Per-model regression metrics (RMSE, MAE, corr) from enso_metrics.csv"
+          },
+          "model_comparison": {
+            "items": {
+              "$ref": "#/components/schemas/ModelComparisonRow"
+            },
+            "type": "array",
+            "title": "Model Comparison",
+            "description": "Figure 1 \u2014 SuperHybrid vs CNN-LSTM, CNN, ANN, LSTM at every lead"
+          },
+          "historical_validation": {
+            "items": {
+              "$ref": "#/components/schemas/HistoricalValidationPoint"
+            },
+            "type": "array",
+            "title": "Historical Validation",
+            "description": "Figure 2 \u2014 observed vs predicted Sc-PDSI for the test period"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "data_source": {
+            "type": "string",
+            "title": "Data Source"
+          },
+          "trained_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trained At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "drought",
+          "enso",
+          "model_version",
+          "data_source"
+        ],
+        "title": "ModelMetricsResponse",
+        "description": "Full payload returned by GET /api/v1/drought/metrics."
       },
       "ModelStatus": {
         "properties": {

@@ -22,6 +22,10 @@ src/ai_drews/
 └── cli.py             `ai-drews` command
 ```
 
+`research/crop_yield/` holds a **separate** model: tabular crop yield (tef / wheat / maize by
+altitude belt) retrained from a Hugging Face pipeline on a 1990-2023 spreadsheet. It is not part
+of the pipeline above and shares nothing with it but the data root — see its own README.
+
 ## Install
 
 ```bash

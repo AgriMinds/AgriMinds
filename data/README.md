@@ -7,6 +7,7 @@
 | `raw/`       | `nino_indices.csv`, `grids.npz` (observed or SYNTHETIC) | `ai-drews ingest assemble`, `build-data` |
 | `processed/` | `fields.npz`, `enso_forecast.csv`                   | `build-features`, `train enso` |
 | `models/`    | `drought_model.pt`, `drought_norm.npz`, `drought_meta.json`, `enso_cnnlstm.pt`, `enso_norm.npz` | `train enso`, `train drought` |
+| `models/`    | `crop_yield_model.joblib`, `crop_yield_meta.json` (separate model, separate record) | `ml/research/crop_yield/run_training.py` |
 | `outputs/`   | metrics CSVs, `enso_drought_correlation.csv`, `latest_risk.npz`, PNG maps | training steps, `maps` |
 
 Whether `raw/` holds observations or stand-ins is recorded in `raw/manifests/dataset.json`, and

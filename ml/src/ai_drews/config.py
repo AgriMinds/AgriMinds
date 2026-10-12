@@ -133,6 +133,20 @@ class DataPaths:
         return self.outputs / "latest_risk.npz"
 
     @property
+    def crop_yield_model_joblib(self) -> Path:
+        """Crop-yield regressor published by ``ml/research/crop_yield/run_training.py``.
+
+        A separate model with its own record (a 1990-2023 crop/climate spreadsheet) rather than
+        the watershed grid, so it carries its own pair of files and never shares the drought
+        model's metadata.
+        """
+        return self.models / "crop_yield_model.joblib"
+
+    @property
+    def crop_yield_meta_json(self) -> Path:
+        return self.models / "crop_yield_meta.json"
+
+    @property
     def watershed_geojson(self) -> Path:
         """Surveyed catchment outline, converted from the shapefile. Plain JSON: no geo library."""
         return self.root / "geo" / "choke_watershed.geojson"
@@ -144,6 +158,9 @@ class DataPaths:
 
     def has_raw_data(self) -> bool:
         return self.nino_indices_csv.exists() and self.grids_npz.exists()
+
+    def has_crop_yield_artifacts(self) -> bool:
+        return self.crop_yield_model_joblib.exists() and self.crop_yield_meta_json.exists()
 
     def has_drought_artifacts(self) -> bool:
         return all(

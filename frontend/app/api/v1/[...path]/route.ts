@@ -26,6 +26,8 @@ const ALLOWED: ReadonlyArray<{ method: Method; path: RegExp }> = [
   { method: 'POST', path: /^drought\/cell$/ },
   { method: 'POST', path: /^advisories\/evaluate$/ },
   { method: 'GET', path: /^enso\/outlook$/ },
+  { method: 'GET', path: /^crop-yield\/(outlook|model)$/ },
+  { method: 'POST', path: /^crop-yield\/simulate$/ },
   // account
   { method: 'GET', path: /^auth\/me$/ },
   { method: 'PATCH', path: /^auth\/me$/ },

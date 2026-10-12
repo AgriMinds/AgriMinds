@@ -167,6 +167,67 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crop-yield/model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scores for all five candidates, what the model leans on, and its limits */
+        get: operations["model_card_api_v1_crop_yield_model_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crop-yield/outlook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Predicted yield for every crop and altitude belt
+         * @description Yield in quintals per hectare for tef, wheat and maize across the Kolla, Woina Dega and Dega belts, conditioned on Niño 3.4 and on the last observed season.
+         *
+         *     Each cell also carries the same prediction with the ENSO anomaly removed, because the model leans overwhelmingly on last year's yield: the two numbers side by side are the whole of its climate response. Pass `lead_month` to condition on the platform's own ENSO forecast instead of the last observed month.
+         *
+         *     `year` defaults to the season after the crop record. The year is itself a fitted feature, so a year beyond the record adds no information — a gradient-boosted tree can only treat it as the last year it was trained on.
+         */
+        get: operations["outlook_api_v1_crop_yield_outlook_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crop-yield/simulate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * What-if: one crop and belt under named climate inputs
+         * @description Anything left out falls back to the last observed season. The lag features are always the observed ones: this is a scenario over climate, not over history.
+         */
+        post: operations["simulate_api_v1_crop_yield_simulate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/dashboard/farmer": {
         parameters: {
             query?: never;
@@ -268,6 +329,31 @@ export type paths = {
         };
         /** Gridded drought probability for one lead */
         get: operations["drought_map_api_v1_drought_map_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drought/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * CNN-LSTM drought model performance metrics vs baselines
+         * @description Returns the full set of evaluation metrics produced at training time:
+         *
+         *     - **drought**: per-lead classification metrics for the drought model (AUC, Brier Score, BSS vs climatology, POD, FAR) with the persistence baseline AUC.
+         *     - **enso**: per-model regression metrics (RMSE, MAE, correlation) for the ENSO CNN-LSTM, a Persistence baseline, and a Ridge baseline, across all twelve leads.
+         *
+         *     These figures were measured once on held-out data at training time and are served unchanged. Nothing here is re-derived at request time.
+         */
+        get: operations["model_metrics_api_v1_drought_metrics_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -701,6 +787,275 @@ export type components = {
             /** Hectares */
             hectares: number;
         };
+        /**
+         * CropYieldCandidate
+         * @description One of the five candidates scored on the same chronological holdout.
+         */
+        CropYieldCandidate: {
+            /** Model */
+            model: string;
+            /** Selected */
+            selected: boolean;
+            /** Test Mae */
+            test_mae: number;
+            /** Test Mape */
+            test_mape: number;
+            /** Test R2 */
+            test_r2: number;
+            /** Test Rmse */
+            test_rmse: number;
+            /** Train Rmse */
+            train_rmse: number;
+        };
+        /** CropYieldCell */
+        CropYieldCell: {
+            /** Altitude Approx M */
+            altitude_approx_m: number;
+            /** Change Vs Last Observed Pct */
+            change_vs_last_observed_pct: number;
+            /**
+             * Crop
+             * @enum {string}
+             */
+            crop: "tef" | "wheat" | "maize";
+            /**
+             * Enso Delta Pct
+             * @description Predicted vs neutral, as a percentage of neutral
+             */
+            enso_delta_pct: number;
+            inputs: components["schemas"]["CropYieldInputs"];
+            /**
+             * Last Observed Yield Q Ha
+             * @description Final year of the training record
+             */
+            last_observed_yield_q_ha: number;
+            /**
+             * Neutral Yield Q Ha
+             * @description Same inputs with Niño 3.4 forced to 0.0, so the ENSO term can be read on its own
+             */
+            neutral_yield_q_ha: number;
+            /**
+             * Predicted Yield Q Ha
+             * @description Predicted yield under `inputs` (quintals/hectare)
+             */
+            predicted_yield_q_ha: number;
+            /**
+             * Zone
+             * @enum {string}
+             */
+            zone: "Lowland" | "Midland" | "Highland";
+            /**
+             * Zone Local Name
+             * @description Kolla | Woina Dega | Dega
+             */
+            zone_local_name: string;
+        };
+        /** CropYieldFeature */
+        CropYieldFeature: {
+            /** Feature */
+            feature: string;
+            /**
+             * Importance
+             * @description Share of the model's gain (tree models) in [0, 1]
+             */
+            importance: number;
+        };
+        /**
+         * CropYieldInputs
+         * @description Everything the regressor saw. Shown next to a number so it can be argued with.
+         */
+        CropYieldInputs: {
+            /**
+             * Enso Index
+             * @description Niño 3.4 anomaly (°C)
+             */
+            enso_index: number;
+            /**
+             * Enso Phase
+             * @description El Nino | La Nina | Neutral, as the training panel labelled it
+             */
+            enso_phase: string;
+            /**
+             * Precipitation Mm
+             * @description Watershed mean monthly rainfall (mm/month)
+             */
+            precipitation_mm: number;
+            /**
+             * Temperature C
+             * @description Watershed mean temperature (°C)
+             */
+            temperature_c: number;
+            /** Year */
+            year: number;
+            /**
+             * Yield Lag1
+             * @description Last observed yield for this crop and belt (q/ha)
+             */
+            yield_lag1: number;
+            /**
+             * Yield Rolling3 Mean
+             * @description Mean of the three last observed yields (q/ha)
+             */
+            yield_rolling3_mean: number;
+        };
+        /**
+         * CropYieldModelCard
+         * @description Everything needed to present the model honestly: scores, what it leans on, and the limits.
+         */
+        CropYieldModelCard: {
+            /** Candidates */
+            candidates: components["schemas"]["CropYieldCandidate"][];
+            /** Caveats */
+            caveats: string[];
+            /** Feature Importance */
+            feature_importance: components["schemas"]["CropYieldFeature"][];
+            /** Mean Yield Q Ha */
+            mean_yield_q_ha: number;
+            provenance: components["schemas"]["CropYieldProvenance"];
+            /** Record Rows */
+            record_rows: number;
+            /** Test Rows */
+            test_rows: number;
+            /** Test Years */
+            test_years: number[];
+            /** Train Years */
+            train_years: number[];
+            /**
+             * Upstream Repo
+             * @description Hugging Face repository the pipeline came from
+             */
+            upstream_repo: string;
+            /** Upstream Revision */
+            upstream_revision: string;
+            /** Zones */
+            zones: components["schemas"]["CropYieldZone"][];
+        };
+        /** CropYieldOutlook */
+        CropYieldOutlook: {
+            /**
+             * Baseline Year
+             * @description Last year of the crop record, where the lag features come from
+             */
+            baseline_year: number;
+            /**
+             * Caveats
+             * @description What this model cannot support, carried from the artifact
+             */
+            caveats: string[];
+            /**
+             * Cells
+             * @description One entry per crop and belt
+             */
+            cells: components["schemas"]["CropYieldCell"][];
+            /**
+             * Enso Basis
+             * @description 'forecast': the platform's own CNN-LSTM Niño 3.4 forecast for `lead_month`. 'observed': the last observed month. 'dataset': the last year of the crop record, used when the drought pipeline has not been trained on this deployment.
+             * @enum {string}
+             */
+            enso_basis: "forecast" | "observed" | "dataset" | "requested";
+            /** Enso Index */
+            enso_index: number;
+            /** Enso Phase */
+            enso_phase: string;
+            /**
+             * Lead Month
+             * @description ENSO lead used, when the basis is a forecast
+             */
+            lead_month?: number | null;
+            provenance: components["schemas"]["CropYieldProvenance"];
+            /**
+             * Year
+             * @description Season being predicted
+             */
+            year: number;
+        };
+        /** CropYieldProvenance */
+        CropYieldProvenance: {
+            /**
+             * Dataset File
+             * @description Spreadsheet the model was fitted on
+             */
+            dataset_file: string;
+            /**
+             * Model Name
+             * @description Winning candidate, e.g. XGBoost
+             */
+            model_name: string;
+            /** Model Version */
+            model_version: string;
+            /**
+             * Record Years
+             * @description [first_year, last_year] of the training record
+             */
+            record_years: number[];
+            /** Test R2 */
+            test_r2: number;
+            /**
+             * Test Rmse Q Ha
+             * @description Holdout RMSE on the final seven years
+             */
+            test_rmse_q_ha: number;
+            /**
+             * Trained At
+             * @description ISO-8601 timestamp of the training run
+             */
+            trained_at: string;
+        };
+        /** CropYieldScenario */
+        CropYieldScenario: {
+            /** Caveats */
+            caveats: string[];
+            cell: components["schemas"]["CropYieldCell"];
+            provenance: components["schemas"]["CropYieldProvenance"];
+        };
+        /**
+         * CropYieldScenarioRequest
+         * @description A what-if: name the climate, keep the observed lags.
+         */
+        CropYieldScenarioRequest: {
+            /**
+             * Crop
+             * @default tef
+             * @enum {string}
+             */
+            crop: "tef" | "wheat" | "maize";
+            /**
+             * Enso Index
+             * @description Niño 3.4 anomaly (°C)
+             */
+            enso_index?: number | null;
+            /** Precipitation Mm */
+            precipitation_mm?: number | null;
+            /** Temperature C */
+            temperature_c?: number | null;
+            /**
+             * Year
+             * @description Default: the season after the record
+             */
+            year?: number | null;
+            /**
+             * Zone
+             * @default Midland
+             * @enum {string}
+             */
+            zone: "Lowland" | "Midland" | "Highland";
+        };
+        /** CropYieldZone */
+        CropYieldZone: {
+            /** Altitude Approx M */
+            altitude_approx_m: number;
+            /** Altitude Max M */
+            altitude_max_m: number;
+            /** Altitude Min M */
+            altitude_min_m: number;
+            /** Local Name */
+            local_name: string;
+            /**
+             * Zone
+             * @enum {string}
+             */
+            zone: "Lowland" | "Midland" | "Highland";
+        };
         /** DatabaseStatus */
         DatabaseStatus: {
             /** Configured */
@@ -787,6 +1142,75 @@ export type components = {
              */
             status: "connected" | "synthetic" | "not_connected";
         };
+        /**
+         * DroughtLeadMetric
+         * @description One row of drought_metrics.csv — full scorecard per lead on held-out data.
+         */
+        DroughtLeadMetric: {
+            /**
+             * Accuracy
+             * @default 0
+             */
+            Accuracy: number;
+            /** Auc */
+            AUC: number;
+            /** Auc Persistence */
+            AUC_persistence: number;
+            /** Brier */
+            Brier: number;
+            /** Bss Vs Climatology */
+            BSS_vs_climatology: number;
+            /**
+             * F1
+             * @default 0
+             */
+            F1: number;
+            /** Far */
+            FAR: number;
+            /**
+             * Fn
+             * @default 0
+             */
+            FN: number;
+            /**
+             * Fp
+             * @default 0
+             */
+            FP: number;
+            /** Lead */
+            lead: number;
+            /**
+             * Pearsonr
+             * @default 0
+             */
+            PearsonR: number;
+            /** Pod */
+            POD: number;
+            /**
+             * Precision
+             * @default 0
+             */
+            Precision: number;
+            /**
+             * Recall
+             * @default 0
+             */
+            Recall: number;
+            /** Skilful */
+            skilful: boolean;
+            /** Threshold */
+            threshold: number;
+            /**
+             * Tn
+             * @default 0
+             */
+            TN: number;
+            /**
+             * Tp
+             * @default 0
+             */
+            TP: number;
+        };
         /** DroughtMapResponse */
         DroughtMapResponse: {
             /**
@@ -861,6 +1285,22 @@ export type components = {
              * @description True when a locked parameter narrows the viewer's rows
              */
             scoped: boolean;
+        };
+        /**
+         * EnsoLeadMetric
+         * @description One row of enso_metrics.csv — RMSE / MAE / correlation for one model × lead.
+         */
+        EnsoLeadMetric: {
+            /** Corr */
+            corr: number;
+            /** Lead */
+            lead: number;
+            /** Mae */
+            MAE: number;
+            /** Model */
+            model: string;
+            /** Rmse */
+            RMSE: number;
         };
         /** EnsoOutlookResponse */
         EnsoOutlookResponse: {
@@ -1207,6 +1647,26 @@ export type components = {
             version: string;
         };
         /**
+         * HistoricalValidationPoint
+         * @description One row of historical_validation.csv — Figure 2: observed vs predicted per date × lead.
+         */
+        HistoricalValidationPoint: {
+            /** Date */
+            date: string;
+            /** Lead */
+            lead: number;
+            /** Mae */
+            MAE: number;
+            /** Observed */
+            observed: number;
+            /** Pearsonr */
+            PearsonR: number;
+            /** Predicted */
+            predicted: number;
+            /** Rmse */
+            RMSE: number;
+        };
+        /**
          * HorizonResponse
          * @description The full horizon: what can be forecast, what can only be leaned on, and why.
          *
@@ -1383,6 +1843,58 @@ export type components = {
              * @description Whole watershed, or the woreda an agent is assigned to
              */
             scope: string;
+        };
+        /**
+         * ModelComparisonRow
+         * @description One row of model_comparison.csv — Figure 1: all models at one lead.
+         */
+        ModelComparisonRow: {
+            /** Accuracy */
+            Accuracy: number;
+            /** Auc */
+            AUC: number;
+            /** F1 */
+            F1: number;
+            /** Lead */
+            lead: number;
+            /** Mae */
+            MAE: number;
+            /** Model */
+            model: string;
+            /** Rmse */
+            RMSE: number;
+        };
+        /**
+         * ModelMetricsResponse
+         * @description Full payload returned by GET /api/v1/drought/metrics.
+         */
+        ModelMetricsResponse: {
+            /** Data Source */
+            data_source: string;
+            /**
+             * Drought
+             * @description Per-lead classification metrics (AUC, BSS, Accuracy, Precision, Recall, F1, confusion matrix)
+             */
+            drought: components["schemas"]["DroughtLeadMetric"][];
+            /**
+             * Enso
+             * @description Per-model regression metrics (RMSE, MAE, corr) from enso_metrics.csv
+             */
+            enso: components["schemas"]["EnsoLeadMetric"][];
+            /**
+             * Historical Validation
+             * @description Figure 2 — observed vs predicted Sc-PDSI for the test period
+             */
+            historical_validation?: components["schemas"]["HistoricalValidationPoint"][];
+            /**
+             * Model Comparison
+             * @description Figure 1 — SuperHybrid vs CNN-LSTM, CNN, ANN, LSTM at every lead
+             */
+            model_comparison?: components["schemas"]["ModelComparisonRow"][];
+            /** Model Version */
+            model_version: string;
+            /** Trained At */
+            trained_at?: string | null;
         };
         /** ModelStatus */
         ModelStatus: {
@@ -2037,6 +2549,147 @@ export interface operations {
             };
         };
     };
+    model_card_api_v1_crop_yield_model_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CropYieldModelCard"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Model unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    outlook_api_v1_crop_yield_outlook_get: {
+        parameters: {
+            query?: {
+                /** @description Use the ENSO forecast at this lead instead of the last observation */
+                lead_month?: number | null;
+                /** @description Season to predict */
+                year?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CropYieldOutlook"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Model unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    simulate_api_v1_crop_yield_simulate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CropYieldScenarioRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CropYieldScenario"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Model unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     farmer_dashboard_api_v1_dashboard_farmer_get: {
         parameters: {
             query?: {
@@ -2376,6 +3029,44 @@ export interface operations {
                 };
             };
             /** @description Model unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    model_metrics_api_v1_drought_metrics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelMetricsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description No trained model is loaded */
             503: {
                 headers: {
                     [name: string]: unknown;
