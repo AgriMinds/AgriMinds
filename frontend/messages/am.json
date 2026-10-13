@@ -276,6 +276,8 @@
     "adviceTitle": "በዚህ ወቅት ምን ይደረግ",
     "adviceForPlot": "ለ{plot} ምክር",
     "chanceOfDrought": "ለ{crop} የድርቅ እድል",
+    "listenAdvice": "ምክሩን ያዳምጡ",
+    "stopListening": "ማንበብ አቁም",
     "acknowledge": "አንብቤዋለሁ",
     "acknowledged": "ተነቧል",
     "myPlots": "የእኔ መሬቶች ({count})",
@@ -431,8 +433,8 @@
     "ministerDesk": "የሚኒስትሩ የሥራ ጠረጴዛ",
     "nationalOversight": "ብሔራዊ የፖሊሲ አመራር",
     "farmerSupport": "የአርሶ አደር ድጋፍና አገልግሎቶች",
-    "hotline8028": "8028 ነፃ የግብርና መስመር",
-    "hotlineDesc": "ከግብርና ሚኒስቴር በነፃ ስልክ እና SMS",
+    "hotline8028": "977 ነፃ የግብርና መስመር",
+    "hotlineDesc": "ከግብርና ሚኒስቴር እና ከአግሪማይንድስ በነፃ ስልክ እና SMS",
     "kebeleExtension": "የቀበሌ ልማት ሠራተኛ (DA)",
     "kebeleDesc": "የአካባቢ የግብርና ድጋፍ ዝግጁ ነው",
     "executiveToolkit": "የአመራር ፖሊሲ ውሳኔዎች",
@@ -794,6 +796,7 @@
       "speak": "ጥያቄዎን ይናገሩ",
       "readAloud": "ጮክ ብሎ ያንብብ",
       "stopReading": "አቁም",
+      "listenAnswer": "ያዳምጡ",
       "thinking": "ማሳዎችዎን በመመልከት ላይ…",
       "chip": {
         "risk": "የድርቅ ስጋት",
@@ -959,7 +962,11 @@
     "empty": "እስካሁን ጥያቄ የለም።",
     "held": "{n} ተይዘዋል፣ አልተላኩም",
     "unregistered": "{n} ካልተመዘገቡ ቁጥሮች",
-    "notRegistered": "አልተመዘገበም"
+    "notRegistered": "አልተመዘገበም",
+    "callNow": "ወደ 977 በነፃ ይደውሉ",
+    "listenTurn": "ያዳምጡ",
+    "askQuestion": "ይህንን ጠይቅ",
+    "dialCode": "977 ይደውሉ ወይም SMS ይላኩ"
   },
   "site": {
     "nav": "ጣቢያ",

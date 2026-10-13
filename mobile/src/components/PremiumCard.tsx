@@ -122,8 +122,8 @@ export function PremiumCard() {
                 <Ionicons name="call" size={14} color="#f59e0b" />
                 <Text style={[styles.featureText, { color: colors.text }]}>
                   {language === 'am'
-                    ? 'በ 8028 ነፃ መስመር የቀጥታ የባለሙያ እና AI ድጋፍ'
-                    : 'Priority 8028 hotline interactive agronomic AI advisory'}
+                    ? 'በ 977 ነፃ መስመር የቀጥታ የባለሙያ እና AI ድጋፍ'
+                    : 'Priority 977 hotline interactive agronomic AI advisory'}
                 </Text>
               </View>
             </View>

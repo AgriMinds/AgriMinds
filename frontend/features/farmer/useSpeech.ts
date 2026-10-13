@@ -33,40 +33,64 @@ function recognitionCtor(): (new () => Recognition) | null {
  */
 export function useSpeech(locale: string) {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
+  const [hasSynth, setHasSynth] = useState(false)
   const [speaking, setSpeaking] = useState(false)
   const [listening, setListening] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
-    const read = () => setVoices(window.speechSynthesis.getVoices())
+    setHasSynth(true)
+    const read = () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        setVoices(window.speechSynthesis.getVoices())
+      }
+    }
     read()
-    // Voices load asynchronously in Chrome, so the first read is often empty.
     window.speechSynthesis.addEventListener('voiceschanged', read)
-    return () => window.speechSynthesis.removeEventListener('voiceschanged', read)
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', read)
+    }
   }, [])
 
   const tag = VOICE_TAG[locale] ?? 'en-US'
-  const voice = voices.find((v) => v.lang === tag) ?? voices.find((v) => v.lang.startsWith(`${locale}-`))
+  const voice =
+    voices.find((v) => v.lang.toLowerCase() === tag.toLowerCase()) ??
+    voices.find((v) => v.lang.toLowerCase().startsWith(`${locale.toLowerCase()}-`)) ??
+    voices.find((v) => v.lang.toLowerCase().startsWith(locale.toLowerCase()))
 
   const speak = useCallback(
     (text: string) => {
-      if (!voice) return
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.voice = voice
-      utterance.lang = voice.lang
-      // Slower than default: this is advice somebody may be writing down.
-      utterance.rate = 0.95
+      if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+      // Clean markdown formatting and irregular spacing for natural voice output
+      const clean = text
+        .replace(/[*#_`~>]/g, '')
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .replace(/\s+/g, ' ')
+        .trim()
+      if (!clean) return
+
+      window.speechSynthesis.cancel()
+      const utterance = new SpeechSynthesisUtterance(clean)
+      if (voice) {
+        utterance.voice = voice
+        utterance.lang = voice.lang
+      } else {
+        utterance.lang = tag
+      }
+      // Slower, deliberate pace (0.92): this is agronomic advice someone is writing down
+      utterance.rate = 0.92
       utterance.onend = () => setSpeaking(false)
       utterance.onerror = () => setSpeaking(false)
-      window.speechSynthesis.cancel()
       window.speechSynthesis.speak(utterance)
       setSpeaking(true)
     },
-    [voice],
+    [voice, tag],
   )
 
   const stop = useCallback(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel()
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
     setSpeaking(false)
   }, [])
 
@@ -88,7 +112,7 @@ export function useSpeech(locale: string) {
   )
 
   return {
-    canSpeak: Boolean(voice),
+    canSpeak: hasSynth,
     canListen: recognitionCtor() !== null,
     speaking,
     listening,

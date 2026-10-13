@@ -9,9 +9,11 @@ import {
   OctagonAlert,
   ShieldCheck,
   Sparkles,
+  Square,
+  Volume2,
   Wheat,
 } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import type { AdvisoryResponse, PdsiCategory, RiskLevel } from '@agriminds/api-types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -19,6 +21,7 @@ import { CardIcon } from '@/components/ui/card'
 import { PDSI_DOT_CLASS, PDSI_ICON, ensoKey, pdsiKey } from '@/lib/classification'
 import { RISK_ACCENT_BORDER, RISK_SOFT_CLASS, RISK_TEXT_CLASS } from '@/lib/risk'
 import { cn, formatPercent } from '@/lib/utils'
+import { useSpeech } from './useSpeech'
 
 /** Risk is never carried by colour alone: every level also has its own icon and its own words. */
 const RISK_ICON: Record<RiskLevel, typeof ShieldCheck> = {
@@ -68,9 +71,28 @@ export function AdvisoryActionCard({
   const tr = useTranslations('risk')
   const tp = useTranslations('pdsi')
   const tb = useTranslations('ensoBand')
+  const locale = useLocale()
+  const speech = useSpeech(locale)
   const level = advisory.risk_level as RiskLevel
   const GroundIcon = ground ? PDSI_ICON[ground] : null
   const Icon = RISK_ICON[level]
+
+  const handleToggleSpeak = () => {
+    if (speech.speaking) {
+      speech.stop()
+      return
+    }
+    const cropLabel = ta(`crops.${advisory.crop}.label`)
+    const parts = [
+      plotName ? t('adviceForPlot', { plot: plotName }) : t('adviceTitle'),
+      `${tr(level)}. ${formatPercent(advisory.adjusted_probability)} ${t('chanceOfDrought', { crop: cropLabel })}.`,
+      `${ta('strategyTitle')}: ${advisory.crop_recommendation}.`,
+      `${ta('plantingTitle')}: ${advisory.planting_window}.`,
+      `${ta('waterTitle')}: ${advisory.water_management}.`,
+      `${ta('prepTitle')}: ${advisory.preparedness_action}.`,
+    ]
+    speech.speak(parts.join(' '))
+  }
 
   return (
     <section
@@ -90,9 +112,29 @@ export function AdvisoryActionCard({
             <Icon className="size-9 sm:size-11" />
           </span>
           <div className="min-w-0">
-            <p className="text-xs font-semibold tracking-wider text-fg-muted uppercase">
-              {plotName ? t('adviceForPlot', { plot: plotName }) : t('adviceTitle')}
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-semibold tracking-wider text-fg-muted uppercase">
+                {plotName ? t('adviceForPlot', { plot: plotName }) : t('adviceTitle')}
+              </p>
+              {speech.canSpeak && (
+                <button
+                  type="button"
+                  onClick={handleToggleSpeak}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-surface px-2.5 py-0.5 text-xs font-medium text-fg transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    speech.speaking && 'border-primary bg-primary/10 font-semibold text-primary',
+                  )}
+                  aria-label={speech.speaking ? t('stopListening') : t('listenAdvice')}
+                >
+                  {speech.speaking ? (
+                    <Square className="size-3 shrink-0" />
+                  ) : (
+                    <Volume2 className="size-3 shrink-0 text-primary" />
+                  )}
+                  <span>{speech.speaking ? t('stopListening') : t('listenAdvice')}</span>
+                </button>
+              )}
+            </div>
             <h2
               id="advisory-heading"
               className={cn('font-display text-display-sm font-bold', RISK_TEXT_CLASS[level])}

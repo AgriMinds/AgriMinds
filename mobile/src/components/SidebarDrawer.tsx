@@ -73,7 +73,7 @@ export function SidebarDrawer() {
   };
 
   const handleCallHotline = () => {
-    Linking.openURL('tel:8028').catch(() => {});
+    Linking.openURL('tel:977').catch(() => {});
   };
 
   // Determine active identity attributes matching Web Sidebar
@@ -240,12 +240,12 @@ export function SidebarDrawer() {
             {isFarmer && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>{t('sidebar.farmerSupport')}</Text>
-                {/* 8028 Toll-Free Agronomic Advisory Hotline */}
+                {/* 977 Toll-Free Agronomic Advisory Hotline */}
                 <TouchableOpacity
                   onPress={handleCallHotline}
                   style={styles.hotlineActionCard}
                   accessibilityRole="button"
-                  accessibilityLabel="Call 8028 Agronomic Hotline"
+                  accessibilityLabel="Call 977 Agronomic Hotline"
                 >
                   <View style={styles.hotlineIconBadge}>
                     <Ionicons name="call" size={15} color="#082519" />

@@ -119,10 +119,10 @@ export function AgentChat() {
       icon={<Ionicons name="chatbubbles-outline" size={18} color={colors.primary} />}
       title={
         language === 'am'
-          ? 'የአርሶ አደር AI አማካሪ (8028 Hotline)'
+          ? 'የአርሶ አደር AI አማካሪ (977 Hotline)'
           : language === 'or'
-            ? 'Gorsaa AI Qonnaan Bulaa (8028 Hotline)'
-            : 'AI Agronomic Advisor (8028 Hotline)'
+            ? 'Gorsaa AI Qonnaan Bulaa (977 Hotline)'
+            : 'AI Agronomic Advisor (977 Hotline)'
       }
       subtitle={
         language === 'am'

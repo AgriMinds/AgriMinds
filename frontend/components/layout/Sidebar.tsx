@@ -150,7 +150,7 @@ function FarmerServices() {
         {ts('farmerSupport')}
       </p>
       <a
-        href="tel:8028"
+        href="tel:977"
         className="group flex items-center gap-2.5 rounded-lg border border-brand-lime/30 bg-brand-lime/[0.08] p-2.5 transition-colors hover:border-brand-lime hover:bg-brand-lime/[0.15]"
       >
         <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-brand-lime/20 text-brand-lime group-hover:bg-brand-lime group-hover:text-brand-forest-deep transition-colors">

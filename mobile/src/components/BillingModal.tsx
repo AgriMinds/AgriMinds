@@ -71,7 +71,7 @@ export function BillingModal({ visible, onClose }: BillingModalProps) {
       period: 'Forever',
       badge: 'Current Basic',
       desc: 'Free early warning advisories and plots management for local Ethiopian farmers.',
-      features: ['Up to 2 registered farm plots', 'Monthly seasonal outlook', 'Standard 8028 hotline access'],
+      features: ['Up to 2 registered farm plots', 'Monthly seasonal outlook', 'Standard 977 hotline access'],
       highlight: false,
     },
     {

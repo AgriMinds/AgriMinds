@@ -276,6 +276,8 @@
     "adviceTitle": "Waqtii kana maal gochuu qabna",
     "adviceForPlot": "Gorsa {plot}f",
     "chanceOfDrought": "Carraa hongee {crop}f",
+    "listenAdvice": "Gorsa dhaggeeffadhaa",
+    "stopListening": "Dubbisuu dhaabaa",
     "acknowledge": "Dubbiseera",
     "acknowledged": "Dubbifame",
     "myPlots": "Lafa koo ({count})",
@@ -431,8 +433,8 @@
     "ministerDesk": "Ministeera Qonnaa Itoophiyaa",
     "nationalOversight": "To'annoo Imaammata Biyyoolessaa",
     "farmerSupport": "Tajaajila fi Gorsa Qonnaan Bulaa",
-    "hotline8028": "Sarara Bilbila Bilisaa 8028",
-    "hotlineDesc": "Gorsa bilisaa Ministeera Qonnaa irraa",
+    "hotline8028": "Sarara Bilbila Bilisaa 977",
+    "hotlineDesc": "Gorsa bilisaa Ministeera Qonnaa fi AgriMinds irraa (IVR / SMS)",
     "kebeleExtension": "Ogeessa Misooma Gandaa (DA)",
     "kebeleDesc": "Deeggarsi qonnaa naannoo banaadha",
     "executiveToolkit": "Tarkaanfiiwwan Imaammataa",
@@ -794,6 +796,7 @@
       "speak": "Gaaffii kee dubbadhu",
       "readAloud": "Sagaleen dubbisi",
       "stopReading": "Dhaabi",
+      "listenAnswer": "Dhaggeeffadhu",
       "thinking": "Lafa kee ilaalaa jira…",
       "chip": {
         "risk": "Balaa hongee",
@@ -959,7 +962,11 @@
     "empty": "Hanga ammaa gaaffii hin jiru.",
     "held": "{n} qabamanii, hin ergamne",
     "unregistered": "{n} lakkoofsa hin galmoofne irraa",
-    "notRegistered": "Hin galmoofne"
+    "notRegistered": "Hin galmoofne",
+    "callNow": "Bilisaan 977 irratti bilbilaa",
+    "listenTurn": "Dhaggeeffadhu",
+    "askQuestion": "Kana gaafadhu",
+    "dialCode": "977 bilbilaa ykn SMS ergaa"
   },
   "site": {
     "nav": "Marsariitii",

@@ -109,17 +109,35 @@ export function AgentChat() {
           className="flex max-h-72 flex-col gap-2 overflow-y-auto"
         >
           {turns.map((turn, i) => (
-            <p
+            <div
               key={i}
               className={cn(
-                'max-w-[85%] rounded-xl px-3 py-2 text-sm leading-relaxed',
-                turn.from === 'farmer'
-                  ? 'self-end bg-primary/10 text-fg'
-                  : 'self-start bg-surface-sunken text-fg',
+                'flex max-w-[85%] flex-col gap-1',
+                turn.from === 'farmer' ? 'items-end self-end' : 'items-start self-start',
               )}
             >
-              {turn.text}
-            </p>
+              <p
+                className={cn(
+                  'rounded-xl px-3 py-2 text-sm leading-relaxed',
+                  turn.from === 'farmer'
+                    ? 'bg-primary/10 text-fg'
+                    : 'bg-surface-sunken text-fg',
+                )}
+              >
+                {turn.text}
+              </p>
+              {turn.from === 'agent' && speech.canSpeak && (
+                <button
+                  type="button"
+                  onClick={() => (speech.speaking ? speech.stop() : speech.speak(turn.text))}
+                  className="inline-flex items-center gap-1 px-1 text-[11px] text-fg-muted transition-colors hover:text-primary focus-visible:outline-none"
+                  aria-label={speech.speaking ? t('stopReading') : t('listenAnswer')}
+                >
+                  <Volume2 className="size-3" />
+                  <span>{t('listenAnswer')}</span>
+                </button>
+              )}
+            </div>
           ))}
           {ask.isPending && (
             <p className="self-start px-3 py-2 text-sm text-fg-muted">

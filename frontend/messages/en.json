@@ -276,6 +276,8 @@
     "adviceTitle": "What to do this season",
     "adviceForPlot": "Advice for {plot}",
     "chanceOfDrought": "Chance of drought for {crop}",
+    "listenAdvice": "Listen to advice",
+    "stopListening": "Stop reading",
     "acknowledge": "I have read this",
     "acknowledged": "Read",
     "myPlots": "My plots ({count})",
@@ -431,8 +433,8 @@
     "ministerDesk": "Ministerial Executive Desk",
     "nationalOversight": "National Policy Oversight",
     "farmerSupport": "Farmer Services & Extension",
-    "hotline8028": "8028 Agronomic Hotline",
-    "hotlineDesc": "MoA toll-free advisory (IVR / SMS)",
+    "hotline8028": "977 Agronomic Hotline",
+    "hotlineDesc": "AgriMinds & MoA toll-free AI advisory (IVR / SMS)",
     "kebeleExtension": "Kebele Extension Agent (DA)",
     "kebeleDesc": "Local agronomic support active",
     "executiveToolkit": "Executive Policy Directives",
@@ -794,6 +796,7 @@
       "speak": "Speak your question",
       "readAloud": "Read aloud",
       "stopReading": "Stop",
+      "listenAnswer": "Listen",
       "thinking": "Checking your plots…",
       "chip": {
         "risk": "Drought risk",
@@ -959,7 +962,11 @@
     "empty": "Nothing asked yet.",
     "held": "{n} held, not sent",
     "unregistered": "{n} from unregistered numbers",
-    "notRegistered": "Not registered"
+    "notRegistered": "Not registered",
+    "callNow": "Call 977 toll-free",
+    "listenTurn": "Listen",
+    "askQuestion": "Ask this",
+    "dialCode": "Dial 977 or send SMS"
   },
   "site": {
     "nav": "Site",
