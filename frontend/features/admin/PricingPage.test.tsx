@@ -45,6 +45,8 @@ const tier = (
   currency: 'ETB',
   rates,
   api_quota_monthly: quota,
+  strategy: 'Group subscriptions and sponsored member access.',
+  value_note: 'Shared subscription costs improve affordability for members.',
   effective_from: '2026-10-12',
   effective_to: null,
   is_current: true,
@@ -56,6 +58,20 @@ const catalogue = {
   as_of: '2026-10-13',
   annual_total_cents: 456_015_000,
   annual_total: '4560150.00',
+  products: [
+    {
+      code: 'A',
+      name: 'Farmer Drought Alert',
+      summary: 'Seasonal warnings delivered to the farmer.',
+      stakeholders: ['farmer_premium'],
+    },
+    {
+      code: 'B',
+      name: 'Cooperative & Extension Package',
+      summary: 'Bulk advisory delivery and woreda reporting.',
+      stakeholders: ['cooperative', 'development_agent'],
+    },
+  ],
   tiers: [
     tier(
       'cooperative',
@@ -172,5 +188,23 @@ describe('PricingPage', () => {
     expect(change.daily_cents).toBe(8_200)
     // A price change is about money; it must not silently zero what the customer may call.
     expect(change.api_quota_monthly).toBe(10_000)
+  })
+
+  it('shows what each price buys, not only the number', () => {
+    wrap()
+    // A price with no product behind it is the thing that gets quoted and cannot be delivered.
+    expect(screen.getByText('Farmer Drought Alert')).toBeInTheDocument()
+    expect(screen.getByText('Cooperative & Extension Package')).toBeInTheDocument()
+  })
+
+  it('keeps the argument that justifies a price beside the price', () => {
+    wrap()
+    expect(screen.getAllByText(/Shared subscription costs improve affordability/).length).toBeGreaterThan(0)
+  })
+
+  it('carries the go-to-market plan the model depends on', () => {
+    wrap()
+    expect(screen.getByText(/Demonstrate the problem using real local evidence/)).toBeInTheDocument()
+    expect(screen.getByText('Days 31–60')).toBeInTheDocument()
   })
 })

@@ -214,6 +214,8 @@ export function PricingPage() {
             )}
           </CardContent>
         </Card>
+
+        {catalogue.data && <BusinessModel catalogue={catalogue.data} />}
       </div>
     </>
   )

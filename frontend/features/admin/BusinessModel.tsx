@@ -51,10 +51,7 @@ export function BusinessModel({ catalogue }: { catalogue: PricingCatalogue }) {
         <CardContent>
           <ul className="grid gap-3 md:grid-cols-3">
             {catalogue.products?.map((product) => (
-              <li
-                key={product.code}
-                className="flex flex-col gap-2 rounded-xl border border-border p-3"
-              >
+              <li key={product.code} className="flex flex-col gap-2 rounded-xl border border-border p-3">
                 <span className="flex items-center gap-2">
                   <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-fg">
                     {product.code}
@@ -101,9 +98,7 @@ export function BusinessModel({ catalogue }: { catalogue: PricingCatalogue }) {
             </ol>
 
             <div className="flex flex-col gap-2 border-t border-border pt-3">
-              <p className="text-xs font-semibold tracking-wide text-fg-muted uppercase">
-                {t('pillars')}
-              </p>
+              <p className="text-xs font-semibold tracking-wide text-fg-muted uppercase">{t('pillars')}</p>
               <ul className="flex flex-col gap-1.5">
                 {pillars.map((pillar) => (
                   <li key={pillar} className="text-sm leading-snug">
@@ -142,9 +137,7 @@ export function BusinessModel({ catalogue }: { catalogue: PricingCatalogue }) {
                       {t(`phase.${phase}.days`)}
                     </span>
                     <span className="text-sm font-medium">{t(`phase.${phase}.title`)}</span>
-                    <span className="text-xs leading-snug text-fg-muted">
-                      {t(`phase.${phase}.detail`)}
-                    </span>
+                    <span className="text-xs leading-snug text-fg-muted">{t(`phase.${phase}.detail`)}</span>
                   </span>
                 </li>
               ))}
