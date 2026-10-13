@@ -226,20 +226,58 @@ async def seed_demo(session: AsyncSession, settings: Settings, password: str = D
 #: figures and deliberately keeps its own copy — a migration is a frozen record of what the schema
 #: held then, so it must not import this module and start changing retroactively when prices move.
 PRICING_TIERS: tuple[tuple[str, str, str, int, int, int, int, int], ...] = (
-    ("federal_ministry", "Federal ministry", "per ministry",
-     1_800_000_000, 450_000_000, 45_000_000, 1_233_000, 1_000_000),
-    ("international_partner", "International partner / NGO", "per organisation",
-     1_200_000_000, 300_000_000, 30_000_000, 822_000, 500_000),
-    ("regional_government", "Regional / zonal government", "per bureau",
-     720_000_000, 180_000_000, 18_000_000, 493_000, 250_000),
-    ("private_sector", "Private sector", "per company",
-     480_000_000, 120_000_000, 12_000_000, 329_000, 100_000),
-    ("development_agent", "Development agent", "per woreda",
-     48_000_000, 12_000_000, 1_200_000, 33_000, 25_000),
-    ("research", "Research / university", "per institution",
-     0, 6_000_000, 600_000, 16_500, 50_000),
-    ("cooperative", "Cooperative", "per cooperative",
-     12_000_000, 3_000_000, 300_000, 8_200, 10_000),
+    (
+        "federal_ministry",
+        "Federal ministry",
+        "per ministry",
+        1_800_000_000,
+        450_000_000,
+        45_000_000,
+        1_233_000,
+        1_000_000,
+    ),
+    (
+        "international_partner",
+        "International partner / NGO",
+        "per organisation",
+        1_200_000_000,
+        300_000_000,
+        30_000_000,
+        822_000,
+        500_000,
+    ),
+    (
+        "regional_government",
+        "Regional / zonal government",
+        "per bureau",
+        720_000_000,
+        180_000_000,
+        18_000_000,
+        493_000,
+        250_000,
+    ),
+    (
+        "private_sector",
+        "Private sector",
+        "per company",
+        480_000_000,
+        120_000_000,
+        12_000_000,
+        329_000,
+        100_000,
+    ),
+    (
+        "development_agent",
+        "Development agent",
+        "per woreda",
+        48_000_000,
+        12_000_000,
+        1_200_000,
+        33_000,
+        25_000,
+    ),
+    ("research", "Research / university", "per institution", 0, 6_000_000, 600_000, 16_500, 50_000),
+    ("cooperative", "Cooperative", "per cooperative", 12_000_000, 3_000_000, 300_000, 8_200, 10_000),
     ("farmer_premium", "Farmer (premium)", "per farmer", 0, 15_000, 1_500, 41, 0),
 )
 
@@ -252,9 +290,7 @@ async def seed_pricing_tiers(session: AsyncSession, effective_from: date | None 
     """
     priced = set(
         (
-            await session.scalars(
-                select(PricingTier.stakeholder).where(PricingTier.effective_to.is_(None))
-            )
+            await session.scalars(select(PricingTier.stakeholder).where(PricingTier.effective_to.is_(None)))
         ).all()
     )
     start = effective_from or date.today()

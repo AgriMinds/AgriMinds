@@ -35,9 +35,7 @@ def _out(tier: PricingTier) -> PricingTierOut:
         label=tier.label,
         unit=tier.unit,
         currency=tier.currency,
-        rates=TierRates.of(
-            tier.one_time_cents, tier.annual_cents, tier.monthly_cents, tier.daily_cents
-        ),
+        rates=TierRates.of(tier.one_time_cents, tier.annual_cents, tier.monthly_cents, tier.daily_cents),
         api_quota_monthly=tier.api_quota_monthly,
         effective_from=tier.effective_from,
         effective_to=tier.effective_to,

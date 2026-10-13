@@ -47,7 +47,9 @@ class ApiKeyIssued(ApiKeyOut):
 
 
 class ApiKeyCreate(BaseModel):
-    label: str = Field(min_length=2, max_length=80, description="What this key is for, e.g. 'EIAR research pipeline'")
+    label: str = Field(
+        min_length=2, max_length=80, description="What this key is for, e.g. 'EIAR research pipeline'"
+    )
 
 
 class UsageDay(BaseModel):

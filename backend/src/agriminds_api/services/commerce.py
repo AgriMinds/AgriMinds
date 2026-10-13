@@ -67,9 +67,7 @@ class CommerceService:
         return org
 
     async def organizations(self) -> list[Organization]:
-        return list(
-            (await self._session.scalars(select(Organization).order_by(Organization.name))).all()
-        )
+        return list((await self._session.scalars(select(Organization).order_by(Organization.name))).all())
 
     async def quota_for(self, stakeholder: StakeholderType) -> int:
         """The API allowance of the tier in force. Zero when the tier carries no API access."""

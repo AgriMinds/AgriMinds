@@ -46,7 +46,10 @@ class TestCatalogue:
         assert farmer["daily"] == "0.41"
 
     def test_the_unit_is_part_of_the_price(self, client, admin_headers, pricing_tiers) -> None:
-        tiers = {t["stakeholder"]: t for t in client.get("/api/v1/billing/pricing", headers=admin_headers).json()["tiers"]}
+        tiers = {
+            t["stakeholder"]: t
+            for t in client.get("/api/v1/billing/pricing", headers=admin_headers).json()["tiers"]
+        }
         assert tiers["development_agent"]["unit"] == "per woreda"
 
     def test_states_its_own_annual_total(self, client, admin_headers, pricing_tiers) -> None:
@@ -66,9 +69,7 @@ class TestReprice:
         return base | over
 
     def test_a_change_supersedes_rather_than_rewrites(self, client, admin_headers, pricing_tiers) -> None:
-        res = client.post(
-            "/api/v1/billing/pricing/cooperative", json=self._change(), headers=admin_headers
-        )
+        res = client.post("/api/v1/billing/pricing/cooperative", json=self._change(), headers=admin_headers)
         assert res.status_code == 201, res.text
 
         history = client.get("/api/v1/billing/pricing/cooperative", headers=admin_headers).json()
@@ -109,7 +110,5 @@ class TestReprice:
         assert res.status_code == 422
 
     def test_refuses_a_stakeholder_it_does_not_price(self, client, admin_headers, pricing_tiers) -> None:
-        res = client.post(
-            "/api/v1/billing/pricing/space_agency", json=self._change(), headers=admin_headers
-        )
+        res = client.post("/api/v1/billing/pricing/space_agency", json=self._change(), headers=admin_headers)
         assert res.status_code == 422

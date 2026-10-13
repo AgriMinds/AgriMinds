@@ -48,10 +48,26 @@ SEED = (
     ("farmer_premium", "Farmer (premium)", "per farmer", 0, 300, 30, 1),
     ("cooperative", "Cooperative", "per cooperative", 240_000, 60_000, 6_000, 160),
     ("development_agent", "Development agent", "per woreda", 960_000, 240_000, 24_000, 660),
-    ("regional_government", "Regional / zonal government", "per bureau", 14_400_000, 3_600_000, 360_000, 9_900),
+    (
+        "regional_government",
+        "Regional / zonal government",
+        "per bureau",
+        14_400_000,
+        3_600_000,
+        360_000,
+        9_900,
+    ),
     ("federal_ministry", "Federal ministry", "per ministry", 36_000_000, 9_000_000, 900_000, 24_700),
     ("research", "Research / university", "per institution", 0, 120_000, 12_000, 330),
-    ("international_partner", "International partner / NGO", "per organisation", 24_000_000, 6_000_000, 600_000, 16_400),
+    (
+        "international_partner",
+        "International partner / NGO",
+        "per organisation",
+        24_000_000,
+        6_000_000,
+        600_000,
+        16_400,
+    ),
     ("private_sector", "Private sector", "per company", 9_600_000, 2_400_000, 240_000, 6_600),
 )
 

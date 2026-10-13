@@ -54,9 +54,7 @@ class Organization(UUIDPrimaryKey, Timestamps, Base):
     contact_email: Mapped[str | None] = mapped_column(String(254), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
 
-    api_keys: Mapped[list[ApiKey]] = relationship(
-        back_populates="organization", cascade="all, delete-orphan"
-    )
+    api_keys: Mapped[list[ApiKey]] = relationship(back_populates="organization", cascade="all, delete-orphan")
 
 
 class ApiKey(UUIDPrimaryKey, Timestamps, Base):
