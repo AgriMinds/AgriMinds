@@ -178,7 +178,11 @@ export function PlotDialog({ farm, lead, onClose }: Props) {
               variant="tile"
               value={crop}
               onChange={setCrop}
-              options={CROPS.map((c) => ({ value: c, label: ta(`crops.${c}.label`), hint: ta(`crops.${c}.desc`) }))}
+              options={CROPS.map((c) => ({
+                value: c,
+                label: ta(`crops.${c}.label`),
+                hint: ta(`crops.${c}.desc`),
+              }))}
             />
           </fieldset>
 
@@ -197,7 +201,14 @@ export function PlotDialog({ farm, lead, onClose }: Props) {
               {busy && <Loader2 className="animate-spin" />}
               {farm ? t('saveChanges') : t('addPlot')}
             </Button>
-            <Button type="button" variant="outline" size="lg" className="h-12" onClick={onClose} disabled={busy}>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="h-12"
+              onClick={onClose}
+              disabled={busy}
+            >
               {tc('cancel')}
             </Button>
             {farm && (

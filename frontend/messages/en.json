@@ -21,7 +21,8 @@
       "reports": "Reports & briefings",
       "section": "Navigation",
       "pricing": "Pricing",
-      "organizations": "Accounts"
+      "organizations": "Accounts",
+      "requests": "Requests"
     },
     "workspaceSub": "Debre Markos University · AI Institute of Ethiopia",
     "greeting": "Drought outlook",
@@ -736,5 +737,69 @@
       "requestsDetail": "{share} of the capacity sold"
     },
     "cancel": "Cancel"
+  },
+  "farm": {
+    "premium": {
+      "title": "Premium advisories",
+      "value": "ETB 465 a year. One drought season avoided is worth around ETB 70,000 to a holding this size — the subscription costs a fraction of a single bad year.",
+      "includes": {
+        "sms": "Warnings by SMS, so you get them without opening the app",
+        "plots": "Advice for every plot, not just the one that needs it most",
+        "season": "The full season outlook, three months ahead"
+      },
+      "noteLabel": "Anything you want us to know (optional)",
+      "notePlaceholder": "When is the best time to reach you?",
+      "ask": "Ask about premium",
+      "asking": "Sending…",
+      "noPayment": "No payment is taken here. We will contact you to arrange it.",
+      "pending": "We have your request and will be in touch.",
+      "approved": "Your premium access has been approved."
+    }
+  },
+  "requestAccess": {
+    "title": "Request access",
+    "intro": "For cooperatives, woreda agricultural offices, insurers and lenders, ministries, NGOs and universities. Tell us who you are and we will be in touch.",
+    "field": {
+      "organization_name": "Organisation",
+      "contact_name": "Your name",
+      "stakeholder": "What kind of organisation",
+      "contact_email": "Email",
+      "contact_phone": "Phone",
+      "message": "What do you need it for?"
+    },
+    "messagePlaceholder": "How many farmers or woredas would this cover?",
+    "reachable": "Give an email address or a phone number so we can reply.",
+    "send": "Send request",
+    "sending": "Sending…",
+    "sentTitle": "Request received",
+    "sentBody": "Thank you. We have your request and will be in touch.",
+    "backToSignIn": "Back to sign in",
+    "haveAccount": "Already have an account? Sign in"
+  },
+  "requests": {
+    "eyebrow": "Business",
+    "title": "Access requests",
+    "intro": "Everyone who has asked to buy, and what was done about it. Approving an organisation creates its account in the segment you choose here — the price follows from the segment, so the enquirer's own description is not binding.",
+    "cardTitle": "Inbox",
+    "cardDesc": "Newest first",
+    "openOnly": "Only those still waiting on a decision",
+    "kind": {
+      "farmer": "Farmer premium",
+      "organization": "Organisation"
+    },
+    "selfDescribed": "describes itself as {segment}",
+    "status": {
+      "new": "New",
+      "contacted": "Contacted",
+      "approved": "Approved",
+      "declined": "Declined"
+    },
+    "placeIn": "Place in segment",
+    "note": "Note",
+    "approve": "Approve",
+    "decline": "Decline",
+    "decided": "Note: {note}",
+    "empty": "Nothing waiting",
+    "emptyHint": "Requests from the public form and from farmers asking about premium arrive here."
   }
 }

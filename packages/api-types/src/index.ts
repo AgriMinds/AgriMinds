@@ -193,3 +193,10 @@ export type OrganizationCreate = Schemas['OrganizationCreate']
 export type ApiKeyOut = Schemas['ApiKeyOut']
 export type ApiKeyIssued = Schemas['ApiKeyIssued']
 export type OrganizationUsage = Schemas['OrganizationUsage']
+
+// ---- access requests (the front door) --------------------------------------------------
+export type AccessRequestOut = Schemas['AccessRequestOut']
+export type OrganizationEnquiry = Schemas['OrganizationEnquiry']
+export type FarmerUpgradeRequest = Schemas['FarmerUpgradeRequest']
+export type RequestDecision = Schemas['RequestDecision']
+export type EnquiryAccepted = Schemas['EnquiryAccepted']

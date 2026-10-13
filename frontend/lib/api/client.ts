@@ -9,6 +9,11 @@ import type {
   CropYieldScenarioRequest,
   DataInventory,
   CropYieldTimeline,
+  EnquiryAccepted,
+  FarmerUpgradeRequest,
+  OrganizationEnquiry,
+  RequestDecision,
+  AccessRequestOut,
   ApiKeyIssued,
   ApiKeyOut,
   OrganizationCreate,
@@ -190,6 +195,25 @@ export const api = {
   /** Belt-average yields and Niño 3.4 across the record and the years after it. */
   cropYieldTimeline: (throughYear?: number) =>
     request<CropYieldTimeline>(`/crop-yield/timeline${throughYear ? `?through_year=${throughYear}` : ''}`),
+
+  // ---- the front door -----------------------------------------------------------------
+  /** A sales enquiry. The only call here that works without a session. */
+  enquire: (payload: OrganizationEnquiry) =>
+    request<EnquiryAccepted>('/access-requests', { method: 'POST', body: JSON.stringify(payload) }),
+  /** Whether this farmer has already asked about premium, and what came of it. */
+  myPremiumRequest: () => request<AccessRequestOut | null>('/access-requests/premium'),
+  requestPremium: (payload: FarmerUpgradeRequest) =>
+    request<AccessRequestOut>('/access-requests/premium', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  accessRequests: (openOnly = false) =>
+    request<AccessRequestOut[]>(`/admin/access-requests${openOnly ? '?open_only=true' : ''}`),
+  decideRequest: (id: string, decision: RequestDecision) =>
+    request<AccessRequestOut>(`/admin/access-requests/${id}`, {
+      method: 'POST',
+      body: JSON.stringify(decision),
+    }),
 
   // ---- billing (admin only) -----------------------------------------------------------
   /** The rate card in force, or the full history when asked for it. */

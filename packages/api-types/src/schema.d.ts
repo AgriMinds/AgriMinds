@@ -4,6 +4,86 @@
  */
 
 export type paths = {
+    "/api/v1/access-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask for access (cooperative, office, insurer, ministry, NGO, university)
+         * @description The one unauthenticated write in the platform, and deliberately narrow. It records an enquiry and returns an acknowledgement — never whether the organisation is already a customer, because confirming that would turn a sales form into a directory of who pays.
+         *
+         *     An email address or a phone number is required: a lead nobody can reply to is not a lead. The segment is recorded as the enquirer's own description and is not binding; an administrator decides it on approval, because the price follows from it.
+         */
+        post: operations["enquire_api_v1_access_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-requests/premium": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether this farmer has already asked, and what happened */
+        get: operations["my_premium_request_api_v1_access_requests_premium_get"];
+        put?: never;
+        /**
+         * Ask to move off the free tier
+         * @description Identity comes from the token, so a farmer only supplies what we do not know.
+         */
+        post: operations["request_premium_api_v1_access_requests_premium_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/access-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Everyone who has asked */
+        get: operations["inbox_api_v1_admin_access_requests_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/access-requests/{request_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decide a request
+         * @description Approving an organisation enquiry **creates the account**, in the segment named here rather than the one the enquirer guessed. The link back is kept, so an account can always be traced to the enquiry it came from.
+         */
+        post: operations["decide_api_v1_admin_access_requests__request_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/advisories/evaluate": {
         parameters: {
             query?: never;
@@ -838,6 +918,47 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        /** AccessRequestOut */
+        AccessRequestOut: {
+            /** Contact Email */
+            contact_email: string | null;
+            /** Contact Name */
+            contact_name: string;
+            /** Contact Phone */
+            contact_phone: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Decided At */
+            decided_at: string | null;
+            /** Decision Note */
+            decision_note: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "farmer_premium" | "organization";
+            /** Message */
+            message: string | null;
+            /**
+             * Organization Id
+             * @description The account this became, once approved
+             */
+            organization_id?: string | null;
+            /** Organization Name */
+            organization_name: string | null;
+            /** Stakeholder */
+            stakeholder: ("farmer_premium" | "cooperative" | "development_agent" | "insurer_lender" | "federal_ministry" | "research" | "international_partner" | "regional_government" | "private_sector") | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "contacted" | "approved" | "declined";
+        };
         /** AccessTokenOut */
         AccessTokenOut: {
             /** Access Token */
@@ -1876,6 +1997,21 @@ export type components = {
             scoped: boolean;
         };
         /**
+         * EnquiryAccepted
+         * @description What the public form gets back. Deliberately thin: it must not confirm what we hold.
+         */
+        EnquiryAccepted: {
+            /** Id */
+            id: string;
+            /** Message */
+            message: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "contacted" | "approved" | "declined";
+        };
+        /**
          * EnsoImpactCell
          * @description What El Niño years did to one crop in one belt, over the whole record.
          */
@@ -2179,6 +2315,19 @@ export type components = {
             farms: components["schemas"]["FarmOut"][];
             provenance?: components["schemas"]["ForecastProvenance"] | null;
             user: components["schemas"]["UserOut"];
+        };
+        /**
+         * FarmerUpgradeRequest
+         * @description A signed-in farmer asking to leave the free tier. Their identity comes from the token.
+         */
+        FarmerUpgradeRequest: {
+            /**
+             * Contact Phone
+             * @description If different from the account
+             */
+            contact_phone?: string | null;
+            /** Message */
+            message?: string | null;
         };
         /** FarmOut */
         FarmOut: {
@@ -2669,6 +2818,27 @@ export type components = {
              */
             woreda_id?: string | null;
         };
+        /**
+         * OrganizationEnquiry
+         * @description The public form. No account exists yet, so everything is self-reported.
+         */
+        OrganizationEnquiry: {
+            /** Contact Email */
+            contact_email?: string | null;
+            /** Contact Name */
+            contact_name: string;
+            /** Contact Phone */
+            contact_phone?: string | null;
+            /** Message */
+            message?: string | null;
+            /** Organization Name */
+            organization_name: string;
+            /**
+             * Stakeholder
+             * @description Which segment they believe they are; an administrator may decide otherwise
+             */
+            stakeholder?: ("farmer_premium" | "cooperative" | "development_agent" | "insurer_lender" | "federal_ministry" | "research" | "international_partner" | "regional_government" | "private_sector") | null;
+        };
         /** OrganizationOut */
         OrganizationOut: {
             /** Active Keys */
@@ -2852,6 +3022,21 @@ export type components = {
         RefreshRequest: {
             /** Refresh Token */
             refresh_token: string;
+        };
+        /**
+         * RequestDecision
+         * @description Approving an organisation enquiry creates the account; declining records why.
+         */
+        RequestDecision: {
+            /** Note */
+            note?: string | null;
+            /** Stakeholder */
+            stakeholder?: ("farmer_premium" | "cooperative" | "development_agent" | "insurer_lender" | "federal_ministry" | "research" | "international_partner" | "regional_government" | "private_sector") | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "contacted" | "approved" | "declined";
         };
         /** RevenueByStakeholder */
         RevenueByStakeholder: {
@@ -3264,6 +3449,231 @@ export type components = {
 };
 export type $defs = Record<string, never>;
 export interface operations {
+    enquire_api_v1_access_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrganizationEnquiry"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnquiryAccepted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_premium_request_api_v1_access_requests_premium_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessRequestOut"] | null;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    request_premium_api_v1_access_requests_premium_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FarmerUpgradeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessRequestOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    inbox_api_v1_admin_access_requests_get: {
+        parameters: {
+            query?: {
+                /** @description Only requests still waiting on a decision */
+                open_only?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessRequestOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_api_v1_admin_access_requests__request_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessRequestOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     evaluate_api_v1_advisories_evaluate_post: {
         parameters: {
             query?: never;

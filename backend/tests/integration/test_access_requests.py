@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 ENQUIRY = {
     "organization_name": "Choke Farmers Union",
     "contact_name": "Almaz Bekele",

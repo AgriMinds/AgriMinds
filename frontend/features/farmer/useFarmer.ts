@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { FarmCreate, FarmUpdate, LeadMonth } from '@agriminds/api-types'
+import type { FarmCreate, FarmUpdate, FarmerUpgradeRequest, LeadMonth } from '@agriminds/api-types'
 import { api } from '@/lib/api/client'
 
 export const farmerKeys = {
@@ -31,7 +31,10 @@ export function useFarmMutations(lead: LeadMonth) {
   const invalidate = () => qc.invalidateQueries({ queryKey: ['farmer'] })
 
   return {
-    create: useMutation({ mutationFn: (payload: FarmCreate) => api.createFarm(payload, lead), onSuccess: invalidate }),
+    create: useMutation({
+      mutationFn: (payload: FarmCreate) => api.createFarm(payload, lead),
+      onSuccess: invalidate,
+    }),
     update: useMutation({
       mutationFn: ({ id, payload }: { id: string; payload: FarmUpdate }) => api.updateFarm(id, payload, lead),
       onSuccess: invalidate,
@@ -51,5 +54,23 @@ export function useAcknowledge() {
   return useMutation({
     mutationFn: (advisoryId: string) => api.acknowledgeAdvisory(advisoryId),
     onSettled: () => qc.invalidateQueries({ queryKey: ['farmer'] }),
+  })
+}
+
+/** Whether this farmer has already asked about premium, and what came of it. */
+export function useMyPremiumRequest() {
+  return useQuery({
+    queryKey: ['access-requests', 'premium'],
+    queryFn: api.myPremiumRequest,
+    staleTime: 5 * 60_000,
+  })
+}
+
+/** Ask to leave the free tier. A request, not a checkout: there is no payment gateway. */
+export function useRequestPremium() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: FarmerUpgradeRequest) => api.requestPremium(payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['access-requests', 'premium'] }),
   })
 }

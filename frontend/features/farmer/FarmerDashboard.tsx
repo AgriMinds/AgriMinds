@@ -11,6 +11,7 @@ import { SegmentedControl } from '@/components/ui/segmented'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AdvisoryActionCard } from '@/features/farmer/AdvisoryActionCard'
 import { PlotCard } from '@/features/farmer/PlotCard'
+import { PremiumCard } from '@/features/farmer/PremiumCard'
 import { PlotDialog } from '@/features/farmer/PlotDialog'
 import { useAcknowledge, useFarmAdvisory, useFarmerDashboard } from '@/features/farmer/useFarmer'
 import { localeName } from '@/features/ministry/useMinistry'
@@ -50,9 +51,7 @@ export function FarmerDashboard() {
   const acknowledge = useAcknowledge()
   // Keeps the button settled while the refetch that confirms it is still in flight.
   const [justAcknowledged, setJustAcknowledged] = useState<Set<string>>(new Set())
-  const acknowledged = Boolean(
-    serverAcknowledgedAt || (recordId && justAcknowledged.has(recordId)),
-  )
+  const acknowledged = Boolean(serverAcknowledgedAt || (recordId && justAcknowledged.has(recordId)))
 
   const leadLabel = (l: LeadMonth) => (
     <>
@@ -72,9 +71,14 @@ export function FarmerDashboard() {
             <h1 className="mt-2 font-display text-display font-bold">
               {data ? t('greeting', { name: data.user.full_name.split(' ')[0] ?? '' }) : t('greetingPlain')}
             </h1>
-            <p className="mt-2 max-w-prose text-sm leading-relaxed text-fg-muted sm:text-base">{t('intro')}</p>
+            <p className="mt-2 max-w-prose text-sm leading-relaxed text-fg-muted sm:text-base">
+              {t('intro')}
+            </p>
           </div>
-          <div className="reveal flex flex-wrap items-center gap-3" style={{ '--reveal-delay': '80ms' } as React.CSSProperties}>
+          <div
+            className="reveal flex flex-wrap items-center gap-3"
+            style={{ '--reveal-delay': '80ms' } as React.CSSProperties}
+          >
             <SegmentedControl
               aria-label={tg('leadGroup')}
               value={lead}
@@ -97,7 +101,11 @@ export function FarmerDashboard() {
         <ProvenanceBanner provenance={data?.provenance ?? undefined} className="reveal" />
 
         {dashboard.error && !data ? (
-          <QueryError error={dashboard.error} onRetry={() => void dashboard.refetch()} isRetrying={dashboard.isFetching} />
+          <QueryError
+            error={dashboard.error}
+            onRetry={() => void dashboard.refetch()}
+            isRetrying={dashboard.isFetching}
+          />
         ) : dashboard.isPending && !data ? (
           <div className="flex flex-col gap-4" aria-busy>
             <Skeleton className="h-64 rounded-2xl" />
@@ -111,24 +119,27 @@ export function FarmerDashboard() {
           <>
             {advisory ? (
               <div id="advice" className="scroll-mt-24">
-              <AdvisoryActionCard
-                advisory={advisory}
-                plotName={activeFarm?.name}
-                advisoryId={recordId}
-                acknowledged={acknowledged}
-                acknowledging={acknowledge.isPending}
-                onAcknowledge={() => {
-                  if (!recordId) return
-                  setJustAcknowledged((prev) => new Set(prev).add(recordId))
-                  acknowledge.mutate(recordId)
-                }}
-                ground={activeFarm?.risk?.pdsi_category ?? null}
-                isStale={dashboard.isFetching || picked.isFetching}
-              />
+                <AdvisoryActionCard
+                  advisory={advisory}
+                  plotName={activeFarm?.name}
+                  advisoryId={recordId}
+                  acknowledged={acknowledged}
+                  acknowledging={acknowledge.isPending}
+                  onAcknowledge={() => {
+                    if (!recordId) return
+                    setJustAcknowledged((prev) => new Set(prev).add(recordId))
+                    acknowledge.mutate(recordId)
+                  }}
+                  ground={activeFarm?.risk?.pdsi_category ?? null}
+                  isStale={dashboard.isFetching || picked.isFetching}
+                />
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border-strong bg-surface-raised/50 px-6 py-12 text-center">
-                <span className="flex size-12 items-center justify-center rounded-xl bg-surface-sunken text-fg-subtle" aria-hidden>
+                <span
+                  className="flex size-12 items-center justify-center rounded-xl bg-surface-sunken text-fg-subtle"
+                  aria-hidden
+                >
                   <Sprout className="size-6" />
                 </span>
                 <h2 className="font-display text-base font-semibold">{t('noPlotsTitle')}</h2>
@@ -139,8 +150,14 @@ export function FarmerDashboard() {
               </div>
             )}
 
+            <PremiumCard />
+
             {farms.length > 0 && (
-              <section id="plots" aria-labelledby="plots-heading" className="flex scroll-mt-24 flex-col gap-3">
+              <section
+                id="plots"
+                aria-labelledby="plots-heading"
+                className="flex scroll-mt-24 flex-col gap-3"
+              >
                 <div className="flex items-center justify-between gap-3">
                   <h2 id="plots-heading" className="font-display text-lg font-semibold">
                     {t('myPlots', { count: farms.length })}
@@ -178,7 +195,9 @@ export function FarmerDashboard() {
         )}
       </div>
 
-      {dialog.open && <PlotDialog farm={dialog.farm} lead={lead} onClose={() => setDialog({ open: false })} />}
+      {dialog.open && (
+        <PlotDialog farm={dialog.farm} lead={lead} onClose={() => setDialog({ open: false })} />
+      )}
     </>
   )
 }

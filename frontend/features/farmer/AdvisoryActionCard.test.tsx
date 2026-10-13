@@ -76,7 +76,12 @@ describe('AdvisoryActionCard', () => {
 
     rerender(
       <NextIntlClientProvider locale="en" messages={messages}>
-        <AdvisoryActionCard advisory={advisory} advisoryId="rec-1" acknowledged onAcknowledge={onAcknowledge} />
+        <AdvisoryActionCard
+          advisory={advisory}
+          advisoryId="rec-1"
+          acknowledged
+          onAcknowledge={onAcknowledge}
+        />
       </NextIntlClientProvider>,
     )
     expect(within(screen.getByTestId('advisory-action-card')).getByRole('status')).toHaveTextContent('Read')
@@ -91,9 +96,7 @@ describe('AdvisoryActionCard', () => {
   })
 
   it('disables the button while the acknowledgement is in flight', () => {
-    wrap(
-      <AdvisoryActionCard advisory={advisory} advisoryId="rec-1" acknowledging onAcknowledge={vi.fn()} />,
-    )
+    wrap(<AdvisoryActionCard advisory={advisory} advisoryId="rec-1" acknowledging onAcknowledge={vi.fn()} />)
     expect(screen.getByRole('button', { name: /I have read this/i })).toBeDisabled()
   })
 })

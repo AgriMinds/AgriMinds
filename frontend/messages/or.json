@@ -21,7 +21,8 @@
       "reports": "Gabaasota",
       "section": "Baafata",
       "pricing": "Gatii",
-      "organizations": "Herregoota"
+      "organizations": "Herregoota",
+      "requests": "Gaaffiiwwan"
     },
     "workspaceSub": "Yuunivarsiitii Dabra Maarqoos · Dhaabbata AI Itoophiyaa",
     "greeting": "Tilmaama hongee",
@@ -736,5 +737,69 @@
       "requestsDetail": "dandeettii gurgurame keessaa {share}"
     },
     "cancel": "Haqi"
+  },
+  "farm": {
+    "premium": {
+      "title": "Gorsa premium",
+      "value": "Waggaatti ETB 465. Waqtii hongee tokko ittisuun qabeenya hamma kanaaf gara ETB 70,000 baasa — galmeen kun waggaa hamaa tokkoo kutaa xiqqoo baasa.",
+      "includes": {
+        "sms": "Akeekkachiisa SMSn, appii banuu malee",
+        "plots": "Lafa hundaaf gorsa, kan tokkoof qofa miti",
+        "season": "Tilmaama waqtii guutuu, ji'a sadii dursee"
+      },
+      "noteLabel": "Wanti akka beeknu barbaaddan (filannoo)",
+      "notePlaceholder": "Yeroo kam isin qunnamuun mijata?",
+      "ask": "Waa'ee premium gaafadhu",
+      "asking": "Ergaa jira…",
+      "noPayment": "Asitti kaffaltiin hin fudhatamu. Qindeessuuf isin qunnamna.",
+      "pending": "Gaaffii keessan nu qaqqabeera, isin qunnamna.",
+      "approved": "Dhaqqabummaan premium keessan mirkanaa'eera."
+    }
+  },
+  "requestAccess": {
+    "title": "Dhaqqabummaa gaafadhu",
+    "intro": "Waldaalee hojii gamtaa, waajjiraalee qonnaa aanaa, inshuraansii fi liqeessitoota, ministeerota, NGOwwanii fi yunivarsiitiiwwaniif. Eenyu akka taatan nutti himaa, isin qunnamna.",
+    "field": {
+      "organization_name": "Dhaabbata",
+      "contact_name": "Maqaa keessan",
+      "stakeholder": "Gosa dhaabbataa",
+      "contact_email": "Imeelii",
+      "contact_phone": "Bilbila",
+      "message": "Maaliif isin barbaachisa?"
+    },
+    "messagePlaceholder": "Qonnaan bultoota yookiin aanaalee meeqa haguuga?",
+    "reachable": "Deebii kennuuf imeelii yookiin lakkoofsa bilbilaa kennaa.",
+    "send": "Gaaffii ergi",
+    "sending": "Ergaa jira…",
+    "sentTitle": "Gaaffiin nu gaheera",
+    "sentBody": "Galatoomaa. Gaaffii keessan qabna, isin qunnamna.",
+    "backToSignIn": "Gara seensaatti deebi'i",
+    "haveAccount": "Herrega qabduu? Seeni"
+  },
+  "requests": {
+    "eyebrow": "Daldala",
+    "title": "Gaaffiiwwan dhaqqabummaa",
+    "intro": "Namoonni bitachuu gaafatan hundi, fi wanti godhame. Dhaabbata mirkaneessuun herrega isaa kutaa asitti filattan keessatti uuma — gatiin kutaa irraa hordofa.",
+    "cardTitle": "Saanduqa ergaa",
+    "cardDesc": "Haaraan dura",
+    "openOnly": "Warra murtii eegaa jiran qofa",
+    "kind": {
+      "farmer": "Premium qonnaan bulaa",
+      "organization": "Dhaabbata"
+    },
+    "selfDescribed": "ofii isaa {segment} jedha",
+    "status": {
+      "new": "Haaraa",
+      "contacted": "Qunnamame",
+      "approved": "Mirkanaa'e",
+      "declined": "Hin fudhatamne"
+    },
+    "placeIn": "Kutaa keessa kaa'i",
+    "note": "Yaadannoo",
+    "approve": "Mirkaneessi",
+    "decline": "Didi",
+    "decided": "Yaadannoo: {note}",
+    "empty": "Wanti eegaa jiru hin jiru",
+    "emptyHint": "Gaaffiiwwan unka uummataa fi qonnaan bultoota premium gaafatan asitti dhufu."
   }
 }

@@ -342,6 +342,48 @@
         }
       }
     },
+    "/api/v1/access-requests": {
+      "post": {
+        "tags": [
+          "Access requests"
+        ],
+        "summary": "Ask for access (cooperative, office, insurer, ministry, NGO, university)",
+        "description": "The one unauthenticated write in the platform, and deliberately narrow. It records an enquiry and returns an acknowledgement \u2014 never whether the organisation is already a customer, because confirming that would turn a sales form into a directory of who pays.\n\nAn email address or a phone number is required: a lead nobody can reply to is not a lead. The segment is recorded as the enquirer's own description and is not binding; an administrator decides it on approval, because the price follows from it.",
+        "operationId": "enquire_api_v1_access_requests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationEnquiry"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnquiryAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/drought/map": {
       "get": {
         "tags": [
@@ -1897,6 +1939,278 @@
               }
             },
             "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/access-requests/premium": {
+      "get": {
+        "tags": [
+          "Access requests"
+        ],
+        "summary": "Whether this farmer has already asked, and what happened",
+        "operationId": "my_premium_request_api_v1_access_requests_premium_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AccessRequestOut"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response My Premium Request Api V1 Access Requests Premium Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Access requests"
+        ],
+        "summary": "Ask to move off the free tier",
+        "description": "Identity comes from the token, so a farmer only supplies what we do not know.",
+        "operationId": "request_premium_api_v1_access_requests_premium_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FarmerUpgradeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequestOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/access-requests": {
+      "get": {
+        "tags": [
+          "Access requests"
+        ],
+        "summary": "Everyone who has asked",
+        "operationId": "inbox_api_v1_admin_access_requests_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "open_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only requests still waiting on a decision",
+              "default": false,
+              "title": "Open Only"
+            },
+            "description": "Only requests still waiting on a decision"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccessRequestOut"
+                  },
+                  "title": "Response Inbox Api V1 Admin Access Requests Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/access-requests/{request_id}": {
+      "post": {
+        "tags": [
+          "Access requests"
+        ],
+        "summary": "Decide a request",
+        "description": "Approving an organisation enquiry **creates the account**, in the segment named here rather than the one the enquirer guessed. The link back is kept, so an account can always be traced to the enquiry it came from.",
+        "operationId": "decide_api_v1_admin_access_requests__request_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestDecision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequestOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -3553,6 +3867,158 @@
   },
   "components": {
     "schemas": {
+      "AccessRequestOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "farmer_premium",
+              "organization"
+            ],
+            "title": "Kind"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "contacted",
+              "approved",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "organization_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization Name"
+          },
+          "contact_name": {
+            "type": "string",
+            "title": "Contact Name"
+          },
+          "contact_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Email"
+          },
+          "contact_phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Phone"
+          },
+          "stakeholder": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "farmer_premium",
+                  "cooperative",
+                  "development_agent",
+                  "insurer_lender",
+                  "federal_ministry",
+                  "research",
+                  "international_partner",
+                  "regional_government",
+                  "private_sector"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stakeholder"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decision_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Note"
+          },
+          "organization_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization Id",
+            "description": "The account this became, once approved"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "organization_name",
+          "contact_name",
+          "contact_email",
+          "contact_phone",
+          "stakeholder",
+          "message",
+          "created_at",
+          "decided_at",
+          "decision_note"
+        ],
+        "title": "AccessRequestOut"
+      },
       "AccessTokenOut": {
         "properties": {
           "access_token": {
@@ -5782,6 +6248,36 @@
         "title": "EmbedConfig",
         "description": "Everything the browser needs to render the dashboard, and nothing more.\n\nThe embedding secret stays on the server; what goes out is a signed URL valid for minutes,\nscoped to one dashboard and \u2014 where a locked parameter is configured \u2014 to one viewer's\ndistrict. The scope is inside the signature, so it cannot be edited client-side."
       },
+      "EnquiryAccepted": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "contacted",
+              "approved",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "message"
+        ],
+        "title": "EnquiryAccepted",
+        "description": "What the public form gets back. Deliberately thin: it must not confirm what we hold."
+      },
       "EnsoImpactCell": {
         "properties": {
           "crop": {
@@ -6718,6 +7214,38 @@
           "farms"
         ],
         "title": "FarmerDashboard"
+      },
+      "FarmerUpgradeRequest": {
+        "properties": {
+          "contact_phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Phone",
+            "description": "If different from the account"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "title": "FarmerUpgradeRequest",
+        "description": "A signed-in farmer asking to leave the free tier. Their identity comes from the token."
       },
       "ForecastProvenance": {
         "properties": {
@@ -7674,6 +8202,88 @@
         ],
         "title": "OrganizationCreate"
       },
+      "OrganizationEnquiry": {
+        "properties": {
+          "organization_name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 2,
+            "title": "Organization Name"
+          },
+          "contact_name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Contact Name"
+          },
+          "stakeholder": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "farmer_premium",
+                  "cooperative",
+                  "development_agent",
+                  "insurer_lender",
+                  "federal_ministry",
+                  "research",
+                  "international_partner",
+                  "regional_government",
+                  "private_sector"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stakeholder",
+            "description": "Which segment they believe they are; an administrator may decide otherwise"
+          },
+          "contact_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Email"
+          },
+          "contact_phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Phone"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organization_name",
+          "contact_name"
+        ],
+        "title": "OrganizationEnquiry",
+        "description": "The public form. No account exists yet, so everything is self-reported."
+      },
       "OrganizationOut": {
         "properties": {
           "id": {
@@ -8123,6 +8733,59 @@
           "refresh_token"
         ],
         "title": "RefreshRequest"
+      },
+      "RequestDecision": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "contacted",
+              "approved",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "stakeholder": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "farmer_premium",
+                  "cooperative",
+                  "development_agent",
+                  "insurer_lender",
+                  "federal_ministry",
+                  "research",
+                  "international_partner",
+                  "regional_government",
+                  "private_sector"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stakeholder"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "RequestDecision",
+        "description": "Approving an organisation enquiry creates the account; declining records why."
       },
       "RevenueByStakeholder": {
         "properties": {

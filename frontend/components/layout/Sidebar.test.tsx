@@ -48,6 +48,7 @@ describe('navForRole', () => {
     // An administrator gets the same views plus the commercial one.
     expect(navForRole('admin').map((i) => i.href)).toEqual([
       ...operational,
+      '/admin/requests',
       '/admin/organizations',
       '/admin/pricing',
     ])
@@ -55,7 +56,7 @@ describe('navForRole', () => {
 
   it('offers the commercial pages to an administrator only', () => {
     // Both routes redirect everyone else, so offering them would be offering a dead end.
-    for (const href of ['/admin/pricing', '/admin/organizations']) {
+    for (const href of ['/admin/pricing', '/admin/organizations', '/admin/requests']) {
       for (const role of ['farmer', 'agent', 'minister'] as const) {
         expect(navForRole(role).some((i) => i.href === href)).toBe(false)
       }

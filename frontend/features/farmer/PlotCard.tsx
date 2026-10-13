@@ -51,7 +51,9 @@ export function PlotCard({ farm, selected, onSelect, onEdit, ground }: Props) {
         {farm.risk && level ? (
           <div>
             <p className="text-[11px] text-fg-subtle">{t('landRisk')}</p>
-            <div className="font-display text-2xl font-bold tabular">{formatPercent(farm.risk.probability)}</div>
+            <div className="font-display text-2xl font-bold tabular">
+              {formatPercent(farm.risk.probability)}
+            </div>
             <Badge variant={RISK_BADGE_VARIANT[level]} size="sm" className="mt-1">
               {tr(level)}
             </Badge>

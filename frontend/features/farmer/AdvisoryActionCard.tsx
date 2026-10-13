@@ -1,6 +1,16 @@
 'use client'
 
-import { AlertTriangle, Check, CircleAlert, Clock, Droplets, OctagonAlert, ShieldCheck, Sparkles, Wheat } from 'lucide-react'
+import {
+  AlertTriangle,
+  Check,
+  CircleAlert,
+  Clock,
+  Droplets,
+  OctagonAlert,
+  ShieldCheck,
+  Sparkles,
+  Wheat,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import type { AdvisoryResponse, PdsiCategory, RiskLevel } from '@agriminds/api-types'
 import { Badge } from '@/components/ui/badge'
@@ -83,7 +93,10 @@ export function AdvisoryActionCard({
             <p className="text-xs font-semibold tracking-wider text-fg-muted uppercase">
               {plotName ? t('adviceForPlot', { plot: plotName }) : t('adviceTitle')}
             </p>
-            <h2 id="advisory-heading" className={cn('font-display text-display-sm font-bold', RISK_TEXT_CLASS[level])}>
+            <h2
+              id="advisory-heading"
+              className={cn('font-display text-display-sm font-bold', RISK_TEXT_CLASS[level])}
+            >
               {tr(level)}
             </h2>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-fg-muted">
@@ -102,8 +115,12 @@ export function AdvisoryActionCard({
           </div>
         </div>
         <div className="shrink-0 sm:text-right">
-          <div className="font-display text-stat font-bold tabular">{formatPercent(advisory.adjusted_probability)}</div>
-          <p className="text-xs text-fg-muted">{t('chanceOfDrought', { crop: ta(`crops.${advisory.crop}.label`) })}</p>
+          <div className="font-display text-stat font-bold tabular">
+            {formatPercent(advisory.adjusted_probability)}
+          </div>
+          <p className="text-xs text-fg-muted">
+            {t('chanceOfDrought', { crop: ta(`crops.${advisory.crop}.label`) })}
+          </p>
           {/* Today's measured soil state, separated by a rule so it cannot be read as part of
               the forecast figure above it. */}
           {ground && GroundIcon && (
