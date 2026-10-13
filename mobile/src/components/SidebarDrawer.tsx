@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, usePathname } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Image,
   Linking,
@@ -18,6 +18,10 @@ import { useFarmerDashboard } from '@/features/useFarmer';
 import { LANGUAGES, useI18n, type Language } from '@/i18n';
 import { useSelection, type UserRole } from '@/state/selection';
 import { spacing } from '@/theme';
+
+import { BillingModal } from './BillingModal';
+import { DataSourcesModal } from './DataSourcesModal';
+import { ModelMetricsModal } from './ModelMetricsModal';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -52,6 +56,10 @@ export function SidebarDrawer() {
   const setSidebarOpen = useSelection((s) => s.setSidebarOpen);
   const activeRole = useSelection((s) => s.role);
   const setRole = useSelection((s) => s.setRole);
+
+  const [isMetricsModalOpen, setMetricsModalOpen] = useState(false);
+  const [isDataSourcesModalOpen, setDataSourcesModalOpen] = useState(false);
+  const [isBillingModalOpen, setBillingModalOpen] = useState(false);
 
   const farmerData = useFarmerDashboard(1).data;
 
@@ -342,6 +350,29 @@ export function SidebarDrawer() {
                   );
                 })}
               </View>
+
+              {/* Extended Platform & Ground Feeds Services */}
+              <View style={styles.servicesList}>
+                <TouchableOpacity
+                  onPress={() => setDataSourcesModalOpen(true)}
+                  style={styles.serviceItem}
+                  accessibilityRole="button"
+                >
+                  <Ionicons name="server-outline" size={17} color="#38bdf8" />
+                  <Text style={styles.serviceItemText}>Ground Data Sources</Text>
+                  <Ionicons name="chevron-forward" size={14} color="rgba(255, 255, 255, 0.4)" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setBillingModalOpen(true)}
+                  style={styles.serviceItem}
+                  accessibilityRole="button"
+                >
+                  <Ionicons name="card-outline" size={17} color="#f59e0b" />
+                  <Text style={styles.serviceItemText}>Commercial Plans & CBE</Text>
+                  <Ionicons name="chevron-forward" size={14} color="rgba(255, 255, 255, 0.4)" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* AI-DREWS Superhybrid-0.2.0 Model Card (Matching Web ModelCard.tsx) */}
@@ -365,10 +396,15 @@ export function SidebarDrawer() {
                   <Text style={styles.modelValue}>2026-06-01</Text>
                 </View>
 
-                <View style={styles.modelFooter}>
+                <TouchableOpacity
+                  onPress={() => setMetricsModalOpen(true)}
+                  style={styles.modelFooter}
+                  accessibilityRole="button"
+                  accessibilityLabel="Open model validation scorecard"
+                >
                   <Text style={styles.modelValidationText}>{t('sidebar.modelValidation')}</Text>
-                  <Text style={{ color: '#c8e04a', fontSize: 11 }}>→</Text>
-                </View>
+                  <Text style={{ color: '#c8e04a', fontSize: 12, fontWeight: '800' }}>→</Text>
+                </TouchableOpacity>
               </View>
             </View>
 

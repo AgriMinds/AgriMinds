@@ -48,7 +48,16 @@ from agriminds_api.db.models.subscription import (
     billing_period_enum,
     subscription_status_enum,
 )
-from agriminds_api.db.models.user import Locale, RefreshToken, User, UserRole, locale_enum, user_role_enum
+from agriminds_api.db.models.user import (
+    ApprovalStatus,
+    Locale,
+    RefreshToken,
+    User,
+    UserRole,
+    approval_status_enum,
+    locale_enum,
+    user_role_enum,
+)
 
 __all__ = [
     "AccessRequest",
@@ -61,6 +70,7 @@ __all__ = [
     "DeliveryChannel",
     "DeliveryStatus",
     "Farm",
+    "ApprovalStatus",
     "Direction",
     "HotlineChannel",
     "HotlineMessage",
@@ -68,6 +78,7 @@ __all__ = [
     "INVITATION_VALID_FOR",
     "Invitation",
     "Invoice",
+    "approval_status_enum",
     "hotline_channel_enum",
     "hotline_direction_enum",
     "hotline_status_enum",

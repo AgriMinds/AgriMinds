@@ -7,7 +7,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-LocaleCode = Literal["en", "am", "om"]
+from agriminds_api.schemas.common import LocaleCode
+
 ChannelName = Literal["sms", "ussd", "voice", "chat"]
 
 

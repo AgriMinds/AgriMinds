@@ -511,6 +511,48 @@
         }
       }
     },
+    "/api/v1/signup": {
+      "post": {
+        "tags": [
+          "Sign-up"
+        ],
+        "summary": "Open a farmer account",
+        "description": "Creates the account as **pending**. A farmer's advisory is tied to a real holding in a real kebele and a form cannot prove either, so a development agent confirms it before the account can be signed into.\n\nThe acknowledgement is identical whether or not the number already has an account: saying otherwise would turn this form into a way to discover who is registered, one number at a time.",
+        "operationId": "signup_api_v1_signup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unusable number or weak password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/drought/map": {
       "get": {
         "tags": [
@@ -3857,6 +3899,136 @@
         }
       }
     },
+    "/api/v1/staff/signups": {
+      "get": {
+        "tags": [
+          "Sign-up"
+        ],
+        "summary": "Who is waiting to be confirmed",
+        "description": "Oldest first: somebody who signed up a week ago is the one being kept waiting.",
+        "operationId": "pending_api_v1_staff_signups_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PendingUser"
+                  },
+                  "type": "array",
+                  "title": "Response Pending Api V1 Staff Signups Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/staff/signups/{user_id}": {
+      "post": {
+        "tags": [
+          "Sign-up"
+        ],
+        "summary": "Confirm or refuse a sign-up",
+        "description": "Open to any staff member, not only an administrator: the person who can actually say whether a holding exists is the development agent for that woreda. Who decided and when is recorded on the account.",
+        "operationId": "decide_api_v1_staff_signups__user_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalDecision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingUser"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/plans": {
       "get": {
         "tags": [
@@ -4904,7 +5076,7 @@
             "enum": [
               "en",
               "am",
-              "om"
+              "or"
             ],
             "title": "Locale"
           },
@@ -4960,7 +5132,7 @@
             "enum": [
               "en",
               "am",
-              "om"
+              "or"
             ],
             "title": "Locale",
             "default": "en"
@@ -5183,6 +5355,31 @@
           "is_active"
         ],
         "title": "ApiKeyOut"
+      },
+      "ApprovalDecision": {
+        "properties": {
+          "approve": {
+            "type": "boolean",
+            "title": "Approve"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "approve"
+        ],
+        "title": "ApprovalDecision"
       },
       "BundleOut": {
         "properties": {
@@ -8343,7 +8540,7 @@
                 "enum": [
                   "en",
                   "am",
-                  "om"
+                  "or"
                 ]
               },
               {
@@ -9582,6 +9779,69 @@
         ],
         "title": "PaymentConfirmation"
       },
+      "PendingUser": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "locale": {
+            "type": "string",
+            "title": "Locale"
+          },
+          "woreda_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Woreda Name"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "signed_up_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Signed Up At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "full_name",
+          "phone",
+          "locale",
+          "signed_up_at"
+        ],
+        "title": "PendingUser"
+      },
       "PlanChoice": {
         "properties": {
           "period": {
@@ -10335,6 +10595,96 @@
           "hectares_at_risk"
         ],
         "title": "RiskExposure"
+      },
+      "SignupAccepted": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ],
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message"
+        ],
+        "title": "SignupAccepted",
+        "description": "Deliberately thin. It must not reveal whether a number already has an account."
+      },
+      "SignupRequest": {
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 2,
+            "title": "Full Name"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 9,
+            "title": "Phone",
+            "description": "09xxxxxxxx or +2519xxxxxxxx"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Password"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "am",
+              "or"
+            ],
+            "title": "Locale",
+            "default": "en"
+          },
+          "woreda_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Woreda Id",
+            "description": "Where the holding is, if known"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "Kebele, number of plots, who can vouch for you"
+          }
+        },
+        "type": "object",
+        "required": [
+          "full_name",
+          "phone",
+          "password"
+        ],
+        "title": "SignupRequest",
+        "description": "What a farmer gives to open an account for themselves.\n\nA phone number, because that is what a smallholder has and what a development agent will call\nto confirm them. No email: requiring one would exclude most of the people this is for."
       },
       "StakeholderType": {
         "type": "string",

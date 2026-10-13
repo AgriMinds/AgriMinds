@@ -5,6 +5,11 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 RiskLevelName = Literal["Low", "Moderate", "High", "Severe"]
+
+#: The interface languages, written once. `or` is Afaan Oromoo, matching the `Locale` column, the
+#: message catalogues and the frontend — a second spelling of the same set is how a language ends
+#: up accepted in one endpoint and rejected in another.
+LocaleCode = Literal["en", "am", "or"]
 CropName = Literal["tef", "wheat", "maize"]
 
 #: Five-way Niño 3.4 bands, Table 2 of the study.

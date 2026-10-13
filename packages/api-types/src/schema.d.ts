@@ -997,6 +997,68 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Open a farmer account
+         * @description Creates the account as **pending**. A farmer's advisory is tied to a real holding in a real kebele and a form cannot prove either, so a development agent confirms it before the account can be signed into.
+         *
+         *     The acknowledgement is identical whether or not the number already has an account: saying otherwise would turn this form into a way to discover who is registered, one number at a time.
+         */
+        post: operations["signup_api_v1_signup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/signups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Who is waiting to be confirmed
+         * @description Oldest first: somebody who signed up a week ago is the one being kept waiting.
+         */
+        get: operations["pending_api_v1_staff_signups_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/signups/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm or refuse a sign-up
+         * @description Open to any staff member, not only an administrator: the person who can actually say whether a holding exists is the development agent for that woreda. Who decided and when is recorded on the account.
+         */
+        post: operations["decide_api_v1_staff_signups__user_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/subscriptions": {
         parameters: {
             query?: never;
@@ -1278,7 +1340,7 @@ export type components = {
              * Locale
              * @enum {string}
              */
-            locale: "en" | "am" | "om";
+            locale: "en" | "am" | "or";
             /**
              * Sms Segments
              * @default 1
@@ -1306,7 +1368,7 @@ export type components = {
              * @default en
              * @enum {string}
              */
-            locale: "en" | "am" | "om";
+            locale: "en" | "am" | "or";
             /**
              * Text
              * @description What the farmer asked, or a menu digit
@@ -1401,6 +1463,13 @@ export type components = {
             last_used_at: string | null;
             /** Revoked At */
             revoked_at: string | null;
+        };
+        /** ApprovalDecision */
+        ApprovalDecision: {
+            /** Approve */
+            approve: boolean;
+            /** Note */
+            note?: string | null;
         };
         /** BundleOut */
         BundleOut: {
@@ -2835,7 +2904,7 @@ export type components = {
              * Locale
              * @description Defaults to the farmer's own setting
              */
-            locale?: ("en" | "am" | "om") | null;
+            locale?: ("en" | "am" | "or") | null;
             /**
              * Session Id
              * @description Ties a USSD session together
@@ -3315,6 +3384,26 @@ export type components = {
              */
             payment_reference?: string | null;
         };
+        /** PendingUser */
+        PendingUser: {
+            /** Full Name */
+            full_name: string;
+            /** Id */
+            id: string;
+            /** Locale */
+            locale: string;
+            /** Note */
+            note?: string | null;
+            /** Phone */
+            phone: string | null;
+            /**
+             * Signed Up At
+             * Format: date-time
+             */
+            signed_up_at: string;
+            /** Woreda Name */
+            woreda_name?: string | null;
+        };
         /** PlanChoice */
         PlanChoice: {
             /**
@@ -3616,6 +3705,53 @@ export type components = {
             lead_month: number;
             /** Target Date */
             target_date: string;
+        };
+        /**
+         * SignupAccepted
+         * @description Deliberately thin. It must not reveal whether a number already has an account.
+         */
+        SignupAccepted: {
+            /** Message */
+            message: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "approved" | "rejected";
+        };
+        /**
+         * SignupRequest
+         * @description What a farmer gives to open an account for themselves.
+         *
+         *     A phone number, because that is what a smallholder has and what a development agent will call
+         *     to confirm them. No email: requiring one would exclude most of the people this is for.
+         */
+        SignupRequest: {
+            /** Full Name */
+            full_name: string;
+            /**
+             * Locale
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "am" | "or";
+            /**
+             * Note
+             * @description Kebele, number of plots, who can vouch for you
+             */
+            note?: string | null;
+            /** Password */
+            password: string;
+            /**
+             * Phone
+             * @description 09xxxxxxxx or +2519xxxxxxxx
+             */
+            phone: string;
+            /**
+             * Woreda Id
+             * @description Where the holding is, if known
+             */
+            woreda_id?: string | null;
         };
         /**
          * StakeholderType
@@ -6834,6 +6970,130 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    signup_api_v1_signup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignupRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignupAccepted"];
+                };
+            };
+            /** @description Unusable number or weak password */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    pending_api_v1_staff_signups_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingUser"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    decide_api_v1_staff_signups__user_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingUser"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

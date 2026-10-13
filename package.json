@@ -2,7 +2,9 @@
   "name": "agriminds",
   "private": true,
   "packageManager": "pnpm@12.6.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "api-types": "pnpm --filter @agriminds/api-types generate",
     "web": "pnpm --filter @agriminds/web",
@@ -12,5 +14,8 @@
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build",
     "eas-build-pre-install": "corepack enable"
+  },
+  "devDependencies": {
+    "railway": "^3.14.0"
   }
 }

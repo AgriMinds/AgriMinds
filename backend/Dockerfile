@@ -45,6 +45,6 @@ USER app
 EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
     CMD curl -fsS http://localhost:8000/api/v1/health || exit 1
-# Migrations are a deliberate, separate step (`make migrate`), not a boot-time race.
+# Apply pending migrations on container boot so database schema is always up to date
 WORKDIR /app/backend
-CMD ["uvicorn", "agriminds_api.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+CMD ["sh", "-c", "alembic upgrade head; exec uvicorn agriminds_api.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips '*'"]

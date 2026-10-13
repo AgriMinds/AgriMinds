@@ -22,7 +22,7 @@ from agriminds_api.core.exceptions import (
     UnauthorizedError,
     ValidationError,
 )
-from agriminds_api.db.models import Invitation, RefreshToken, User
+from agriminds_api.db.models import ApprovalStatus, Invitation, RefreshToken, User
 
 log = logging.getLogger(__name__)
 
@@ -72,6 +72,19 @@ class AuthService:
         if not user.is_active:
             # Checked after the password so a disabled account is not distinguishable by probing.
             raise UnauthorizedError("This account has been deactivated. Contact your administrator.")
+
+        if user.approval_status is ApprovalStatus.PENDING:
+            # Also after the password, for the same reason. The message differs from the one above
+            # on purpose: this person should wait, and the other should stop trying.
+            raise UnauthorizedError(
+                "Your account is still waiting to be confirmed. A development agent will approve "
+                "it once they have checked your holding."
+            )
+        if user.approval_status is ApprovalStatus.REJECTED:
+            raise UnauthorizedError(
+                "This sign-up was not approved. Speak to your development agent if you think that "
+                "is a mistake."
+            )
 
         if new_hash:
             user.hashed_password = new_hash

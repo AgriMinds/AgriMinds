@@ -217,5 +217,16 @@ export type SubscriptionOut = Schemas['SubscriptionOut']
 export type AgentQuestion = Schemas['AgentQuestion']
 export type AgentAnswer = Schemas['AgentAnswer']
 export type HotlineTurn = Schemas['HotlineTurn']
+
+// ---- opening an account, and the staff check that follows -------------------------------
+export type SignupRequest = Schemas['SignupRequest']
+export type SignupAccepted = Schemas['SignupAccepted']
+export type PendingUser = Schemas['PendingUser']
+export type ApprovalDecision = Schemas['ApprovalDecision']
 export type RevenueByStakeholder = Schemas['RevenueByStakeholder']
 export type BillingPeriodName = PlanOption['period']
+
+// ---- model evaluation metrics -----------------------------------------------------------
+export type ModelMetricsResponse = Schemas['ModelMetricsResponse']
+export type DroughtLeadMetric = Schemas['DroughtLeadMetric']
+export type EnsoLeadMetric = Schemas['EnsoLeadMetric']

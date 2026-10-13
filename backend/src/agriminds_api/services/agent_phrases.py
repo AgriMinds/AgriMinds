@@ -17,20 +17,20 @@ from __future__ import annotations
 
 from typing import Literal
 
-Locale = Literal["en", "am", "om"]
+Locale = Literal["en", "am", "or"]
 RiskLevel = Literal["Low", "Moderate", "High", "Severe"]
 
 #: Headline for "what is my risk". `{plot}`, `{crop}`, `{pct}`, `{level}` are filled in.
 RISK: dict[Locale, str] = {
     "en": "{plot} ({crop}): {pct}% chance of drought — {level}.",
     "am": "{plot} ({crop}): የድርቅ ዕድል {pct}% — {level}።",
-    "om": "{plot} ({crop}): carraa hongee {pct}% — {level}.",
+    "or": "{plot} ({crop}): carraa hongee {pct}% — {level}.",
 }
 
 LEVEL: dict[Locale, dict[RiskLevel, str]] = {
     "en": {"Low": "Low", "Moderate": "Moderate", "High": "High", "Severe": "Severe"},
     "am": {"Low": "ዝቅተኛ", "Moderate": "መካከለኛ", "High": "ከፍተኛ", "Severe": "በጣም ከፍተኛ"},
-    "om": {"Low": "Gadi aanaa", "Moderate": "Giddu galeessa", "High": "Ol aanaa", "Severe": "Hamaa"},
+    "or": {"Low": "Gadi aanaa", "Moderate": "Giddu galeessa", "High": "Ol aanaa", "Severe": "Hamaa"},
 }
 
 #: Planting advice by risk level — the engine's `planting` action, in three languages.
@@ -42,7 +42,7 @@ PLANTING: dict[Locale, dict[RiskLevel, str]] = {
         "High": "ዝረትን በማሳዎች መካከል ያከፋፍሉ፤ አፈሩ በቂ እርጥበት እስኪይዝ (ከ25 ሚሜ በላይ ዝናብ) ያዘግዩ።",
         "Severe": "እርጥበቱ እስኪመለስ ዝረትን ያቆዩ፤ በተጋላጭ ቁልቁለቶች የሚታረስውን መሬት ይቀንሱ።",
     },
-    "om": {
+    "or": {
         "Low": "Jalqaba roobaa idilee irratti facaasi. Meher/Kiremt'f Adoolessa jalqabaa hanga walakkaa.",
         "Moderate": "Akkuma roobni jalqabe battalumatti facaasi; facaasuu tursiisuun hongee waqtii dhumaa hin oolchu.",
         "High": "Facaasuu lafa gidduutti qoodi; hanga lafti jiidha gahaa qabaatutti (rooba 25mm ol) tursiisi.",
@@ -58,7 +58,7 @@ WATER: dict[Locale, dict[RiskLevel, str]] = {
         "High": "በእድገትና በአበባ ወቅት ላይ ያተኮረ የተገደበ መስኖ መርሐ ግብር ይጀምሩ።",
         "Severe": "ያለውን ውሃ ለቤት አካባቢና ለችግኝ ማሳዎች ብቻ ይመድቡ።",
     },
-    "om": {
+    "or": {
         "Low": "Bishaan roobaa idileedhaan kuusi (qotiisa konteerii, uwwisa).",
         "Moderate": "Kuusaa bishaan xiqqaa, walitti qabaa bishaanii fi jallisii dabalataa qopheessi.",
         "High": "Sagantaa jallisii hir'ataa yeroo guddinaa fi daraaraa irratti xiyyeeffate jalqabi.",
@@ -74,7 +74,7 @@ CROP: dict[Locale, dict[RiskLevel, str]] = {
         "High": "የተረጋገጡ ድርቅ መቋቋም የሚችሉ ዝርያዎችን ይጠቀሙ (ለጤፍ ኩንቾ/ቦሰት)። በቆሎ ካለ በጤፍ ወይም በማሽላ ይቀይሩ።",
         "Severe": "ወደ አጭር ጊዜ ሰብሎች፣ ጥራጥሬ ወይም ድርቅ ተቋቋሚ ጤፍ ይቀይሩ። የበቆሎ ስፋት ይቀንሱ።",
     },
-    "om": {
+    "or": {
         "Low": "Sanyii mirkanaa'e karoorfame itti fufi. Pakeejiin qonnaa idilee hojjeta.",
         "Moderate": "Sanyii dafee bilchaatu kan hongee oolchu filadhu. Sanyii qopheessuu yaadi.",
         "High": "Sanyii hongee dandamachuu danda'u fayyadami (xaafiif Quncho/Boset). Boqqolloo yoo qabaatte xaafii yookaan mishingaatti jijjiiri.",
@@ -90,7 +90,7 @@ PREP: dict[Locale, dict[RiskLevel, str]] = {
         "High": "የእንስሳት መኖ ያዘጋጁ፣ የዞኑን የአደጋ መከላከል ግብረ ኃይል ያሳውቁ፣ የእህል ቋት ይጀምሩ።",
         "Severe": "የድርቅ መከላከል ሥርዓትን ያስነሱ፣ የድጋፍ መረብ ይጠይቁ፣ የዘር አቅርቦት ያስተባብሩ።",
     },
-    "om": {
+    "or": {
         "Low": "Raabsaa meeshaa idilee fi hordoffii haala qilleensaa hojjettoota misoomaatiin.",
         "Moderate": "Odeeffannoo haala qilleensaa guyyaa kudhanii hordofi; hojjetaa misooma gandaa waliin hojjedhu.",
         "High": "Soorata horii qopheessi, humna ittisa balaa godinaa beeksisi, kuusaa midhaanii jalqabi.",
@@ -102,35 +102,35 @@ PREP: dict[Locale, dict[RiskLevel, str]] = {
 MENU: dict[Locale, str] = {
     "en": "AgriMinds {code}. Reply: 1 drought risk, 2 when to plant, 3 water, 4 which seed, 5 my plots, 6 the season.",
     "am": "አግሪማይንድስ {code}። መልስ፡ 1 የድርቅ ስጋት፣ 2 መቼ መዝራት፣ 3 ውሃ፣ 4 ምን ዘር፣ 5 ማሳዎቼ፣ 6 ወቅቱ።",
-    "om": "AgriMinds {code}. Deebisi: 1 hongee, 2 yoom facaasuu, 3 bishaan, 4 sanyii kam, 5 lafa koo, 6 waqtii.",
+    "or": "AgriMinds {code}. Deebisi: 1 hongee, 2 yoom facaasuu, 3 bishaan, 4 sanyii kam, 5 lafa koo, 6 waqtii.",
 }
 
 PLOTS: dict[Locale, str] = {
     "en": "Your plots: {list}.",
     "am": "ማሳዎችዎ፡ {list}።",
-    "om": "Lafa kee: {list}.",
+    "or": "Lafa kee: {list}.",
 }
 
 SEASON: dict[Locale, str] = {
     "en": "{season}, targeting {month}. Pacific now: {enso}.",
     "am": "{season}፣ ዒላማው {month}። የፓስፊክ ሁኔታ፡ {enso}።",
-    "om": "{season}, kaayyoo {month}. Haala Paasifiik: {enso}.",
+    "or": "{season}, kaayyoo {month}. Haala Paasifiik: {enso}.",
 }
 
 NO_PLOTS: dict[Locale, str] = {
     "en": "No plot is registered to this number yet. Ask your kebele development agent to add one.",
     "am": "በዚህ ቁጥር የተመዘገበ ማሳ የለም። የቀበሌ ልማት ሠራተኛዎን እንዲያስገባ ይጠይቁ።",
-    "om": "Lafti lakkoofsa kanaan galmeeffame hin jiru. Hojjetaa misooma gandaa akka galchuuf gaafadhu.",
+    "or": "Lafti lakkoofsa kanaan galmeeffame hin jiru. Hojjetaa misooma gandaa akka galchuuf gaafadhu.",
 }
 
 UNKNOWN_CALLER: dict[Locale, str] = {
     "en": "This number is not registered with AgriMinds. Ask your development agent to register you.",
     "am": "ይህ ቁጥር በአግሪማይንድስ አልተመዘገበም። የልማት ሠራተኛዎ እንዲመዘግብዎ ይጠይቁ።",
-    "om": "Lakkoofsi kun AgriMinds biratti hin galmoofne. Hojjetaan misoomaa akka si galmeessu gaafadhu.",
+    "or": "Lakkoofsi kun AgriMinds biratti hin galmoofne. Hojjetaan misoomaa akka si galmeessu gaafadhu.",
 }
 
 MODEL_DOWN: dict[Locale, str] = {
     "en": "The forecast is unavailable right now. Try again later — no advice is better than wrong advice.",
     "am": "ትንበያው አሁን አይገኝም። ቆይተው ይሞክሩ — የተሳሳተ ምክር ከመስጠት አለመስጠት ይሻላል።",
-    "om": "Tilmaamni amma hin argamu. Booda yaali — gorsa dogoggoraa kennuu irra dhiisuu wayya.",
+    "or": "Tilmaamni amma hin argamu. Booda yaali — gorsa dogoggoraa kennuu irra dhiisuu wayya.",
 }

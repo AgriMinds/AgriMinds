@@ -945,5 +945,316 @@
     "held": "{n} qabamanii, hin ergamne",
     "unregistered": "{n} lakkoofsa hin galmoofne irraa",
     "notRegistered": "Hin galmoofne"
+  },
+  "site": {
+    "nav": "Marsariitii",
+    "nav_howItWorks": "Akkamitti hojjeta",
+    "nav_about": "Waa'ee keenya",
+    "signIn": "Seeni",
+    "requestAccess": "Gahumsa gaafadhu",
+    "toWorkspace": "Bakka hojii bani",
+    "footerBlurb": "Akeekkachiisa duraa hongee waqtii Laga Tulluu Chooqee — tilmaama qonnaan bulaan irratti hojjechuu danda'uu fi ragaa isa duuba jiru.",
+    "institutions": "Yunivarsiitii Debre Markos · Inistiitiyuutii AI Itoophiyaa",
+    "footerExplore": "Qoradhu",
+    "footerBuiltOn": "Irratti ijaarame",
+    "copyright": "© {year} AgriMinds AI-DREWS. Laga Tulluu Chooqee, Amaara, Itoophiyaa."
+  },
+  "home": {
+    "metaTitle": "Akeekkachiisa duraa hongee Laga Tulluu Chooqee",
+    "eyebrow": "Laga Tulluu Chooqee · Amaara, Itoophiyaa",
+    "heroTitle": "Osoo hin facaasin dura waqtii beeki.",
+    "heroTitleAccent": "Hamma lafa kee dhuunfaatti.",
+    "heroLead": "AI-DREWS rooba saatalaayitii, deetaa qilleensaa fi mallattoo El Niño Paasifiik gara tilmaama hongee tokkoon tokkoon kutaa laga km² 18,948 jijjiira — achiis gara gorsa qonnaan bulaan xiqqaan afaan isaatiin hojii irra oolchuu danda'uutti.",
+    "ctaPrimary": "Gahumsa gaafadhu",
+    "ctaSecondary": "Akkamitti akka hojjetu ilaali",
+    "ctaNote": "Dhaabbileen herrega gaafatu. Qonnaan bultoonni galmaa'anii hojjetaa misoomaatiin mirkanaa'u.",
+    "stat": {
+      "catchment": {
+        "value": "km² 18,948",
+        "label": "Laga safarame",
+        "note": "Daangaa Chooqee dhugaa"
+      },
+      "cells": {
+        "value": "kutaa 49",
+        "label": "Laga keessatti",
+        "note": "Kutaa 64 keessaa; 15 alatti"
+      },
+      "record": {
+        "value": "1951–2026",
+        "label": "Galmee qilleensaa",
+        "note": "Ji'oota 884 NOAA Niño 3.4"
+      },
+      "crops": {
+        "value": "midhaan 3",
+        "label": "Xaafii, qamadii, boqqolloo",
+        "note": "Oomishni CSA irraa"
+      }
+    },
+    "whyEyebrow": "Rakkoo",
+    "whyTitle": "Tilmaamni yeroon lafa qonnaa yoo gahe qofa fayyada.",
+    "whyLead": "Hongeen gaarreen Itoophiyaa keessatti yoo duraan beekame darbuu danda'ama. Hanqinni saayinsii hin turre — fageenya moodeelaa fi qonnaan bulaa maal akka facaasu murteessu gidduu jiruudha.",
+    "why": {
+      "warning": {
+        "title": "Akeekkachiisa kutaa tokkoon tokkoon",
+        "body": "Carraa hongee kutaa laga hundaaf, jiidha lafaa ammaa waliin."
+      },
+      "decision": {
+        "title": "Lakkoofsa qofa osoo hin taane gorsa",
+        "body": "Midhaan, yeroo facaasuu, bulchiinsa bishaanii fi qophii — tilmaamaa fi midhaan lafa sanaa irraa filataman."
+      },
+      "reach": {
+        "title": "Bilbila salphaas ni gaha",
+        "body": "Appii, SMS yookaan USSD, akkasumas hojjetaa misoomaatiin — warra bilbila ismaartii qaban qofaaf miti."
+      }
+    },
+    "howEyebrow": "Akkamitti hojjeta",
+    "howTitle": "Saatalaayitii irraa gara murtii facaasuutti.",
+    "howLead": "Tarkaanfii afur, hundi isaanii qoratamuu danda'u: lakkoofsi fuula irra jiru hundi gara deetaa isa uumetti deebi'a.",
+    "stepLabel": "Tarkaanfii {n}",
+    "step": {
+      "observe": {
+        "title": "Daawwachuu",
+        "body": "Roobni CHIRPS, deetaan ERA5 fi NOAA Niño 3.4 sagantaadhaan galu; gatiin hundi eessaa akka dhufe galmaa'a."
+      },
+      "model": {
+        "title": "Moodeela",
+        "body": "SPI-3, VCI fi indeeksii Palmer ofumaan sirreeffamu moodeela ji'a tokko dura hongee tilmaamu sooru."
+      },
+      "advise": {
+        "title": "Gorsa",
+        "body": "Seerri maxxanfame carraa fi midhaan gara gorsaatti jijjiira; mallattooleen aadaas moodeelaan wal bira qabamu."
+      },
+      "deliver": {
+        "title": "Geessuu",
+        "body": "Dhaabbileef daashboordii, qonnaan bultootaaf fuula lafa isaanii, appii hin qabneef sarara 977."
+      }
+    },
+    "howMore": "Deetaa fi moodeelota bal’inaan",
+    "modelsEyebrow": "Moodeelota",
+    "modelsTitle": "Moodeelota sadii, tokkoon tokkoon maaliif akka fayyadan.",
+    "modelsLead": "Raawwiin tilmaamaan osoo hin taane maxxanfamee dhiyaate. Lakkoofsonni kun moodeelota amma hojii irra jiran irraa dhufan.",
+    "model": {
+      "drought": {
+        "title": "Hongee waqtii",
+        "body": "CNN deetaa bakkaa, LSTM seenaa, damee Fourier immoo marsaa waqtii dubbisa. Kutaa hundaaf carraa hongee tilmaama."
+      },
+      "enso": {
+        "title": "Tilmaama El Niño",
+        "body": "Indeeksii Niño 3.4 hanga waggaa tokkootti tilmaama — yoo moodeelli ifatti hin caalle garuu haala duraanii eega."
+      },
+      "yield": {
+        "title": "Oomisha midhaanii",
+        "body": "Rooba, haala ENSO fi waqtiilee darban oomisha xaafii, qamadii fi boqqolloo wajjin walqabsiisa."
+      }
+    },
+    "modelsCaveat": "Daangaa ifa: moodeelli hongee ji'a tokko dura sirrii dha. Ilaalchi ji'a lamaa fi sadii haala hubachuuf qofa; isaan irratti hirkattanii facaasuu hin qabdan.",
+    "whoEyebrow": "Eenyuuf",
+    "whoTitle": "Tilmaama tokko, murtii gosa jaha.",
+    "whoLead": "Moodeela laga tokkichaa, murtii garee tokkoon tokkoof qophaa’e.",
+    "segment": {
+      "farmer": {
+        "title": "Qonnaan bultoota xixiqqaa",
+        "body": "Balaa fi gorsa lafa galmaa'e hundaaf, sadarkaa bu'uuraatti bilisa, Amaariffa, Afaan Oromoo yookaan Ingiliffaan."
+      },
+      "cooperative": {
+        "title": "Waldaalee hojii gamtaa",
+        "body": "Balaa miseensotaa, karoora meeshaa waqtii dura, fi gorsa miseensotaaf."
+      },
+      "agent": {
+        "title": "Hojjettoota misoomaa",
+        "body": "Gandi kam dursa akka barbaadu, fi qonnaan bultoota lakkoofsa duuba jiran."
+      },
+      "ministry": {
+        "title": "Ministeerotaa fi biiroowwan",
+        "body": "Akeekkachiisa laga guutuu, istaatistiksii haguuggii fi madda lakkoofsa hundaa."
+      },
+      "research": {
+        "title": "Yunivarsiitii fi qorannoo",
+        "body": "Qorannoo ofii keessaniif deetaa tilmaamaa, indeeksii fi odeeffannoo moodeelaa API’n."
+      },
+      "insurer": {
+        "title": "Inshuraansii fi liqeessitoota",
+        "body": "Balaa waqtii sadarkaa aanaatti, oomisha indeeksii fi murtii liqii qonnaatiif."
+      }
+    },
+    "reachEyebrow": "Gahumsa",
+    "reachTitle": "Qonnaan bultoota hedduun bilbila ismaartii hin qaban.",
+    "reachLead": "Akeekkachiisni warra wal qunnamtii qaban qofa gahu akeekkachiisa duraa miti. Gorsaan sunuu karaa hundaan, tilmaama sanuma irraa deebisa.",
+    "reach": {
+      "app": {
+        "title": "Appiin",
+        "body": "Balaa lafaa, gorsa, fi gorsaa afaan sadiin dubbattu."
+      },
+      "hotline": {
+        "title": "SMS fi USSD 977 irratti",
+        "body": "Bilbila kamiyyuu irraa barreessi yookaan bilbili. Koodii gabaabaa Ethio Telecom eegaa jira — ijaarame, hanga ammaa hin hidhamne."
+      },
+      "agent": {
+        "title": "Hojjettoota misoomaa",
+        "body": "Warra lamaanuu hin fayyadamneef gorsa sanuma geessu."
+      }
+    },
+    "ctaTitle": "Tilmaama kana qonnaan bultoota keetti geessi.",
+    "ctaLead": "Eenyu akka taate fi maaliif akka barbaaddu nutti himi. Karoora kutaa keetiif qabannee deebina.",
+    "ctaAbout": "Waa'ee pirojektichaa"
+  },
+  "signup": {
+    "title": "Herrega qonnaan bulaa bani",
+    "lead": "Lafa keetiif gorsa hongee, bilisa.",
+    "name": "Maqaa guutuu kee",
+    "phone": "Lakkoofsa bilbilaa",
+    "phoneHint": "Hojjetaan misoomaa lafa kee mirkaneessuuf lakkoofsa kanaan bilbila.",
+    "password": "Jecha darbii filadhu",
+    "passwordHint": "Yoo xiqqaate arfii {count}. Gaaleen gabaabaan gaarii dha.",
+    "showPassword": "Jecha darbii agarsiisi",
+    "hidePassword": "Jecha darbii dhoksi",
+    "note": "Waa'ee lafa keetii",
+    "notePlaceholder": "Ganda, lafa meeqa, fi eenyu ragaa sii ta'uu danda'a.",
+    "noteHint": "Hojjetaan waan naannoo kee beeku wajjin kana walbira qaba, kanaaf ifatti barreessi.",
+    "submit": "Herrega uumi",
+    "sending": "Ergaa jira…",
+    "sentTitle": "Gaaffiin nu gahe",
+    "sentHint": "Amma seenuu hin dandeessu. Dura lafti kee ni mirkanaa’a.",
+    "genericError": "Rakkoon uumame. Irra deebi’ii yaali.",
+    "haveAccount": "Herrega qabdaa? Seeni",
+    "institution": "Waldaa, biiroo yookaan dhaabbataa? Gahumsa gaafadhu"
+  },
+  "signups": {
+    "title": "Mirkaneeffama eegaa jiran",
+    "desc": "Qonnaan bultoota ofii galmaa'an, kan dur dursa",
+    "empty": "Namni eegaa jiru hin jiru.",
+    "waitingSince": "{date} irraa",
+    "approve": "Mirkaneessi",
+    "refuse": "Didi",
+    "confirmRefusal": "Galmee kana didi",
+    "why": "Maaliif (gaafataaf ni himama)"
+  },
+  "howItWorks": {
+    "eyebrow": "Mala",
+    "title": "Rooba saatalaayitii irraa gara murtii facaasuutti.",
+    "lead": "Pilaatfoormiin maal daawwata, maal moodeessa, maal irratti sirrii dha — fi maal irratti akka hin taane.",
+    "dataEyebrow": "Galtee",
+    "dataTitle": "Deetaa uummataa afur, kan dhuunfaa tokkollee hin jiru.",
+    "dataLead": "Galchi hundi madda, yeroo fi mallattoo galmeessa; kanaaf lakkoofsi fuula irra jiru hundi faayilii isa irraa dhufetti deebi'uu danda'a.",
+    "col": {
+      "source": "Madda",
+      "provider": "Dhiyeessaa",
+      "feeds": "Waan sooru"
+    },
+    "source": {
+      "chirps": "Rooba, 1981 irraa",
+      "era5": "Ho'a, jiidha biyyee, hurka",
+      "nino34": "Ho'a galaanaa Niño 3.4",
+      "csa": "Istaatistiksii xaafii, qamadii fi boqqolloo"
+    },
+    "feeds": {
+      "rainfall": "SPI-3 fi garaagarummaa roobaa",
+      "balance": "Madaallii bishaanii Sc-PDSI fi PET",
+      "enso": "Haala ENSO fi tilmaama isaa",
+      "crops": "Moodeela oomishaa fi miidhamummaa midhaanii"
+    },
+    "dataNote": "ERA5 akkasumatti hin amanamu; CHIRPS fi galmee buufataa waliin walbira qabama. Yoo wal hin simne, garaagarummaan ni galmaa'a malee hin haqamu.",
+    "pipelineEyebrow": "Adeemsa",
+    "pipelineTitle": "Lamaan gidduutti maaltu ta’a.",
+    "pipeline": {
+      "observe": {
+        "title": "Galchuu fi mirkaneessuu",
+        "body": "Roobni, deetaan qilleensaa fi indeeksiin ENSO sagantaadhaan harkifamu; qaawwaa fi hamma qoratamu. Qorannoon kufe adeemsa ni dhaaba malee qaawwaa zeeroo godhee hin maxxansu."
+      },
+      "model": {
+        "title": "Indeeksii fi tilmaama",
+        "body": "SPI-3 kutaa hundaaf, VCI haala biqiltuu irraa, Sc-PDSI madaallii bishaanii irraa. CNN-LSTM damee Fourier waliin carraa hongee tilmaama."
+      },
+      "advise": {
+        "title": "Seera malee uumuu miti",
+        "body": "Gabateen seeraa maxxanfame carraa fi midhaan gara gorsaatti jijjiira. Homtuu gorsa ofiin hin barreessu — galteen walfakkaataan yeroo hunda gorsa walfakkaataa kenna."
+      },
+      "deliver": {
+        "title": "Geessuu",
+        "body": "Dhaabbileen daashboordii fi API argatu; qonnaan bultoonni lafa isaanii, gorsaa afaan sadii, fi sarara 977 argatu."
+      }
+    },
+    "modelsEyebrow": "Moodeelota",
+    "modelsTitle": "Kan har’a hojii irra jiru.",
+    "modelsLead": "Lakkoofsonni moodeelota leenjifaman irraa fudhataman malee barruu irraa miti.",
+    "model": {
+      "drought": {
+        "title": "Hongee waqtii",
+        "body": "Konvooluushinii 2-D, LSTM seenaa irratti, fi damee Fourier marsaa waqtiif walitti makamanii kutaa hundaaf carraa kennu."
+      },
+      "enso": {
+        "title": "Tilmaama El Niño",
+        "body": "Galmee NOAA guutuu irratti leenji’e. Fageenya hundatti haala duraanii yoo ifatti caale qofa fudhatama."
+      },
+      "yield": {
+        "title": "Oomisha midhaanii",
+        "body": "Rooba, haala ENSO fi waqtiilee darban irratti hundaa’e, istaatistiksii CSA’n leenji’e."
+      }
+    },
+    "limitsEyebrow": "Daangaa",
+    "limitsTitle": "Wanti kun hin goone.",
+    "limitsLead": "Asitti ulfaatina walqixa kennameef, sababni isaa murtiin facaasuu fi bitachuu isaan irratti godhamaatii.",
+    "limit": {
+      "lead": {
+        "title": "Ji'a tokko dura sirrii",
+        "body": "Moodeelli hongee fageenya ji'a tokkootti mirkanaa'e. Ilaalchi ji'a lamaa fi sadii haala hubachuuf qofa."
+      },
+      "persistence": {
+        "title": "Haalli duraanii yeroo baay’ee caala",
+        "body": "Moodeelli ENSO yoo xiqqaate 5%'n yoo hin caalle haala duraanii eega. Fageenyi hedduun haala duraaniiti."
+      },
+      "yield": {
+        "title": "Oomishni agarsiisa qofa",
+        "body": "Dogoggorri giddugaleessaa dhibbeentaa 24 naannoodha. Waqtiilee fi midhaan walbira qabuuf fayyada malee oomisha mirkaneessuuf miti."
+      },
+      "sms": {
+        "title": "Sararri hin hidhamne",
+        "body": "Adeemsi 977 ijaaramee qoratame; garuu geessaan hin jiru: koodii gabaabaa Ethio Telecom fi waliigaltee barbaada."
+      }
+    },
+    "ctaAccess": "Gahumsa gaafadhu",
+    "ctaAbout": "Waa'ee pirojektichaa",
+    "rulesVersionNote": "Gorsi hundi lakkoofsa seeraa fi moodeela isa uume galmeessa, kanaaf gorsi waqtii darbe kenname ammallee deebi'ee ijaaramuu danda'a."
+  },
+  "about": {
+    "eyebrow": "Waa'ee keenya",
+    "title": "Sirna akeekkachiisa duraa hongee laga tokkoof sirriitti ijaarame.",
+    "lead": "AI-DREWS pilaatfoormii qorannoo fi hojii Laga Tulluu Chooqee, Amaara, Itoophiyaa keessaa ti; gareen dhaabbilee afur irraa dhufe ijaare.",
+    "storyEyebrow": "Pirojektichi",
+    "storyTitle": "Maaliif laga tokko.",
+    "story1": "Oomishni hongee ardii guutuu lafa heektaara walakkaa irratti murtii godhamuuf baay'ee bal'aa dha. AI-DREWS laga tokko sadarkaa qonnaan bulaan irratti hojjechuu danda'uun moodeessa, daangaa dhugaa safarame fayyadamuun — kutaa 64 keessaa 15 laga sanaan ala waan ta'aniif hin hammatamne.",
+    "story2": "Pilaatfoormiin saayinsii qofa osoo hin taane hojii irras oole: moodeelonni bu'aa qorannoo kennan sunuu daashboordii, gorsa qonnaan bulaa fi sarara bilbilaa tajaajilu.",
+    "hostTitle": "Lagichi",
+    "hostBody": "Tulluun Chooqee Abbayyaa soora; Gojjam Bahaa keessatti qonna xiqqaa cimaa deeggara. Iddoo sirni kun itti sirreeffamuu fi itti diriirfamuudha.",
+    "fact": {
+      "area": {
+        "label": "Bal’ina lagaa",
+        "value": "km² 18,948"
+      },
+      "woredas": {
+        "label": "Kutaalee moodeeffaman",
+        "value": "64 keessaa 49"
+      },
+      "region": {
+        "label": "Naannoo",
+        "value": "Amaara, Itoophiyaa"
+      }
+    },
+    "teamEyebrow": "Qorattoota",
+    "teamTitle": "Gareen.",
+    "teamLead": "Fiiziksii qilleensaa, istaatistiksii, saayinsii deetaa fi injinariingii dhaabbilee afur irraa.",
+    "role": {
+      "teamLead": "Hogganaa garee fi ogeessa dhimmichaa",
+      "dataScience": "Saayinsii deetaa fi xiinxala",
+      "statistics": "Moodeela istaatistiksii fi xiinxala qilleensaa",
+      "frontend": "Misooma fuulduraa fi saayinsii deetaa",
+      "engineering": "Injinariingii guutuu, ML/duumessa fi qorannoo fagoo"
+    },
+    "contactNote": "Teessoon qorattootaa galmee pirojektichaa keessa jira malee asitti hin maxxanfamne. Gaaffiin karaa gaaffii gahumsaatiin garee bira gaha.",
+    "talkEyebrow": "Nu qunnami",
+    "talkTitle": "Hongee gaarreen irratti hojjechaa jirtaa?",
+    "talkLead": "Dhaabbileen herrega gaafatu, nutis karoora kutaa isaaniitiif qabannee deebina. Qonnaan bultoonni kallattiidhaan galmaa'u, hojjetaan misoomaas lafa mirkaneessa.",
+    "ctaAccess": "Gahumsa gaafadhu",
+    "ctaSignup": "Galmee qonnaan bulaa"
   }
 }

@@ -6,8 +6,9 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from agriminds_api.schemas.common import LocaleCode
+
 Role = Literal["farmer", "agent", "minister", "admin"]
-LocaleCode = Literal["en", "am", "or"]
 
 
 class PlaceOut(BaseModel):

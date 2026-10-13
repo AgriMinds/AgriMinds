@@ -61,6 +61,11 @@ export const ALLOWED: ReadonlyArray<{ method: Method; path: RegExp }> = [
   // public endpoint reachable with a session it does not need.
   { method: 'POST', path: /^agent\/ask$/ },
   { method: 'GET', path: /^admin\/hotline$/ },
+  // Opening an account, and the staff queue that confirms it. The sign-up itself is public; the
+  // queue is not, and the service enforces that rather than this list.
+  { method: 'POST', path: /^signup$/ },
+  { method: 'GET', path: /^staff\/signups$/ },
+  { method: 'POST', path: new RegExp(`^staff/signups/${UUID}$`) },
   // commercial surfaces (admin only; the service enforces the role)
   { method: 'GET', path: /^billing\/pricing$/ },
   { method: 'GET', path: new RegExp(`^billing/pricing/${SLUG}$`) },

@@ -17,9 +17,11 @@ import { useI18n } from '@/i18n';
 import { useSelection } from '@/state/selection';
 import { radius, spacing, useTheme } from '@/theme';
 
-import { PlotModal } from './PlotModal';
 import { AdvisoryActionCard } from './AdvisoryActionCard';
+import { AgentChat } from './AgentChat';
 import { PlotCard } from './PlotCard';
+import { PlotModal } from './PlotModal';
+import { PremiumCard } from './PremiumCard';
 
 export type EnsoBandKey =
   | 'highElNino'
@@ -217,6 +219,12 @@ export function FarmerOverview() {
           ground={activeFarm?.risk?.pdsi_category}
         />
       ) : null}
+
+      {/* AI Agronomic Advisory Agent (Matching Web) */}
+      <AgentChat />
+
+      {/* Daily Farmer Premium & Message Credits (Matching Web) */}
+      <PremiumCard />
 
       {/* Registered Plots List */}
       <View style={styles.plotsSection}>

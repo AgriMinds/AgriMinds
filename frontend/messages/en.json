@@ -945,5 +945,316 @@
     "held": "{n} held, not sent",
     "unregistered": "{n} from unregistered numbers",
     "notRegistered": "Not registered"
+  },
+  "site": {
+    "nav": "Site",
+    "nav_howItWorks": "How it works",
+    "nav_about": "About",
+    "signIn": "Sign in",
+    "requestAccess": "Request access",
+    "toWorkspace": "Open workspace",
+    "footerBlurb": "Seasonal drought early warning for the Choke Mountain Watershed — forecasts a farmer can act on, and the evidence behind them.",
+    "institutions": "Debre Markos University · AI Institute of Ethiopia",
+    "footerExplore": "Explore",
+    "footerBuiltOn": "Built on",
+    "copyright": "© {year} AgriMinds AI-DREWS. Research and operations for the Choke Mountain Watershed, Amhara, Ethiopia."
+  },
+  "home": {
+    "metaTitle": "Drought early warning for the Choke Mountain Watershed",
+    "eyebrow": "Choke Mountain Watershed · Amhara, Ethiopia",
+    "heroTitle": "Know the season before you plant it.",
+    "heroTitleAccent": "Down to your own field.",
+    "heroLead": "AI-DREWS turns satellite rainfall, reanalysis and the Pacific El Niño signal into a drought forecast for each cell of an 18,948 km² catchment — then into advice a smallholder can act on, in their own language.",
+    "ctaPrimary": "Request access",
+    "ctaSecondary": "See how it works",
+    "ctaNote": "Institutions request an account. Farmers can sign up and a development agent confirms them.",
+    "stat": {
+      "catchment": {
+        "value": "18,948 km²",
+        "label": "Surveyed catchment",
+        "note": "Real Choke boundary, not a bounding box"
+      },
+      "cells": {
+        "value": "49 cells",
+        "label": "Inside the watershed",
+        "note": "Of a 64-cell grid; 15 fall outside"
+      },
+      "record": {
+        "value": "1951–2026",
+        "label": "Climate record",
+        "note": "884 months of NOAA Niño 3.4"
+      },
+      "crops": {
+        "value": "3 staples",
+        "label": "Tef, wheat, maize",
+        "note": "Yield modelled from CSA statistics"
+      }
+    },
+    "whyEyebrow": "The problem",
+    "whyTitle": "A forecast is only useful if it reaches the field in time.",
+    "whyLead": "Drought in the Ethiopian highlands is survivable when it is known early. The gap has never been the science — it is the distance between a model and a farmer deciding what to sow.",
+    "why": {
+      "warning": {
+        "title": "Early warning, per cell",
+        "body": "Drought probability for each grid cell of the catchment, with the observed Sc-PDSI for the ground as it is now."
+      },
+      "decision": {
+        "title": "Advice, not just numbers",
+        "body": "Crop, planting window, water management and preparedness, chosen by rule from the forecast and the crop in that field."
+      },
+      "reach": {
+        "title": "Reaches a feature phone",
+        "body": "The same answers through the app, an SMS or USSD menu, and an extension agent — not only to farmers with smartphones."
+      }
+    },
+    "howEyebrow": "How it works",
+    "howTitle": "From satellite to planting decision.",
+    "howLead": "Four steps, each one auditable: every figure in the interface traces back to the run and the dataset that produced it.",
+    "stepLabel": "Step {n}",
+    "step": {
+      "observe": {
+        "title": "Observe",
+        "body": "CHIRPS rainfall, ERA5 reanalysis and NOAA Niño 3.4, ingested with a manifest recording where each value came from."
+      },
+      "model": {
+        "title": "Model",
+        "body": "SPI-3, VCI and a self-calibrating Palmer index feed a hybrid network that forecasts drought a month ahead."
+      },
+      "advise": {
+        "title": "Advise",
+        "body": "Published rules turn probability and crop into a recommendation, with traditional indicators weighed alongside the model."
+      },
+      "deliver": {
+        "title": "Deliver",
+        "body": "Dashboards for institutions, a plot-level page for farmers, and the 977 hotline for a phone with no app."
+      }
+    },
+    "howMore": "The data and the models in detail",
+    "modelsEyebrow": "The models",
+    "modelsTitle": "Three models, and what each is actually good for.",
+    "modelsLead": "Performance is published rather than implied. These are the figures from the trained artefacts currently in service.",
+    "model": {
+      "drought": {
+        "title": "Seasonal drought",
+        "body": "A CNN reads the spatial field, an LSTM the history, and a Fourier branch the seasonal cycle. It predicts the chance of drought for each cell."
+      },
+      "enso": {
+        "title": "El Niño outlook",
+        "body": "Forecasts the Niño 3.4 index up to a year ahead — and keeps persistence wherever the network cannot beat it by a clear margin."
+      },
+      "yield": {
+        "title": "Crop yield",
+        "body": "Gradient-boosted trees relating rainfall, the ENSO phase and the previous seasons to yield for tef, wheat and maize."
+      }
+    },
+    "modelsCaveat": "Honest limits: the drought model is skilful one month ahead. Two- and three-month views are shown for context and should not be planted on. The El Niño model keeps persistence at leads where it cannot beat it.",
+    "whoEyebrow": "Who it serves",
+    "whoTitle": "One forecast, six kinds of decision.",
+    "whoLead": "The same catchment model, priced and presented for the decision each group actually makes.",
+    "segment": {
+      "farmer": {
+        "title": "Smallholder farmers",
+        "body": "Risk and advice for each registered plot, free at the base tier, in Amharic, Afaan Oromoo or English."
+      },
+      "cooperative": {
+        "title": "Cooperatives & unions",
+        "body": "Member-wide risk, input planning before the season, and bulk advisories to members."
+      },
+      "agent": {
+        "title": "Development agents",
+        "body": "Woreda-level view of which kebeles need attention first, and the farmers behind each figure."
+      },
+      "ministry": {
+        "title": "Ministries & bureaux",
+        "body": "Catchment-wide early warning, coverage statistics and the provenance behind every number."
+      },
+      "research": {
+        "title": "Universities & research",
+        "body": "API access to the forecast grid, the indices and the model metadata for independent work."
+      },
+      "insurer": {
+        "title": "Insurers & lenders",
+        "body": "Seasonal risk at the woreda level for index products and agricultural credit decisions."
+      }
+    },
+    "reachEyebrow": "Reach",
+    "reachTitle": "Most farmers here do not have a smartphone.",
+    "reachLead": "A warning that only reaches the connected is not an early warning system. The same agent answers on every channel, from the same forecast for the same plot.",
+    "reach": {
+      "app": {
+        "title": "The app",
+        "body": "Plot-level risk, advice and a trilingual assistant you can speak to."
+      },
+      "hotline": {
+        "title": "SMS and USSD on 977",
+        "body": "Text or dial from any handset and get the answer for your own land. Awaiting an Ethio Telecom short code — built, not yet connected."
+      },
+      "agent": {
+        "title": "Extension agents",
+        "body": "Development agents carry the same advisory to farmers who use neither."
+      }
+    },
+    "ctaTitle": "Bring the forecast to your farmers.",
+    "ctaLead": "Tell us who you are and what you need it for. We will come back with a plan for your segment.",
+    "ctaAbout": "About the project"
+  },
+  "howItWorks": {
+    "eyebrow": "Method",
+    "title": "From satellite rainfall to a planting decision.",
+    "lead": "What the platform observes, what it models, what it is skilful at — and what it is not.",
+    "dataEyebrow": "Inputs",
+    "dataTitle": "Four public datasets, and nothing proprietary.",
+    "dataLead": "Each ingest writes a manifest recording the source, the window and the checksum, so any figure in the interface can be traced to the file it came from.",
+    "col": {
+      "source": "Source",
+      "provider": "Provider",
+      "feeds": "What it feeds"
+    },
+    "source": {
+      "chirps": "Rainfall, 1981–present",
+      "era5": "Temperature, soil moisture, evaporation",
+      "nino34": "Niño 3.4 sea-surface temperature",
+      "csa": "Crop statistics for tef, wheat and maize"
+    },
+    "feeds": {
+      "rainfall": "SPI-3 and the rainfall anomaly",
+      "balance": "The Sc-PDSI water balance and PET",
+      "enso": "The ENSO phase and its forecast",
+      "crops": "Yield modelling and crop sensitivity"
+    },
+    "dataNote": "ERA5 is checked against CHIRPS and station records rather than trusted outright; where they disagree the disagreement is recorded instead of smoothed away.",
+    "pipelineEyebrow": "Pipeline",
+    "pipelineTitle": "What happens between the two.",
+    "pipeline": {
+      "observe": {
+        "title": "Ingest and validate",
+        "body": "Rainfall, reanalysis and the ENSO index are pulled on a schedule, checked for gaps and range, and written with a manifest. A failed check stops the run rather than publishing a gap as a zero."
+      },
+      "model": {
+        "title": "Indices and forecast",
+        "body": "SPI-3 is fitted per cell against a gamma distribution, VCI from vegetation condition, and Sc-PDSI from a Thornthwaite water balance. A CNN-LSTM with a Fourier branch forecasts drought probability per cell."
+      },
+      "advise": {
+        "title": "Rules, not generation",
+        "body": "A published rule table turns probability and crop into a recommendation. Nothing writes agronomic advice freely — the same inputs always produce the same guidance, and the rules version is recorded with every advisory."
+      },
+      "deliver": {
+        "title": "Delivery",
+        "body": "Institutions get dashboards and an API; farmers get their own plots, an assistant in three languages, and the 977 hotline for a phone with no app."
+      }
+    },
+    "modelsEyebrow": "Models",
+    "modelsTitle": "What is in service today.",
+    "modelsLead": "Figures taken from the trained artefacts, not from a paper.",
+    "model": {
+      "drought": {
+        "title": "Seasonal drought",
+        "body": "A 2-D convolution over the grid, an LSTM over the history and a Fourier branch for the seasonal cycle, combined to a per-cell probability."
+      },
+      "enso": {
+        "title": "El Niño outlook",
+        "body": "Trained on the full NOAA record. At each lead it is kept only where it beats persistence on validation by a clear margin."
+      },
+      "yield": {
+        "title": "Crop yield",
+        "body": "Gradient-boosted trees over rainfall, ENSO phase and the previous seasons, fitted to CSA statistics for the three staples."
+      }
+    },
+    "limitsEyebrow": "Limitations",
+    "limitsTitle": "What this does not do.",
+    "limitsLead": "Stated here with the same prominence as the claims, because planting and procurement decisions are made on this.",
+    "limit": {
+      "lead": {
+        "title": "Skilful one month ahead",
+        "body": "The drought model is validated at a one-month lead. Two- and three-month views exist for context and should not be planted on."
+      },
+      "persistence": {
+        "title": "Persistence is often the better answer",
+        "body": "The ENSO model keeps persistence at any lead where the network cannot beat it by at least 5% on validation. Several leads are persistence."
+      },
+      "yield": {
+        "title": "Yield is indicative",
+        "body": "Mean absolute percentage error is about 24%. It is useful for comparing seasons and crops, not for guaranteeing a harvest figure."
+      },
+      "sms": {
+        "title": "The hotline is not connected",
+        "body": "The 977 pipeline is complete and tested, but no carrier carries it yet: that needs an Ethio Telecom short code and an aggregator contract."
+      }
+    },
+    "ctaAccess": "Request access",
+    "ctaAbout": "About the project",
+    "rulesVersionNote": "Every advisory records the rules version and the model run that produced it, so a recommendation given last season can still be reconstructed."
+  },
+  "about": {
+    "eyebrow": "About",
+    "title": "A drought early warning system built for one watershed, properly.",
+    "lead": "AI-DREWS is a research and operations platform for the Choke Mountain Watershed in Amhara, Ethiopia, built by a team across four institutions.",
+    "storyEyebrow": "The project",
+    "storyTitle": "Why a single catchment.",
+    "story1": "Continental drought products are too coarse for a decision made on a half-hectare plot. AI-DREWS models one catchment at a resolution a farmer can act on, using the real surveyed boundary rather than a rectangle drawn around it — 15 of the 64 grid cells fall outside the watershed and are excluded rather than quietly averaged in.",
+    "story2": "The platform is operational as well as scientific: the same models that produce the research outputs serve the dashboards, the farmer advisories and the hotline, so the numbers in a paper and the numbers a development agent sees are the same numbers.",
+    "hostTitle": "The watershed",
+    "hostBody": "Choke Mountain feeds the Blue Nile and supports dense smallholder agriculture across East Gojjam. It is where the system is calibrated and where it is deployed.",
+    "fact": {
+      "area": {
+        "label": "Catchment area",
+        "value": "18,948 km²"
+      },
+      "woredas": {
+        "label": "Grid cells modelled",
+        "value": "49 of 64"
+      },
+      "region": {
+        "label": "Region",
+        "value": "Amhara, Ethiopia"
+      }
+    },
+    "teamEyebrow": "Investigators",
+    "teamTitle": "The team.",
+    "teamLead": "Atmospheric physics, statistics, data science and engineering across four institutions.",
+    "role": {
+      "teamLead": "Team lead & domain expert",
+      "dataScience": "Data science & analytics",
+      "statistics": "Statistical modelling & climate analytics",
+      "frontend": "Frontend development & data science",
+      "engineering": "Full-stack engineering, ML/cloud & remote sensing"
+    },
+    "contactNote": "Direct contact details for the investigators are held in the project record rather than published here. Enquiries reach the team through an access request, which also leaves a record of what was asked.",
+    "talkEyebrow": "Get in touch",
+    "talkTitle": "Working on drought in the highlands?",
+    "talkLead": "Institutions request an account and we respond with a plan for their segment. Farmers can sign up directly, and a development agent confirms the holding.",
+    "ctaAccess": "Request access",
+    "ctaSignup": "Farmer sign-up"
+  },
+  "signup": {
+    "title": "Open a farmer account",
+    "lead": "Drought advice for your own plots, free.",
+    "name": "Your full name",
+    "phone": "Mobile number",
+    "phoneHint": "A development agent will call this number to confirm your land.",
+    "password": "Choose a password",
+    "passwordHint": "At least {count} characters. A short phrase works well.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "note": "About your land",
+    "notePlaceholder": "Kebele, how many plots, and who can vouch for you.",
+    "noteHint": "This is what the agent checks against what they know of your area, so be specific.",
+    "submit": "Create account",
+    "sending": "Sending…",
+    "sentTitle": "Request received",
+    "sentHint": "You cannot sign in yet. We will confirm your holding first.",
+    "genericError": "Something went wrong. Try again.",
+    "haveAccount": "Already have an account? Sign in",
+    "institution": "A cooperative, office or institution? Request access instead"
+  },
+  "signups": {
+    "title": "Waiting to be confirmed",
+    "desc": "Farmers who signed up themselves, oldest first",
+    "empty": "Nobody is waiting.",
+    "waitingSince": "since {date}",
+    "approve": "Confirm",
+    "refuse": "Refuse",
+    "confirmRefusal": "Refuse this sign-up",
+    "why": "Why (the applicant is told)"
   }
 }

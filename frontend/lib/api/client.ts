@@ -21,6 +21,10 @@ import type {
   AgentAnswer,
   AgentQuestion,
   HotlineTurn,
+  ApprovalDecision,
+  PendingUser,
+  SignupAccepted,
+  SignupRequest,
   RequestDecision,
   AccessRequestOut,
   DecisionResult,
@@ -246,6 +250,18 @@ export const api = {
     request<AgentAnswer>('/agent/ask', { method: 'POST', body: JSON.stringify(question) }),
   /** What the 977 hotline has been asked lately. Administrators only. */
   hotlineTraffic: () => request<HotlineTurn[]>('/admin/hotline'),
+
+  // ---- opening an account -------------------------------------------------------------
+  /** Open a farmer account. Creates nothing usable until staff confirm the holding. */
+  signup: (req: SignupRequest) =>
+    request<SignupAccepted>('/signup', { method: 'POST', body: JSON.stringify(req) }),
+  /** Who is waiting to be confirmed, oldest first. Staff only. */
+  pendingSignups: () => request<PendingUser[]>('/staff/signups'),
+  decideSignup: (id: string, decision: ApprovalDecision) =>
+    request<PendingUser>(`/staff/signups/${id}`, {
+      method: 'POST',
+      body: JSON.stringify(decision),
+    }),
   confirmPayment: (id: string, confirmation: PaymentConfirmation) =>
     request<InvoiceOut>(`/admin/invoices/${id}/paid`, {
       method: 'POST',

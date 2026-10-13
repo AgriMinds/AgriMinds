@@ -364,6 +364,13 @@ async def admin_headers(make_user, sign_in):
 
 
 @pytest_asyncio.fixture
+async def agent_headers(make_user, sign_in):
+    """A development agent: the staff member who can say whether a holding exists."""
+    user = await make_user(UserRole.AGENT, email="da@example.et", woreda_code="SNN")
+    return sign_in(user.email)["headers"]
+
+
+@pytest_asyncio.fixture
 async def farmer_headers(make_user, sign_in):
     """Authorization header for a farmer account."""
     user = await make_user(UserRole.FARMER, phone="+251911909090")

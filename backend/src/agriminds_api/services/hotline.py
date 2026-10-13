@@ -81,7 +81,7 @@ class HotlineService:
         )
 
         if user is None:
-            answer_text = phrases.UNKNOWN_CALLER[locale if locale in ("en", "am", "om") else "en"]
+            answer_text = phrases.UNKNOWN_CALLER[locale if locale in ("en", "am", "or") else "en"]
             intent = "unknown_caller"
             farm_id = None
         else:

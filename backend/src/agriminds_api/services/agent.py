@@ -181,7 +181,7 @@ class AgentService:
         lead_month: int = 1,
         farm_id: str | None = None,
     ) -> Answer:
-        loc = locale if locale in ("en", "am", "om") else "en"
+        loc = locale if locale in ("en", "am", "or") else "en"
         intent = detect_intent(question)
 
         if intent == "menu":

@@ -6,7 +6,17 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Enum, ForeignKey, Index, Integer, String
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from agriminds_api.db.base import Base, Timestamps, UUIDPrimaryKey
@@ -26,6 +36,21 @@ class UserRole(enum.StrEnum):
         return self in {UserRole.AGENT, UserRole.MINISTER, UserRole.ADMIN}
 
 
+class ApprovalStatus(enum.StrEnum):
+    """Whether somebody who signed up themselves may actually use the account.
+
+    Separate from ``is_active``, which means an account that *was* usable and was switched off.
+    Collapsing the two would make "never approved" and "revoked" the same state, and the person
+    signing in would get the same message for both -- one of which is a mistake they can fix by
+    waiting and the other is not.
+    """
+
+    #: Signed up and waiting for a development agent or administrator to confirm them.
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
 class Locale(enum.StrEnum):
     EN = "en"
     AM = "am"
@@ -33,6 +58,9 @@ class Locale(enum.StrEnum):
 
 
 user_role_enum = Enum(UserRole, name="user_role", values_callable=lambda e: [m.value for m in e])
+approval_status_enum = Enum(
+    ApprovalStatus, name="approval_status", values_callable=lambda e: [m.value for m in e]
+)
 locale_enum = Enum(Locale, name="locale", values_callable=lambda e: [m.value for m in e])
 
 
@@ -64,6 +92,19 @@ class User(UUIDPrimaryKey, Timestamps, Base):
         ForeignKey("woredas.id", ondelete="SET NULL"), index=True
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
+    #: Everyone created by seeding, by an invitation or by staff is approved on arrival. Only a
+    #: self sign-up starts pending, because it is the only route where nobody has yet confirmed
+    #: that the person is who they say they are.
+    approval_status: Mapped[ApprovalStatus] = mapped_column(
+        approval_status_enum, default=ApprovalStatus.APPROVED, server_default="approved", index=True
+    )
+    #: Who confirmed them, and when. An approval nobody is accountable for is not a check.
+    approved_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    #: What the applicant said about themselves at sign-up: kebele, plots, who knows them.
+    signup_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Brute-force protection; reset on a successful sign-in.
     failed_login_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

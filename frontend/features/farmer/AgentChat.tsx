@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Loader2, Mic, Send, Square, Volume2 } from 'lucide-react'
+import type { AgentQuestion } from '@agriminds/api-types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -56,11 +57,13 @@ export function AgentChat() {
     setTurns((prev) => [...prev, { from: 'farmer', text: question }])
     setDraft('')
     ask.mutate(
-      { text: question, locale: locale as 'en' | 'am' | 'om', lead_month: 1 },
+      // Derived from the generated schema rather than written out here: a hand-typed list is
+      // how `om` and `or` drifted apart in the first place.
+      { text: question, locale: locale as AgentQuestion['locale'], lead_month: 1 },
       {
         onSuccess: (answer) => {
           setTurns((prev) => [...prev, { from: 'agent', text: answer.text, intent: answer.intent }])
-          requestAnimationFrame(() => log.current?.scrollTo({ top: log.current.scrollHeight }))
+          requestAnimationFrame(() => log.current?.scrollTo?.({ top: log.current.scrollHeight }))
         },
         onError: (err) => {
           setTurns((prev) => [...prev, { from: 'agent', text: (err as Error).message }])

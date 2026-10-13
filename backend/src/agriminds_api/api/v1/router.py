@@ -20,6 +20,7 @@ from agriminds_api.api.v1 import (
     metrics,
     organizations,
     plans,
+    signup,
     subscriptions,
     system,
 )
@@ -37,6 +38,8 @@ api_router.include_router(access_requests.public_router)
 # The 977 hotline. Unauthenticated because the caller is a phone: an aggregator posts here and
 # proves itself with a signature over the body, not with a session.
 api_router.include_router(agent.hotline_router)
+# Opening an account for yourself. Creates nothing usable until staff confirm it.
+api_router.include_router(signup.public_router)
 
 # Forecast data: a signed-in person or a trusted service (X-API-Key).
 _forecast = APIRouter(
@@ -73,6 +76,7 @@ _private.include_router(organizations.router)
 _private.include_router(subscriptions.router)
 _private.include_router(agent.router)
 _private.include_router(agent.admin_router)
+_private.include_router(signup.staff_router)
 _private.include_router(plans.router)
 _private.include_router(plans.admin_router)
 _private.include_router(messaging.router)

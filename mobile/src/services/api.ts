@@ -23,6 +23,15 @@ import type {
   MinistryDashboard,
   TokenPair,
   WatershedBoundary,
+  AgentAnswer,
+  AgentQuestion,
+  DataInventory,
+  AccessRequestOut,
+  FarmerUpgradeRequest,
+  PlanSet,
+  PlanChoice,
+  CheckoutResult,
+  ModelMetricsResponse,
 } from '@agriminds/api-types';
 
 import { loadRoleToken, saveRoleToken } from '@/storage/preferences';
@@ -234,5 +243,27 @@ export const api = {
     request<CropYieldTimeline>(`/crop-yield/timeline${throughYear ? `?through_year=${throughYear}` : ''}`),
   ensoImpact: () => request<EnsoImpactResponse>('/crop-yield/enso-impact'),
   cropYieldModel: () => request<CropYieldModelCard>('/crop-yield/model'),
+
+  // AI Agronomic Advisor & Interactive Hotline Agent
+  ask: (question: AgentQuestion, role: string = 'farmer') =>
+    authRequest<AgentAnswer>(role, '/agent/ask', { method: 'POST', body: JSON.stringify(question) }),
+
+  // Data Sources Inventory
+  dataSources: () => request<DataInventory>('/system/data-sources'),
+
+  // Scientific Validation & Model Performance Metrics
+  modelMetrics: () => request<ModelMetricsResponse>('/drought/metrics'),
+
+  // Commercial Micro-Billing & Daily Farmer Premium
+  plans: (role: string = 'farmer') => authRequest<PlanSet>(role, '/plans'),
+  choosePlan: (choice: PlanChoice, role: string = 'farmer') =>
+    authRequest<CheckoutResult>(role, '/plans', { method: 'POST', body: JSON.stringify(choice) }),
+  myPremiumRequest: (role: string = 'farmer') =>
+    authRequest<AccessRequestOut | null>(role, '/access-requests/premium'),
+  requestPremium: (payload: FarmerUpgradeRequest, role: string = 'farmer') =>
+    authRequest<AccessRequestOut>(role, '/access-requests/premium', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 };
 

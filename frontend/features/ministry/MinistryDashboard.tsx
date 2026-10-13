@@ -6,6 +6,7 @@ import { ArrowRight, Flame, Map, Sprout, Users, Wheat } from 'lucide-react'
 import { useFormatter, useTranslations } from 'next-intl'
 import type { LeadMonth } from '@agriminds/api-types'
 import { LEAD_MONTHS } from '@agriminds/api-types'
+import { SignupQueue } from '@/features/admin/SignupQueue'
 import { Card, CardContent, CardDescription, CardHeader, CardHeading, CardIcon, CardTitle } from '@/components/ui/card'
 import { QueryError } from '@/components/ui/query-state'
 import { SegmentedControl } from '@/components/ui/segmented'
@@ -121,6 +122,9 @@ export function MinistryDashboard() {
             {/* Two independent columns so a short card never leaves a hole beside a tall one. */}
             <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-12">
               <div className="flex flex-col gap-6 xl:col-span-5">
+                {/* Development agents are the ones who can confirm a holding, so the queue lives
+                    on the page every staff role opens rather than behind the admin pages. */}
+                <SignupQueue />
                 <Card className="reveal" style={delay(220)}>
                   <CardHeader>
                     <CardHeading>
