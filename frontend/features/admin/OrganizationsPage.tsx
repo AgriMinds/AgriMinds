@@ -62,112 +62,119 @@ export function OrganizationsPage() {
   )
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1.5">
-        <span className="text-xs font-semibold tracking-wide text-fg-muted uppercase">{t('eyebrow')}</span>
-        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">{t('title')}</h1>
-        <p className="max-w-3xl text-sm leading-relaxed text-fg-muted">{t('intro')}</p>
-      </header>
-
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Stat
-          icon={<Building2 />}
-          label={t('stat.accounts')}
-          value={organizations.data ? String(accounts.length) : '—'}
-          detail={t('stat.accountsDetail')}
-          loading={organizations.isPending}
-        />
-        <Stat
-          icon={<KeyRound />}
-          label={t('stat.keys')}
-          value={organizations.data ? String(totals.keys) : '—'}
-          detail={t('stat.keysDetail')}
-          loading={organizations.isPending}
-        />
-        <Stat
-          icon={<Activity />}
-          label={t('stat.requests')}
-          value={organizations.data ? formatRequests(totals.used) : '—'}
-          detail={
-            organizations.data
-              ? t('stat.requestsDetail', { share: formatShare(totals.used, totals.quota) })
-              : undefined
-          }
-          loading={organizations.isPending}
-        />
+    <>
+      {/* Same container as every other page: banded header, then content at max-w-[1600px]. */}
+      <div className="bg-contour border-b border-border">
+        <div className="mx-auto flex max-w-[1600px] flex-col gap-2 px-4 pt-8 pb-7 sm:px-6 lg:px-8">
+          <p className="flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-primary uppercase">
+            <Building2 className="size-3.5" aria-hidden /> {t('eyebrow')}
+          </p>
+          <h1 className="font-display text-display font-bold">{t('title')}</h1>
+          <p className="max-w-2xl text-sm leading-relaxed text-fg-muted sm:text-base">{t('intro')}</p>
+        </div>
       </div>
 
-      <div className="grid items-start gap-5 xl:grid-cols-12">
-        <div className="flex flex-col gap-5 xl:col-span-7">
-          <Card className="p-3.5 sm:p-5">
-            <CardHeader>
-              <CardHeading>
-                <CardIcon>
-                  <Building2 />
-                </CardIcon>
-                <div className="min-w-0">
-                  <CardTitle>{t('accounts')}</CardTitle>
-                  <CardDescription>{t('accountsDesc')}</CardDescription>
-                </div>
-              </CardHeading>
-            </CardHeader>
-            <CardContent className="flex flex-col">
-              {organizations.isError ? (
-                <QueryError
-                  error={organizations.error}
-                  onRetry={() => void organizations.refetch()}
-                  isRetrying={organizations.isFetching}
-                />
-              ) : accounts.length ? (
-                <ul className="flex flex-col gap-2">
-                  {accounts.map((org) => (
-                    <AccountRow
-                      key={org.id}
-                      org={org}
-                      selected={active === org.id}
-                      onSelect={() => setSelected(active === org.id ? null : org.id)}
-                    />
-                  ))}
-                </ul>
-              ) : organizations.isPending ? (
-                <div className="flex flex-col gap-2">
-                  {Array.from({ length: 3 }, (_, i) => (
-                    <Skeleton key={i} className="h-16" />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState onAdd={() => setAdding(true)} />
-              )}
-
-              {adding ? (
-                <NewAccount onDone={() => setAdding(false)} />
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setAdding(true)}
-                  className="mt-3 inline-flex min-h-11 items-center gap-1.5 self-start rounded-lg border border-dashed border-border px-3 text-xs font-medium text-fg-muted transition-colors hover:border-border-strong hover:text-fg focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <Plus className="size-3.5" aria-hidden />
-                  {t('addTitle')}
-                </button>
-              )}
-            </CardContent>
-          </Card>
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Stat
+            icon={<Building2 />}
+            label={t('stat.accounts')}
+            value={organizations.data ? String(accounts.length) : '—'}
+            detail={t('stat.accountsDetail')}
+            loading={organizations.isPending}
+          />
+          <Stat
+            icon={<KeyRound />}
+            label={t('stat.keys')}
+            value={organizations.data ? String(totals.keys) : '—'}
+            detail={t('stat.keysDetail')}
+            loading={organizations.isPending}
+          />
+          <Stat
+            icon={<Activity />}
+            label={t('stat.requests')}
+            value={organizations.data ? formatRequests(totals.used) : '—'}
+            detail={
+              organizations.data
+                ? t('stat.requestsDetail', { share: formatShare(totals.used, totals.quota) })
+                : undefined
+            }
+            loading={organizations.isPending}
+          />
         </div>
 
-        <div className="xl:col-span-5">
-          {active ? (
-            <Credentials organizationId={active} />
-          ) : (
+        <div className="grid items-start gap-5 xl:grid-cols-12">
+          <div className="flex flex-col gap-5 xl:col-span-7">
             <Card className="p-3.5 sm:p-5">
-              <CardContent>
-                <p className="text-sm text-fg-muted">{t('pickAccount')}</p>
+              <CardHeader>
+                <CardHeading>
+                  <CardIcon>
+                    <Building2 />
+                  </CardIcon>
+                  <div className="min-w-0">
+                    <CardTitle>{t('accounts')}</CardTitle>
+                    <CardDescription>{t('accountsDesc')}</CardDescription>
+                  </div>
+                </CardHeading>
+              </CardHeader>
+              <CardContent className="flex flex-col">
+                {organizations.isError ? (
+                  <QueryError
+                    error={organizations.error}
+                    onRetry={() => void organizations.refetch()}
+                    isRetrying={organizations.isFetching}
+                  />
+                ) : accounts.length ? (
+                  <ul className="flex flex-col gap-2">
+                    {accounts.map((org) => (
+                      <AccountRow
+                        key={org.id}
+                        org={org}
+                        selected={active === org.id}
+                        onSelect={() => setSelected(active === org.id ? null : org.id)}
+                      />
+                    ))}
+                  </ul>
+                ) : organizations.isPending ? (
+                  <div className="flex flex-col gap-2">
+                    {Array.from({ length: 3 }, (_, i) => (
+                      <Skeleton key={i} className="h-16" />
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState onAdd={() => setAdding(true)} />
+                )}
+
+                {adding ? (
+                  <NewAccount onDone={() => setAdding(false)} />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setAdding(true)}
+                    className="mt-3 inline-flex min-h-11 items-center gap-1.5 self-start rounded-lg border border-dashed border-border px-3 text-xs font-medium text-fg-muted transition-colors hover:border-border-strong hover:text-fg focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Plus className="size-3.5" aria-hidden />
+                    {t('addTitle')}
+                  </button>
+                )}
               </CardContent>
             </Card>
-          )}
+          </div>
+
+          <div className="xl:col-span-5">
+            {active ? (
+              <Credentials organizationId={active} />
+            ) : (
+              <Card className="p-3.5 sm:p-5">
+                <CardContent>
+                  <p className="text-sm text-fg-muted">{t('pickAccount')}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -199,9 +206,7 @@ function AccountRow({
         <span className="flex flex-wrap items-center justify-between gap-2">
           <span className="min-w-0">
             <span className="block truncate text-sm font-semibold">{org.name}</span>
-            <span className="block text-[11px] text-fg-subtle">
-              {t(`stakeholder.${org.stakeholder}`)}
-            </span>
+            <span className="block text-[11px] text-fg-subtle">{t(`stakeholder.${org.stakeholder}`)}</span>
           </span>
           <span className="flex items-center gap-2 text-xs text-fg-muted">
             <KeyRound className="size-3.5" aria-hidden />
@@ -259,57 +264,57 @@ function NewAccount({ onDone }: { onDone: () => void }) {
     <div className="mt-3 flex flex-col gap-2 rounded-xl border border-border bg-surface-sunken/40 p-3">
       <p className="text-xs text-fg-muted">{t('addDesc')}</p>
       <form
-          aria-label={t('addTitle')}
-          className="flex flex-wrap items-end gap-3"
-          onSubmit={(e) => {
-            e.preventDefault()
-            create.mutate(
-              { name, stakeholder: stakeholder as OrganizationOut['stakeholder'] },
-              {
-                onSuccess: () => {
-                  setName('')
-                  onDone()
-                },
+        aria-label={t('addTitle')}
+        className="flex flex-wrap items-end gap-3"
+        onSubmit={(e) => {
+          e.preventDefault()
+          create.mutate(
+            { name, stakeholder: stakeholder as OrganizationOut['stakeholder'] },
+            {
+              onSuccess: () => {
+                setName('')
+                onDone()
               },
-            )
-          }}
-        >
-          <label className="flex min-w-48 flex-1 flex-col gap-1 text-xs">
-            <span className="text-fg-muted">{t('name')}</span>
-            <input
-              required
-              minLength={2}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="rounded-md border border-border bg-surface px-2 py-1.5"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-xs">
-            <span className="text-fg-muted">{t('tier')}</span>
-            <select
-              value={stakeholder}
-              onChange={(e) => setStakeholder(e.target.value)}
-              className="rounded-md border border-border bg-surface px-2 py-1.5"
-            >
-              {STAKEHOLDERS.map((key) => (
-                <option key={key} value={key}>
-                  {t(`stakeholder.${key}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Button type="submit" size="sm" disabled={create.isPending}>
-            {create.isPending ? t('adding') : t('add')}
-          </Button>
-          <Button type="button" size="sm" variant="ghost" onClick={onDone}>
-            {t('cancel')}
-          </Button>
-        </form>
-        {create.isError && (
-          <p role="alert" className="text-xs text-status-bad">
-            {(create.error as Error).message}
-          </p>
-        )}
+            },
+          )
+        }}
+      >
+        <label className="flex min-w-48 flex-1 flex-col gap-1 text-xs">
+          <span className="text-fg-muted">{t('name')}</span>
+          <input
+            required
+            minLength={2}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="rounded-md border border-border bg-surface px-2 py-1.5"
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-xs">
+          <span className="text-fg-muted">{t('tier')}</span>
+          <select
+            value={stakeholder}
+            onChange={(e) => setStakeholder(e.target.value)}
+            className="rounded-md border border-border bg-surface px-2 py-1.5"
+          >
+            {STAKEHOLDERS.map((key) => (
+              <option key={key} value={key}>
+                {t(`stakeholder.${key}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <Button type="submit" size="sm" disabled={create.isPending}>
+          {create.isPending ? t('adding') : t('add')}
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={onDone}>
+          {t('cancel')}
+        </Button>
+      </form>
+      {create.isError && (
+        <p role="alert" className="text-xs text-status-bad">
+          {(create.error as Error).message}
+        </p>
+      )}
     </div>
   )
 }

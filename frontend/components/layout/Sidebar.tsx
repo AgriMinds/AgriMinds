@@ -3,7 +3,24 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, Building2, CalendarRange, Coins, Database, Flame, Landmark, ListChecks, Map, PhoneCall, ShieldCheck, Sprout, Waves, Wheat, X, type LucideIcon } from 'lucide-react'
+import {
+  BarChart3,
+  Building2,
+  CalendarRange,
+  Coins,
+  Database,
+  Flame,
+  Landmark,
+  ListChecks,
+  Map,
+  PhoneCall,
+  ShieldCheck,
+  Sprout,
+  Waves,
+  Wheat,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useEffect, useTransition } from 'react'
 import type { Role } from '@agriminds/api-types'
@@ -62,11 +79,17 @@ function ModelCard() {
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.06] p-3.5 backdrop-blur-xs">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-[10px] font-semibold tracking-[0.16em] text-brand-sage uppercase">{t('title')}</span>
+        <span className="text-[10px] font-semibold tracking-[0.16em] text-brand-sage uppercase">
+          {t('title')}
+        </span>
         <span
           className={cn(
             'size-2 rounded-full',
-            status === 'healthy' ? 'bg-status-ok' : status === 'degraded' ? 'bg-status-warn' : 'bg-status-bad',
+            status === 'healthy'
+              ? 'bg-status-ok'
+              : status === 'degraded'
+                ? 'bg-status-warn'
+                : 'bg-status-bad',
           )}
           aria-hidden
         />
@@ -390,10 +413,18 @@ export function Sidebar({ open, onClose, user }: Props) {
               className="flex items-center gap-3 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-lime"
             >
               <span className="flex size-10 items-center justify-center overflow-hidden rounded-xl shadow-md shadow-black/20 ring-1 ring-white/15">
-                <Image src="/icon.png" alt="AgriMinds" width={40} height={40} className="size-10 object-cover" />
+                <Image
+                  src="/icon.png"
+                  alt="AgriMinds"
+                  width={40}
+                  height={40}
+                  className="size-10 object-cover"
+                />
               </span>
               <span className="leading-tight">
-                <span className="block font-display text-base font-bold tracking-tight text-white">{t('name')}</span>
+                <span className="block font-display text-base font-bold tracking-tight text-white">
+                  {t('name')}
+                </span>
                 <span className="block text-[10px] font-semibold tracking-[0.2em] text-brand-sage uppercase">
                   {t('product')}
                 </span>
@@ -438,7 +469,9 @@ export function Sidebar({ open, onClose, user }: Props) {
                     onClick={onClose}
                     className={cn(
                       'relative flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-brand-lime',
-                      active ? 'bg-white/10 text-white' : 'text-white/65 hover:bg-white/[0.06] hover:text-white',
+                      active
+                        ? 'bg-white/10 text-white'
+                        : 'text-white/65 hover:bg-white/[0.06] hover:text-white',
                     )}
                   >
                     <span

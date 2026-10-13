@@ -36,7 +36,6 @@ export function formatRequests(n: number, locale = 'en-ET'): string {
   return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 0 }).format(n)
 }
 
-
 /**
  * A usage share a human can act on.
  *

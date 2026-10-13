@@ -51,161 +51,170 @@ export function PricingPage() {
   const totalQuota = tiers.reduce((sum, tier) => sum + tier.api_quota_monthly, 0)
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1.5">
-        <span className="text-xs font-semibold tracking-wide text-fg-muted uppercase">{t('eyebrow')}</span>
-        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">{t('title')}</h1>
-        <p className="max-w-3xl text-sm leading-relaxed text-fg-muted">{t('intro')}</p>
-      </header>
-
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Stat
-          icon={<Receipt />}
-          label={t('stat.contractValue')}
-          value={catalogue.data ? formatCompact(catalogue.data.annual_total, currency) : '—'}
-          detail={t('stat.contractValueDetail')}
-          loading={catalogue.isPending}
-        />
-        <Stat
-          icon={<Plug />}
-          label={t('stat.apiCapacity')}
-          value={catalogue.data ? formatRequests(totalQuota) : '—'}
-          detail={t('stat.apiCapacityDetail')}
-          loading={catalogue.isPending}
-        />
-        <Stat
-          icon={<Coins />}
-          label={t('stat.tiers')}
-          value={catalogue.data ? String(tiers.length) : '—'}
-          detail={
-            catalogue.data
-              ? t('stat.tiersDetail', { asOf: format.dateTime(new Date(catalogue.data.as_of), 'date') })
-              : undefined
-          }
-          loading={catalogue.isPending}
-        />
+    <>
+      {/* The shell gives `main` no padding, so every page supplies its own container: a banded
+          header over `max-w-[1600px]`, then the content at the same width. Without it the page
+          sits flush against the fixed 280px sidebar, which is what the other pages avoid. */}
+      <div className="bg-contour border-b border-border">
+        <div className="mx-auto flex max-w-[1600px] flex-col gap-2 px-4 pt-8 pb-7 sm:px-6 lg:px-8">
+          <p className="flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-primary uppercase">
+            <Coins className="size-3.5" aria-hidden /> {t('eyebrow')}
+          </p>
+          <h1 className="font-display text-display font-bold">{t('title')}</h1>
+          <p className="max-w-2xl text-sm leading-relaxed text-fg-muted sm:text-base">{t('intro')}</p>
+        </div>
       </div>
 
-      <Card className="p-3.5 sm:p-5">
-        <CardHeader>
-          <CardHeading>
-            <CardIcon>
-              <Coins />
-            </CardIcon>
-            <div className="min-w-0">
-              <CardTitle>{t('cardTitle')}</CardTitle>
-              <CardDescription>{t('cardDesc', { currency })}</CardDescription>
-            </div>
-          </CardHeading>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          {catalogue.isError ? (
-            <QueryError
-              error={catalogue.error}
-              onRetry={() => void catalogue.refetch()}
-              isRetrying={catalogue.isFetching}
-            />
-          ) : catalogue.data ? (
-            <>
-              {/* The sidebar is a fixed 280px column from `lg` up, so a 1024px laptop leaves this
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Stat
+            icon={<Receipt />}
+            label={t('stat.contractValue')}
+            value={catalogue.data ? formatCompact(catalogue.data.annual_total, currency) : '—'}
+            detail={t('stat.contractValueDetail')}
+            loading={catalogue.isPending}
+          />
+          <Stat
+            icon={<Plug />}
+            label={t('stat.apiCapacity')}
+            value={catalogue.data ? formatRequests(totalQuota) : '—'}
+            detail={t('stat.apiCapacityDetail')}
+            loading={catalogue.isPending}
+          />
+          <Stat
+            icon={<Coins />}
+            label={t('stat.tiers')}
+            value={catalogue.data ? String(tiers.length) : '—'}
+            detail={
+              catalogue.data
+                ? t('stat.tiersDetail', { asOf: format.dateTime(new Date(catalogue.data.as_of), 'date') })
+                : undefined
+            }
+            loading={catalogue.isPending}
+          />
+        </div>
+
+        <Card className="p-3.5 sm:p-5">
+          <CardHeader>
+            <CardHeading>
+              <CardIcon>
+                <Coins />
+              </CardIcon>
+              <div className="min-w-0">
+                <CardTitle>{t('cardTitle')}</CardTitle>
+                <CardDescription>{t('cardDesc', { currency })}</CardDescription>
+              </div>
+            </CardHeading>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            {catalogue.isError ? (
+              <QueryError
+                error={catalogue.error}
+                onRetry={() => void catalogue.refetch()}
+                isRetrying={catalogue.isFetching}
+              />
+            ) : catalogue.data ? (
+              <>
+                {/* The sidebar is a fixed 280px column from `lg` up, so a 1024px laptop leaves this
                   table under 700px — seven columns of currency do not fit, and a price list that
                   scrolls sideways is one nobody reads across. The table therefore waits for `xl`,
                   and below it the same rows are cards: one column on a phone, two once there is
                   room. No rate is hidden at any width, because a rate card that drops rates is
                   not a rate card. */}
-              <div className="hidden overflow-x-auto xl:block">
-                <table className="w-full border-separate border-spacing-y-1.5 text-sm">
-                  <caption className="sr-only">{t('caption')}</caption>
-                  <thead>
-                    <tr className="text-[11px] tracking-wide text-fg-subtle uppercase">
-                      <th scope="col" className="px-3 py-1 text-left font-medium">
-                        {t('col.stakeholder')}
-                      </th>
-                      <th scope="col" className="px-3 py-1 text-right font-medium">
-                        {t('col.annual')}
-                      </th>
-                      <th scope="col" className="px-3 py-1 text-right font-medium">
-                        {t('col.monthly')}
-                      </th>
-                      <th scope="col" className="px-3 py-1 text-right font-medium">
-                        {t('col.daily')}
-                      </th>
-                      <th scope="col" className="px-3 py-1 text-right font-medium">
-                        {t('col.oneTime')}
-                      </th>
-                      <th scope="col" className="px-3 py-1 text-right font-medium">
-                        {t('col.api')}
-                      </th>
-                      <th scope="col" className="px-3 py-1 text-right font-medium">
-                        <span className="sr-only">{t('col.actions')}</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {STAKEHOLDERS.map((key) => {
-                      const tier = byStakeholder.get(key)
-                      if (!tier) return null
-                      return (
-                        <Row
-                          key={key}
-                          tier={tier}
-                          currency={currency}
-                          onHistory={() => setOpenHistory(openHistory === key ? null : key)}
-                          onReprice={() => setRepricing(repricing === key ? null : key)}
-                          historyOpen={openHistory === key}
-                          repriceOpen={repricing === key}
-                        />
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                <div className="hidden overflow-x-auto xl:block">
+                  <table className="w-full border-separate border-spacing-y-1.5 text-sm">
+                    <caption className="sr-only">{t('caption')}</caption>
+                    <thead>
+                      <tr className="text-[11px] tracking-wide text-fg-subtle uppercase">
+                        <th scope="col" className="px-3 py-1 text-left font-medium">
+                          {t('col.stakeholder')}
+                        </th>
+                        <th scope="col" className="px-3 py-1 text-right font-medium">
+                          {t('col.annual')}
+                        </th>
+                        <th scope="col" className="px-3 py-1 text-right font-medium">
+                          {t('col.monthly')}
+                        </th>
+                        <th scope="col" className="px-3 py-1 text-right font-medium">
+                          {t('col.daily')}
+                        </th>
+                        <th scope="col" className="px-3 py-1 text-right font-medium">
+                          {t('col.oneTime')}
+                        </th>
+                        <th scope="col" className="px-3 py-1 text-right font-medium">
+                          {t('col.api')}
+                        </th>
+                        <th scope="col" className="px-3 py-1 text-right font-medium">
+                          <span className="sr-only">{t('col.actions')}</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {STAKEHOLDERS.map((key) => {
+                        const tier = byStakeholder.get(key)
+                        if (!tier) return null
+                        return (
+                          <Row
+                            key={key}
+                            tier={tier}
+                            currency={currency}
+                            onHistory={() => setOpenHistory(openHistory === key ? null : key)}
+                            onReprice={() => setRepricing(repricing === key ? null : key)}
+                            historyOpen={openHistory === key}
+                            repriceOpen={repricing === key}
+                          />
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
 
-              <ul className="grid gap-2 md:grid-cols-2 xl:hidden">
-                {STAKEHOLDERS.map((key) => {
-                  const tier = byStakeholder.get(key)
-                  if (!tier) return null
-                  return (
-                    <MobileTier
-                      key={key}
-                      tier={tier}
-                      currency={currency}
-                      onHistory={() => setOpenHistory(openHistory === key ? null : key)}
-                      onReprice={() => setRepricing(repricing === key ? null : key)}
-                      historyOpen={openHistory === key}
-                      repriceOpen={repricing === key}
-                    />
-                  )
-                })}
-              </ul>
+                <ul className="grid gap-2 md:grid-cols-2 xl:hidden">
+                  {STAKEHOLDERS.map((key) => {
+                    const tier = byStakeholder.get(key)
+                    if (!tier) return null
+                    return (
+                      <MobileTier
+                        key={key}
+                        tier={tier}
+                        currency={currency}
+                        onHistory={() => setOpenHistory(openHistory === key ? null : key)}
+                        onReprice={() => setRepricing(repricing === key ? null : key)}
+                        historyOpen={openHistory === key}
+                        repriceOpen={repricing === key}
+                      />
+                    )
+                  })}
+                </ul>
 
-              {/* The table and the card list are the same rows at two widths, so the expansion
+                {/* The table and the card list are the same rows at two widths, so the expansion
                   renders once underneath both rather than inside each — two copies of a form is
                   two sets of inputs, and whichever one the user did not fill wins on submit. */}
-              {repricing && byStakeholder.get(repricing) && (
-                <RepriceForm
-                  tier={byStakeholder.get(repricing) as PricingTierOut}
-                  onDone={() => setRepricing(null)}
-                />
-              )}
-              {openHistory && (
-                <HistoryPanel rows={history.data} loading={history.isPending} currency={currency} />
-              )}
+                {repricing && byStakeholder.get(repricing) && (
+                  <RepriceForm
+                    tier={byStakeholder.get(repricing) as PricingTierOut}
+                    onDone={() => setRepricing(null)}
+                  />
+                )}
+                {openHistory && (
+                  <HistoryPanel rows={history.data} loading={history.isPending} currency={currency} />
+                )}
 
-              <p className="rounded-lg border border-border bg-surface-sunken/50 px-3 py-2 text-xs leading-relaxed text-fg-muted">
-                {t('structure')}
-              </p>
-            </>
-          ) : (
-            <div className="flex flex-col gap-1.5">
-              {Array.from({ length: 8 }, (_, i) => (
-                <Skeleton key={i} className="h-14" />
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                <p className="rounded-lg border border-border bg-surface-sunken/50 px-3 py-2 text-xs leading-relaxed text-fg-muted">
+                  {t('structure')}
+                </p>
+              </>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                {Array.from({ length: 8 }, (_, i) => (
+                  <Skeleton key={i} className="h-14" />
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </>
   )
 }
 
@@ -317,9 +326,7 @@ function MobileTier({
           <span className="block text-base font-semibold tabular-nums">
             {formatMoney(tier.rates.annual, currency)}
           </span>
-          <span className="block text-[10px] tracking-wide text-fg-subtle uppercase">
-            {t('col.annual')}
-          </span>
+          <span className="block text-[10px] tracking-wide text-fg-subtle uppercase">{t('col.annual')}</span>
         </span>
       </div>
 
@@ -356,7 +363,6 @@ function MobileTier({
           </button>
         </span>
       </div>
-
     </li>
   )
 }

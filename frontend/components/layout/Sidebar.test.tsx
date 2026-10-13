@@ -34,7 +34,14 @@ describe('navForRole', () => {
   })
 
   it('offers staff analytics and provenance alongside the operational views', () => {
-    const operational = ['/ministry', '/watershed', '/prediction', '/crop-yield', '/analytics', '/data-sources']
+    const operational = [
+      '/ministry',
+      '/watershed',
+      '/prediction',
+      '/crop-yield',
+      '/analytics',
+      '/data-sources',
+    ]
     for (const role of ['agent', 'minister'] as const) {
       expect(navForRole(role).map((i) => i.href)).toEqual(operational)
     }
@@ -82,7 +89,7 @@ describe('Sidebar', () => {
     expect(screen.getByText('Ministry')).toBeInTheDocument()
   })
 
-  it("tells a farmer how much land they have and where, once the dashboard has loaded", () => {
+  it('tells a farmer how much land they have and where, once the dashboard has loaded', () => {
     farmerDashboard.mockReturnValue({
       data: {
         farms: [{ id: 'a' }, { id: 'b' }],
@@ -102,10 +109,9 @@ describe('Sidebar', () => {
     wrap('farmer')
     expect(screen.getByText('On this page')).toBeInTheDocument()
     for (const { id } of FARM_SECTIONS) {
-      expect(screen.getByRole('link', { name: messages.nav[id as keyof typeof messages.nav] })).toHaveAttribute(
-        'href',
-        `#${id}`,
-      )
+      expect(
+        screen.getByRole('link', { name: messages.nav[id as keyof typeof messages.nav] }),
+      ).toHaveAttribute('href', `#${id}`)
     }
   })
 
@@ -135,33 +141,33 @@ describe('Sidebar', () => {
     expect(screen.getByRole('link', { name: 'Data sources' })).toHaveAttribute('aria-current', 'page')
   })
 
-describe('the drawer below lg', () => {
-  // jsdom has no matchMedia, so `useMediaQuery` reports false — the small-screen layout, which
-  // is the case these assertions are about.
-  it('is taken out of the tab order when closed', () => {
-    // `-translate-x-full` moves it off-screen but leaves it focusable, so without `inert` a
-    // keyboard user tabs from the top bar straight into an invisible menu.
-    const { container } = wrap('minister', 'Alemu Tadesse', { open: false })
-    expect(container.querySelector('aside')).toHaveAttribute('inert')
-  })
+  describe('the drawer below lg', () => {
+    // jsdom has no matchMedia, so `useMediaQuery` reports false — the small-screen layout, which
+    // is the case these assertions are about.
+    it('is taken out of the tab order when closed', () => {
+      // `-translate-x-full` moves it off-screen but leaves it focusable, so without `inert` a
+      // keyboard user tabs from the top bar straight into an invisible menu.
+      const { container } = wrap('minister', 'Alemu Tadesse', { open: false })
+      expect(container.querySelector('aside')).toHaveAttribute('inert')
+    })
 
-  it('is reachable again once opened', () => {
-    const { container } = wrap('minister', 'Alemu Tadesse', { open: true })
-    expect(container.querySelector('aside')).not.toHaveAttribute('inert')
-  })
+    it('is reachable again once opened', () => {
+      const { container } = wrap('minister', 'Alemu Tadesse', { open: true })
+      expect(container.querySelector('aside')).not.toHaveAttribute('inert')
+    })
 
-  it('closes on Escape, like the user menu', () => {
-    const onClose = vi.fn()
-    wrap('minister', 'Alemu Tadesse', { open: true, onClose })
-    fireEvent.keyDown(document, { key: 'Escape' })
-    expect(onClose).toHaveBeenCalled()
-  })
+    it('closes on Escape, like the user menu', () => {
+      const onClose = vi.fn()
+      wrap('minister', 'Alemu Tadesse', { open: true, onClose })
+      fireEvent.keyDown(document, { key: 'Escape' })
+      expect(onClose).toHaveBeenCalled()
+    })
 
-  it('stops the page behind it scrolling while it is open', () => {
-    const { unmount } = wrap('minister', 'Alemu Tadesse', { open: true })
-    expect(document.body.style.overflow).toBe('hidden')
-    unmount()
-    expect(document.body.style.overflow).not.toBe('hidden')
+    it('stops the page behind it scrolling while it is open', () => {
+      const { unmount } = wrap('minister', 'Alemu Tadesse', { open: true })
+      expect(document.body.style.overflow).toBe('hidden')
+      unmount()
+      expect(document.body.style.overflow).not.toBe('hidden')
+    })
   })
-})
 })

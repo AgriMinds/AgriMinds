@@ -69,9 +69,7 @@ function callsInClient(): Array<{ method: Method; path: string }> {
     const raw = match[2]!
     const tail = match[3] ?? ''
     const method = (/method:\s*'(GET|POST|PATCH|DELETE)'/.exec(tail)?.[1] ?? 'GET') as Method
-    const filled = fillHoles(raw)
-      .replace(/\?.*$/, '')
-      .replace(/^\//, '')
+    const filled = fillHoles(raw).replace(/\?.*$/, '').replace(/^\//, '')
     if (filled) calls.push({ method, path: filled })
   }
   return calls

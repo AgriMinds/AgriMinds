@@ -57,8 +57,20 @@ const catalogue = {
   annual_total_cents: 456_015_000,
   annual_total: '4560150.00',
   tiers: [
-    tier('cooperative', 'Cooperative', 'per cooperative', rate('120000.00', '30000.00', '3000.00', '82.00'), 10_000),
-    tier('development_agent', 'Development agent', 'per woreda', rate('480000.00', '120000.00', '12000.00', '330.00'), 25_000),
+    tier(
+      'cooperative',
+      'Cooperative',
+      'per cooperative',
+      rate('120000.00', '30000.00', '3000.00', '82.00'),
+      10_000,
+    ),
+    tier(
+      'development_agent',
+      'Development agent',
+      'per woreda',
+      rate('480000.00', '120000.00', '12000.00', '330.00'),
+      25_000,
+    ),
     tier('farmer_premium', 'Farmer (premium)', 'per farmer', rate('0.00', '150.00', '15.00', '0.41'), 0),
   ],
 }
