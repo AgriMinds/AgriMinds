@@ -871,6 +871,10 @@
     "intro": "What your organisation is on, what else is offered, and what you owe. Choosing a plan raises an invoice — no payment is taken here.",
     "currentPlan": "You are on the {period} plan · {status}",
     "noPlan": "No plan chosen yet",
+    "notLinkedTitle": "Account not linked to an organisation",
+    "notLinkedDesc": "Your account is not linked to an organisation, so there is nothing to subscribe. Contact an administrator to link your account, or request institutional access.",
+    "requestAccess": "Request organisation access",
+    "backHome": "Back to overview",
     "period": {
       "annual": "Annual",
       "monthly": "Monthly",

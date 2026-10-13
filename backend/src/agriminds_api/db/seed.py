@@ -63,7 +63,7 @@ WOREDAS: tuple[WoredaSeed, ...] = (
 )
 
 
-MINISTRY_NAME = "Ministry of Agriculture (demo account)"
+MINISTRY_NAME = "FDRE Ministry of Agriculture"
 
 
 async def seed_geography(session: AsyncSession) -> dict[str, Woreda]:
@@ -149,7 +149,11 @@ async def seed_demo(session: AsyncSession, settings: Settings, password: str = D
     # with no organisation is correctly told there is nothing to subscribe, which makes the plans
     # and invoices pages unreachable in a demonstration. The platform administrator stays
     # unattached on purpose -- they operate the platform, they are not a customer of it.
-    ministry = await session.scalar(select(Organization).where(Organization.name == MINISTRY_NAME))
+    ministry = await session.scalar(
+        select(Organization).where(
+            Organization.name.in_((MINISTRY_NAME, "Ministry of Agriculture (demo account)"))
+        )
+    )
     if ministry is None:
         ministry = Organization(
             name=MINISTRY_NAME,
@@ -157,6 +161,9 @@ async def seed_demo(session: AsyncSession, settings: Settings, password: str = D
             contact_email="minister@moa.gov.et",
         )
         session.add(ministry)
+        await session.flush()
+    elif ministry.name != MINISTRY_NAME:
+        ministry.name = MINISTRY_NAME
         await session.flush()
 
     staff = [

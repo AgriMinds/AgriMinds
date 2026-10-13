@@ -13,8 +13,9 @@ import {
   CardIcon,
   CardTitle,
 } from '@/components/ui/card'
+import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { QueryError } from '@/components/ui/query-state'
 import { ApiError } from '@/lib/api/client'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -59,17 +60,40 @@ export function PlansPage() {
 
       <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {plans.isError ? (
-          // A person with no organisation gets the API's own explanation, which says what to do.
-          // No retry offered in that case: nothing about pressing it again can change the answer.
-          <QueryError
-            error={plans.error}
-            onRetry={
-              plans.error instanceof ApiError && plans.error.status === 403
-                ? undefined
-                : () => void plans.refetch()
-            }
-            isRetrying={plans.isFetching}
-          />
+          plans.error instanceof ApiError && plans.error.status === 403 ? (
+            <Card className="border-border bg-surface p-6 sm:p-8">
+              <div className="mx-auto flex max-w-xl flex-col items-center gap-4 text-center">
+                <span
+                  className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary"
+                  aria-hidden
+                >
+                  <Landmark className="size-7" />
+                </span>
+                <div className="flex flex-col gap-1.5">
+                  <h2 className="font-display text-lg font-bold text-fg sm:text-xl">
+                    {t('notLinkedTitle')}
+                  </h2>
+                  <p className="text-sm leading-relaxed text-fg-muted">
+                    {plans.error.message || t('notLinkedDesc')}
+                  </p>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+                  <Link href="/" className={buttonVariants({ variant: 'outline' })}>
+                    {t('backHome')}
+                  </Link>
+                  <Link href="/request-access" className={buttonVariants()}>
+                    {t('requestAccess')}
+                  </Link>
+                </div>
+              </div>
+            </Card>
+          ) : (
+            <QueryError
+              error={plans.error}
+              onRetry={() => void plans.refetch()}
+              isRetrying={plans.isFetching}
+            />
+          )
         ) : plans.isPending ? (
           <div className="grid gap-3 md:grid-cols-3">
             {Array.from({ length: 3 }, (_, i) => (

@@ -871,6 +871,10 @@
     "intro": "Dhaabbanni keessan irra jiru, kan biraa dhiyaatuu fi waan kaffaltan. Karoora filachuun nagahee baasa — asitti kaffaltiin hin fudhatamu.",
     "currentPlan": "Karoora {period} irra jirtu · {status}",
     "noPlan": "Hanga ammaatti karoorri hin filatamne",
+    "notLinkedTitle": "Herregni keessan dhaabbata waliin wal hin qabanne",
+    "notLinkedDesc": "Herregni keessan dhaabbata waliin waan wal hin qabanneef, karoora galmaa'u hin jiru. Bulchaa qunnamaa ykn eeyyama dhaabbataa gaafadhaa.",
+    "requestAccess": "Eeyyama dhaabbataa gaafadhaa",
+    "backHome": "Gara fuula duraatti deebi'aa",
     "period": {
       "annual": "Waggaa",
       "monthly": "Ji'a",
