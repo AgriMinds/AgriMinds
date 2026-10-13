@@ -120,9 +120,7 @@ class PlanService:
             select(Subscription)
             .where(
                 Subscription.organization_id == org.id,
-                Subscription.status.in_(
-                    [SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING_PAYMENT]
-                ),
+                Subscription.status.in_([SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING_PAYMENT]),
             )
             .order_by(Subscription.started_on.desc())
         )
@@ -151,16 +149,12 @@ class PlanService:
         period = BillingPeriod(choice.period)
         price = getattr(tier, PRICE_COLUMN[period])
         if price <= 0:
-            raise ValidationError(
-                f"{tier.label} is not sold {choice.period}. Choose another billing period."
-            )
+            raise ValidationError(f"{tier.label} is not sold {choice.period}. Choose another billing period.")
 
         live = await self._session.scalar(
             select(Subscription).where(
                 Subscription.organization_id == org.id,
-                Subscription.status.in_(
-                    [SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING_PAYMENT]
-                ),
+                Subscription.status.in_([SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING_PAYMENT]),
             )
         )
         if live is not None:
@@ -229,9 +223,7 @@ class PlanService:
         today = dt.date.today()
         return [_invoice_out(i, today=today) for i in rows.all()]
 
-    async def confirm_payment(
-        self, invoice_id: uuid.UUID, confirmation: PaymentConfirmation
-    ) -> InvoiceOut:
+    async def confirm_payment(self, invoice_id: uuid.UUID, confirmation: PaymentConfirmation) -> InvoiceOut:
         """Mark a bill settled, and start the subscription it paid for."""
         invoice = await self._session.get(Invoice, invoice_id)
         if invoice is None:

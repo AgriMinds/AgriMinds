@@ -303,9 +303,7 @@ class CropYieldModel:
 
         zones: list[AgroZone] = [z.zone for z in self.zones]
         histories = {
-            (crop, zone): self.last_three_yields(crop, zone)
-            for crop in CROP_LABELS
-            for zone in zones
+            (crop, zone): self.last_three_yields(crop, zone) for crop in CROP_LABELS for zone in zones
         }
         out: dict[int, dict[Crop, float]] = {}
         for year in range(start, through_year + 1):

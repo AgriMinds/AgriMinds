@@ -8,6 +8,8 @@ export const planKeys = {
   plans: ['plans'] as const,
   invoices: ['plans', 'invoices'] as const,
   outstanding: ['admin', 'invoices'] as const,
+  // Confirming a payment already invalidates this prefix, so settled money shows up at once.
+  revenue: ['subscriptions', 'revenue'] as const,
 }
 
 export function usePlans() {
@@ -35,6 +37,16 @@ export function useOutstandingInvoices() {
     queryKey: planKeys.outstanding,
     queryFn: api.outstandingInvoices,
     staleTime: 60_000,
+  })
+}
+
+/** What the platform earns. Administrators only; everyone else is refused upstream. */
+export function useRevenue() {
+  return useQuery({
+    queryKey: planKeys.revenue,
+    queryFn: api.revenue,
+    staleTime: 60_000,
+    retry: false,
   })
 }
 

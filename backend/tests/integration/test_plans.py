@@ -38,7 +38,9 @@ class TestPlans:
 
     def test_states_what_a_year_on_each_period_costs(self, client, customer) -> None:
         """The comparison a customer would otherwise do by hand, and often not do at all."""
-        options = {o["period"]: o for o in client.get("/api/v1/plans", headers=customer["headers"]).json()["options"]}
+        options = {
+            o["period"]: o for o in client.get("/api/v1/plans", headers=customer["headers"]).json()["options"]
+        }
         assert options["annual"]["annualised_cents"] == 2_400_000
         assert options["monthly"]["annualised_cents"] == 200_000 * 12
         # This card charges essentially the same per year whichever period you pick: committing
@@ -84,9 +86,7 @@ class TestChoosing:
     def test_references_are_unique(self, client, customer, admin_headers) -> None:
         first = client.post("/api/v1/plans", json={"period": "annual"}, headers=customer["headers"]).json()
         # End the plan so a second may be chosen, then compare the two references.
-        client.delete(
-            f"/api/v1/subscriptions/{first['subscription']['id']}", headers=admin_headers
-        )
+        client.delete(f"/api/v1/subscriptions/{first['subscription']['id']}", headers=admin_headers)
         second = client.post("/api/v1/plans", json={"period": "monthly"}, headers=customer["headers"]).json()
         assert first["invoice"]["reference"] != second["invoice"]["reference"]
 
@@ -119,7 +119,9 @@ class TestConfirmingPayment:
         mine = client.get("/api/v1/plans/invoices", headers=customer["headers"]).json()
         assert len(mine) == 1 and mine[0]["status"] == "issued"
 
-    def test_a_fresh_bill_is_not_overdue_and_carries_its_due_date(self, client, customer, admin_headers) -> None:
+    def test_a_fresh_bill_is_not_overdue_and_carries_its_due_date(
+        self, client, customer, admin_headers
+    ) -> None:
         chosen = client.post("/api/v1/plans", json={"period": "annual"}, headers=customer["headers"]).json()
         outstanding = client.get("/api/v1/admin/invoices", headers=admin_headers).json()
         assert outstanding[0]["reference"] == chosen["invoice"]["reference"]

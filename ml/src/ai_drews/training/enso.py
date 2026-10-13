@@ -128,7 +128,12 @@ def train_enso(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG, plot: boo
         )
     log.info(
         "ENSO record %s..%s (%s): train=%d val=%d test=%d",
-        dates[0].date(), dates[-1].date(), provenance, len(tr), len(va), len(te),
+        dates[0].date(),
+        dates[-1].date(),
+        provenance,
+        len(tr),
+        len(va),
+        len(te),
     )
 
     mu, sd = X_all[tr].mean(0), X_all[tr].std(0) + 1e-6
@@ -204,12 +209,7 @@ def train_enso(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG, plot: boo
     forecast.insert(0, "date", dates[allt])
 
     field_dates = pd.to_datetime(load_fields(paths)["dates"]) if paths.fields_npz.exists() else dates
-    aligned = (
-        forecast.set_index("date")
-        .reindex(field_dates)
-        .fillna(0.0)
-        .reset_index(names="date")
-    )
+    aligned = forecast.set_index("date").reindex(field_dates).fillna(0.0).reset_index(names="date")
     missing = int(aligned[[f"fc_l{i + 1}" for i in range(L)]].eq(0.0).all(axis=1).sum())
     if missing:
         log.warning("%d field months have no ENSO origin and were zero-filled", missing)
@@ -230,8 +230,7 @@ def train_enso(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG, plot: boo
                 "leads": L,
                 "samples": {"train": len(tr), "val": len(va), "test": len(te)},
                 "selection_rule": (
-                    f"persistence unless a challenger cuts validation RMSE by "
-                    f">= {MIN_BASELINE_GAIN:.0%}"
+                    f"persistence unless a challenger cuts validation RMSE by >= {MIN_BASELINE_GAIN:.0%}"
                 ),
                 "min_baseline_gain": MIN_BASELINE_GAIN,
                 "min_validation_samples": MIN_VALIDATION_SAMPLES,
@@ -256,8 +255,9 @@ def train_enso(paths: DataPaths, cfg: PipelineConfig = DEFAULT_CONFIG, plot: boo
         lead = min(2, L - 1)
         plt.figure(figsize=(9, 3))
         plt.plot(dates[te], nino[te], "k", label="observed")
-        plt.plot(dates[te], selected_test[:, lead], "r",
-                 label=f"selected, {lead + 1}-mo lead ({chosen[lead + 1]})")
+        plt.plot(
+            dates[te], selected_test[:, lead], "r", label=f"selected, {lead + 1}-mo lead ({chosen[lead + 1]})"
+        )
         plt.legend()
         plt.title("Nino3.4 test period")
         plt.tight_layout()

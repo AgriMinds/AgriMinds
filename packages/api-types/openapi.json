@@ -99,6 +99,69 @@
         }
       }
     },
+    "/api/v1/auth/invitations/{token}": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Accept an invitation by setting a password",
+        "description": "Unauthenticated, because the whole point is that the person has no password yet: the token is the credential. It works once and expires, and it grants nothing beyond setting the password on the one account it was issued for. Accepting signs the person in, so there is no second form asking for the password they just chose.",
+        "operationId": "accept_invitation_api_v1_auth_invitations__token__post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptInvitation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenPair"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Used, expired or unknown invitation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/refresh": {
       "post": {
         "tags": [
@@ -2152,7 +2215,7 @@
           "Access requests"
         ],
         "summary": "Decide a request",
-        "description": "Approving an organisation enquiry **creates the account**, in the segment named here rather than the one the enquirer guessed. The link back is kept, so an account can always be traced to the enquiry it came from.",
+        "description": "Approving an organisation enquiry **creates the account and an account for its contact**, in the segment named here rather than the one the enquirer guessed. The link back is kept, so an account can always be traced to the enquiry it came from.\n\nThe response carries a single-use invitation token. There is no mail server here, so it is shown once and relayed to the contact by whoever approves -- it is not stored in readable form and re-reading the request will not return it.",
         "operationId": "decide_api_v1_admin_access_requests__request_id__post",
         "security": [
           {
@@ -2187,7 +2250,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AccessRequestOut"
+                  "$ref": "#/components/schemas/DecisionResult"
                 }
               }
             }
@@ -4158,6 +4221,22 @@
   },
   "components": {
     "schemas": {
+      "AcceptInvitation": {
+        "properties": {
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "title": "AcceptInvitation",
+        "description": "Setting the password an invitation was issued for."
+      },
       "AccessRequestOut": {
         "properties": {
           "id": {
@@ -6192,6 +6271,55 @@
           "reachable"
         ],
         "title": "DatabaseStatus"
+      },
+      "DecisionResult": {
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/AccessRequestOut"
+          },
+          "invited_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invited Email",
+            "description": "The account created for the contact, if one was"
+          },
+          "invitation_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invitation Token",
+            "description": "Single-use, expiring. Shown once; relay it to the contact."
+          },
+          "invitation_expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invitation Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request"
+        ],
+        "title": "DecisionResult",
+        "description": "The decided request, plus the credential the administrator has to relay.\n\n``invitation_token`` is present only on the response to the approval itself, and only when an\naccount was created. It is never stored in readable form and never returned again -- re-reading\nthe request later will not show it. If the administrator loses it, the fix is a fresh\ninvitation, not a lookup."
       },
       "DeliveryOut": {
         "properties": {

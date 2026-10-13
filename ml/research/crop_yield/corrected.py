@@ -66,10 +66,14 @@ def load_enso_reference(path: str = REFERENCE_CSV) -> pd.Series:
     """Year -> Niño 3.4 annual mean, recomputed from the four seasonal values."""
     ref = pd.read_csv(path)
     seasons = ["djf", "mam", "jja", "son"]
-    return pd.Series(ref[seasons].mean(axis=1).round(4).values, index=ref["year"].astype(int), name="enso_reference")
+    return pd.Series(
+        ref[seasons].mean(axis=1).round(4).values, index=ref["year"].astype(int), name="enso_reference"
+    )
 
 
-def verify_enso(sheet: pd.DataFrame, reference: pd.Series, tolerance: float = ENSO_TOLERANCE) -> list[EnsoDiscrepancy]:
+def verify_enso(
+    sheet: pd.DataFrame, reference: pd.Series, tolerance: float = ENSO_TOLERANCE
+) -> list[EnsoDiscrepancy]:
     """Every year where the spreadsheet's ENSO value is not its own seasonal mean."""
     out = []
     for year, value in zip(sheet["Year"].astype(int), sheet["ElniNo"].astype(float), strict=True):
@@ -104,8 +108,10 @@ def prepare_crop_dataset_corrected(
     if verbose and discrepancies:
         print(f"ENSO verification: {len(discrepancies)} year(s) disagree with the seasonal source")
         for d in discrepancies:
-            print(f"  {d.year}: spreadsheet {d.spreadsheet:+.3f} -> reference {d.reference:+.3f} "
-                  f"(delta {d.delta:+.3f}); phase {enso_phase(d.spreadsheet)} -> {enso_phase(d.reference)}")
+            print(
+                f"  {d.year}: spreadsheet {d.spreadsheet:+.3f} -> reference {d.reference:+.3f} "
+                f"(delta {d.delta:+.3f}); phase {enso_phase(d.spreadsheet)} -> {enso_phase(d.reference)}"
+            )
 
     records = []
     for _, row in df_raw.iterrows():
@@ -119,21 +125,23 @@ def prepare_crop_dataset_corrected(
                 col = f"{crop_key} {zone_key}"
                 if col not in df_raw.columns:
                     continue
-                records.append({
-                    "year": year,
-                    "crop": CROP_DISPLAY[crop_key],
-                    "zone": zone_meta["zone"],
-                    "altitude_approx_m": zone_meta["altitude_approx_m"],
-                    "altitude_min_m": zone_meta["altitude_min_m"],
-                    "altitude_max_m": zone_meta["altitude_max_m"],
-                    "temperature_c": temp,
-                    "precipitation_mm": precip,
-                    "pt_ratio": pt_ratio,
-                    "enso_index": enso,
-                    "enso_phase": enso_phase(enso),
-                    "enso_source": "seasonal reference (repaired)" if year in repaired else "spreadsheet",
-                    "yield": float(row[col]),
-                })
+                records.append(
+                    {
+                        "year": year,
+                        "crop": CROP_DISPLAY[crop_key],
+                        "zone": zone_meta["zone"],
+                        "altitude_approx_m": zone_meta["altitude_approx_m"],
+                        "altitude_min_m": zone_meta["altitude_min_m"],
+                        "altitude_max_m": zone_meta["altitude_max_m"],
+                        "temperature_c": temp,
+                        "precipitation_mm": precip,
+                        "pt_ratio": pt_ratio,
+                        "enso_index": enso,
+                        "enso_phase": enso_phase(enso),
+                        "enso_source": "seasonal reference (repaired)" if year in repaired else "spreadsheet",
+                        "yield": float(row[col]),
+                    }
+                )
 
     df = pd.DataFrame(records).sort_values(["crop", "zone", "year"]).reset_index(drop=True)
     group = df.groupby(["crop", "zone"], sort=False)["yield"]
@@ -158,11 +166,15 @@ if __name__ == "__main__":
     upstream = pd.read_csv(os.path.join(BASE_DIR, "data", "crop_climate_clean.csv"))
     merged = upstream.merge(
         frame[["year", "crop", "zone", "yield_rolling3_mean"]],
-        on=["year", "crop", "zone"], suffixes=("_upstream", "_corrected"),
+        on=["year", "crop", "zone"],
+        suffixes=("_upstream", "_corrected"),
     )
     changed = merged[
         (merged.yield_rolling3_mean_upstream - merged.yield_rolling3_mean_corrected).abs() > 1e-6
     ]
     print(f"\nrolling-3 mean differs on {len(changed)} of {len(merged)} rows")
-    print(changed[["year", "crop", "zone", "yield_rolling3_mean_upstream",
-                   "yield_rolling3_mean_corrected"]].round(2).to_string(index=False))
+    print(
+        changed[["year", "crop", "zone", "yield_rolling3_mean_upstream", "yield_rolling3_mean_corrected"]]
+        .round(2)
+        .to_string(index=False)
+    )

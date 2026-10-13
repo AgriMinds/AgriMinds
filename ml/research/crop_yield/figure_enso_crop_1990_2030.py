@@ -57,12 +57,27 @@ SCENARIOS = {
 }
 
 CROPS = {
-    "tef": {"sheet_avg": "teff avg", "belts": ("teff kola", "teff w/d", "teff dega"),
-            "colour": "#d62728", "marker": "*", "label": "Tef"},
-    "wheat": {"sheet_avg": "wheat avg", "belts": ("wheat kola", "wheat w/d", "wheat dega"),
-              "colour": "#2ca02c", "marker": "^", "label": "Wheat"},
-    "maize": {"sheet_avg": "maiz avg", "belts": ("maiz kola", "maiz w/d", "maiz dega"),
-              "colour": "#1f77b4", "marker": "o", "label": "Maize"},
+    "tef": {
+        "sheet_avg": "teff avg",
+        "belts": ("teff kola", "teff w/d", "teff dega"),
+        "colour": "#d62728",
+        "marker": "*",
+        "label": "Tef",
+    },
+    "wheat": {
+        "sheet_avg": "wheat avg",
+        "belts": ("wheat kola", "wheat w/d", "wheat dega"),
+        "colour": "#2ca02c",
+        "marker": "^",
+        "label": "Wheat",
+    },
+    "maize": {
+        "sheet_avg": "maiz avg",
+        "belts": ("maiz kola", "maiz w/d", "maiz dega"),
+        "colour": "#1f77b4",
+        "marker": "o",
+        "label": "Maize",
+    },
 }
 ZONES = ("Lowland", "Midland", "Highland")
 
@@ -92,13 +107,17 @@ def project(model, sheet: pd.DataFrame, enso_by_year: dict[int, float]) -> pd.Da
     for crop, spec in CROPS.items():
         for belt_col, zone in zip(spec["belts"], ZONES, strict=True):
             series = sheet[belt_col].astype(float)
-            history = list(series.loc[: LAST_OBSERVED_CROP_YEAR].values)
+            history = list(series.loc[:LAST_OBSERVED_CROP_YEAR].values)
             for year in range(LAST_OBSERVED_CROP_YEAR + 1, HORIZON + 1):
                 index = enso_by_year[year]
                 inputs = CropYieldInputs(
-                    crop=crop, zone=zone, year=year,
-                    temperature_c=temp, precipitation_mm=precip,
-                    enso_index=index, enso_phase=enso_phase(index),
+                    crop=crop,
+                    zone=zone,
+                    year=year,
+                    temperature_c=temp,
+                    precipitation_mm=precip,
+                    enso_index=index,
+                    enso_phase=enso_phase(index),
                     yield_lag1=history[-1],
                     yield_rolling3_mean=float(np.mean(history[-3:])),
                 )
@@ -138,7 +157,11 @@ def main() -> int:
     tidy.to_csv(OUT / "enso_crop_outlook_1990_2030.csv", index=False)
 
     fig, (ax_crop, ax_nino) = plt.subplots(
-        2, 1, figsize=(13, 9), height_ratios=[2.05, 1], sharex=True,
+        2,
+        1,
+        figsize=(13, 9),
+        height_ratios=[2.05, 1],
+        sharex=True,
         gridspec_kw={"hspace": 0.13},
     )
 
@@ -151,28 +174,57 @@ def main() -> int:
 
     years_obs = sheet.index.values
     for spec in CROPS.values():
-        ax_crop.plot(years_obs, sheet[spec["sheet_avg"]].values, color=spec["colour"],
-                     marker=spec["marker"], markersize=6, markerfacecolor="#ffe44d",
-                     markeredgecolor=spec["colour"], linewidth=1.5, label=f"{spec['label']} (observed)",
-                     zorder=3)
-    ax_crop.plot(years_obs, sheet["crop avg"].values, color="black", marker="x", markersize=5,
-                 linewidth=1.2, linestyle="--", label="Crop average (observed)", zorder=3)
+        ax_crop.plot(
+            years_obs,
+            sheet[spec["sheet_avg"]].values,
+            color=spec["colour"],
+            marker=spec["marker"],
+            markersize=6,
+            markerfacecolor="#ffe44d",
+            markeredgecolor=spec["colour"],
+            linewidth=1.5,
+            label=f"{spec['label']} (observed)",
+            zorder=3,
+        )
+    ax_crop.plot(
+        years_obs,
+        sheet["crop avg"].values,
+        color="black",
+        marker="x",
+        markersize=5,
+        linewidth=1.2,
+        linestyle="--",
+        label="Crop average (observed)",
+        zorder=3,
+    )
 
     spreads: dict[str, float] = {}
     for crop, spec in CROPS.items():
         anchor_y = float(sheet[spec["sheet_avg"]].loc[split])
         known = projections["Neutral"].loc[:shared_until, crop]
-        ax_crop.plot(np.concatenate(([split], known.index.values)),
-                     np.concatenate(([anchor_y], known.values)),
-                     color=spec["colour"], linewidth=2.0, linestyle=(0, (4, 1.6)), zorder=3)
+        ax_crop.plot(
+            np.concatenate(([split], known.index.values)),
+            np.concatenate(([anchor_y], known.values)),
+            color=spec["colour"],
+            linewidth=2.0,
+            linestyle=(0, (4, 1.6)),
+            zorder=3,
+        )
         fan = projections["Neutral"].loc[shared_until:].index.values
         yr = np.concatenate(([shared_until], fan))
         base = float(known.loc[shared_until])
         hi = np.concatenate(([base], projections["El Nino"].loc[shared_until:, crop].values))
         lo = np.concatenate(([base], projections["La Nina"].loc[shared_until:, crop].values))
         mid = np.concatenate(([base], projections["Neutral"].loc[shared_until:, crop].values))
-        ax_crop.fill_between(yr, np.minimum(lo, hi), np.maximum(lo, hi),
-                             color=spec["colour"], alpha=0.22, linewidth=0, zorder=2)
+        ax_crop.fill_between(
+            yr,
+            np.minimum(lo, hi),
+            np.maximum(lo, hi),
+            color=spec["colour"],
+            alpha=0.22,
+            linewidth=0,
+            zorder=2,
+        )
         ax_crop.plot(yr, mid, color=spec["colour"], linewidth=1.8, linestyle=(0, (5, 2)), zorder=3)
         spreads[crop] = abs(hi[-1] - lo[-1]) / mid[-1] * 100
         print(f"  {crop}: 2030 ENSO spread = {spreads[crop]:.1f}% of the neutral level")
@@ -180,8 +232,13 @@ def main() -> int:
     ax_crop.set_ylabel("Quintal per hectare", fontsize=12, fontweight="bold")
     ax_crop.set_ylim(0, 62)
     ax_crop.grid(True, linestyle=":", alpha=0.55)
-    ax_crop.set_title("Crop", fontsize=12, fontweight="bold", color="white",
-                      bbox=dict(boxstyle="round,pad=0.35", facecolor="#123a6b", edgecolor="none"))
+    ax_crop.set_title(
+        "Crop",
+        fontsize=12,
+        fontweight="bold",
+        color="white",
+        bbox=dict(boxstyle="round,pad=0.35", facecolor="#123a6b", edgecolor="none"),
+    )
     handles, labels = ax_crop.get_legend_handles_labels()
     handles += [
         Line2D([], [], color="#666666", linestyle=(0, (5, 2)), linewidth=1.8),
@@ -195,59 +252,136 @@ def main() -> int:
         f"El Nino and La Nina differ by {min(spreads.values()):.1f}-{max(spreads.values()):.1f}% "
         f"of yield here: the regressor splits on yield_lag1 ({lag_gain:.0%} of gain), "
         f"not on ENSO ({enso_gain:.1%})",
-        xy=(1990.4, 3.2), fontsize=9, color="#8a1a1a")
-    ax_crop.annotate(f"yields observed to {split}", xy=(split - 0.6, 7.6), ha="right",
-                     fontsize=9.5, color="#333333")
-    ax_crop.text((split + shared_until) / 2, 7.0, "projected  ·  ENSO observed", rotation=90,
-                 ha="center", va="bottom", fontsize=8.5, color="#777777")
-    ax_crop.text((shared_until + HORIZON) / 2, 7.0, "projected  ·  ENSO assumed", rotation=90,
-                 ha="center", va="bottom", fontsize=8.5, color="#777777")
+        xy=(1990.4, 3.2),
+        fontsize=9,
+        color="#8a1a1a",
+    )
+    ax_crop.annotate(
+        f"yields observed to {split}", xy=(split - 0.6, 7.6), ha="right", fontsize=9.5, color="#333333"
+    )
+    ax_crop.text(
+        (split + shared_until) / 2,
+        7.0,
+        "projected  ·  ENSO observed",
+        rotation=90,
+        ha="center",
+        va="bottom",
+        fontsize=8.5,
+        color="#777777",
+    )
+    ax_crop.text(
+        (shared_until + HORIZON) / 2,
+        7.0,
+        "projected  ·  ENSO assumed",
+        rotation=90,
+        ha="center",
+        va="bottom",
+        fontsize=8.5,
+        color="#777777",
+    )
 
     obs_years = nino.loc[1990:].index.values
     obs_vals = nino.loc[1990:].values
     ax_nino.axhline(0, color="black", linestyle="--", linewidth=1)
-    ax_nino.plot(obs_years, obs_vals, color="#e5007d", marker="o", markersize=6,
-                 markerfacecolor="#ffe44d", markeredgecolor="#e5007d", linewidth=1.5,
-                 label="Observed annual mean (NOAA ERSST)", zorder=3)
+    ax_nino.plot(
+        obs_years,
+        obs_vals,
+        color="#e5007d",
+        marker="o",
+        markersize=6,
+        markerfacecolor="#ffe44d",
+        markeredgecolor="#e5007d",
+        linewidth=1.5,
+        label="Observed annual mean (NOAA ERSST)",
+        zorder=3,
+    )
     if partial:
-        ax_nino.plot([last_nino_year], [nino.loc[last_nino_year]], marker="o", markersize=10,
-                     markerfacecolor="none", markeredgecolor="#e5007d", linewidth=0, zorder=4)
+        ax_nino.plot(
+            [last_nino_year],
+            [nino.loc[last_nino_year]],
+            marker="o",
+            markersize=10,
+            markerfacecolor="none",
+            markeredgecolor="#e5007d",
+            linewidth=0,
+            zorder=4,
+        )
 
     anchor_x, anchor_y = last_nino_year, float(nino.loc[last_nino_year])
     for name, (value, colour) in SCENARIOS.items():
-        ax_nino.plot([anchor_x, anchor_x + 1, HORIZON], [anchor_y, value, value],
-                     color=colour, linestyle=(0, (5, 2)), linewidth=1.8, zorder=3)
+        ax_nino.plot(
+            [anchor_x, anchor_x + 1, HORIZON],
+            [anchor_y, value, value],
+            color=colour,
+            linestyle=(0, (5, 2)),
+            linewidth=1.8,
+            zorder=3,
+        )
         ax_nino.plot([HORIZON], [value], marker="D", markersize=5, color=colour, zorder=4)
-        ax_nino.annotate(f"{name} ({value:+.1f})", xy=(HORIZON + 0.15, value), va="center",
-                         fontsize=9, color=colour, fontweight="bold")
+        ax_nino.annotate(
+            f"{name} ({value:+.1f})",
+            xy=(HORIZON + 0.15, value),
+            va="center",
+            fontsize=9,
+            color=colour,
+            fontweight="bold",
+        )
 
     ax_nino.set_ylabel("Nino 3.4", fontsize=12, fontweight="bold")
     ax_nino.set_xlabel("Time (year)", fontsize=12, fontweight="bold")
     ax_nino.set_ylim(-2, 2)
     ax_nino.grid(True, linestyle=":", alpha=0.55)
-    ax_nino.set_title("Nino 3.4", fontsize=12, fontweight="bold", color="white",
-                      bbox=dict(boxstyle="round,pad=0.35", facecolor="#123a6b", edgecolor="none"))
+    ax_nino.set_title(
+        "Nino 3.4",
+        fontsize=12,
+        fontweight="bold",
+        color="white",
+        bbox=dict(boxstyle="round,pad=0.35", facecolor="#123a6b", edgecolor="none"),
+    )
     ax_nino.legend(fontsize=9, loc="lower left", framealpha=0.92)
-    ax_nino.annotate(f"observed to {last_nino_year}", xy=(last_nino_year - 0.6, 1.58),
-                     ha="right", fontsize=9.5, color="#333333")
-    ax_nino.annotate("no forecast skill beyond ~6 months",
-                     xy=(shared_until + 0.35, 1.72), va="top", fontsize=8.8, color="#444444")
-    ax_nino.annotate("assumed states, not a prediction",
-                     xy=(shared_until + 0.35, 1.45), va="top", fontsize=8.8, color="#444444")
+    ax_nino.annotate(
+        f"observed to {last_nino_year}",
+        xy=(last_nino_year - 0.6, 1.58),
+        ha="right",
+        fontsize=9.5,
+        color="#333333",
+    )
+    ax_nino.annotate(
+        "no forecast skill beyond ~6 months",
+        xy=(shared_until + 0.35, 1.72),
+        va="top",
+        fontsize=8.8,
+        color="#444444",
+    )
+    ax_nino.annotate(
+        "assumed states, not a prediction",
+        xy=(shared_until + 0.35, 1.45),
+        va="top",
+        fontsize=8.8,
+        color="#444444",
+    )
 
     ax_nino.set_xlim(1989.2, HORIZON + 1.9)
     ax_nino.set_xticks(np.arange(1990, HORIZON + 1, 5))
 
     fig.suptitle(
         "Choke watershed: belt-average crop yields and Nino 3.4, 1990-2030",
-        fontsize=14, fontweight="bold", y=0.955)
+        fontsize=14,
+        fontweight="bold",
+        y=0.955,
+    )
     rmse = model.selected_metrics.get("test_rmse")
-    fig.text(0.5, 0.012,
-             f"Observed yields {int(sheet.index.min())}-{split} (climate-crop v2, ENSO verified "
-             f"against its seasonal source) · observed Nino 3.4 1990-{last_nino_year} "
-             f"(NOAA PSL, ERSST; {last_nino_year} is Jan-Sep) · projections from "
-             f"{model.model_name} {model.model_version}, holdout RMSE {rmse:.2f} q/ha",
-             ha="center", fontsize=8.5, color="#555555")
+    fig.text(
+        0.5,
+        0.012,
+        f"Observed yields {int(sheet.index.min())}-{split} (climate-crop v2, ENSO verified "
+        f"against its seasonal source) · observed Nino 3.4 1990-{last_nino_year} "
+        f"(NOAA PSL, ERSST; {last_nino_year} is Jan-Sep) · projections from "
+        f"{model.model_name} {model.model_version}, holdout RMSE {rmse:.2f} q/ha",
+        ha="center",
+        fontsize=8.5,
+        color="#555555",
+    )
 
     png = OUT / "enso_crop_outlook_1990_2030.png"
     fig.savefig(png, dpi=160, bbox_inches="tight")

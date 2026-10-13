@@ -17,8 +17,10 @@ import type {
   PaymentConfirmation,
   PlanChoice,
   PlanSet,
+  RevenueSummary,
   RequestDecision,
   AccessRequestOut,
+  DecisionResult,
   ApiKeyIssued,
   ApiKeyOut,
   OrganizationCreate,
@@ -214,8 +216,12 @@ export const api = {
     }),
   accessRequests: (openOnly = false) =>
     request<AccessRequestOut[]>(`/admin/access-requests${openOnly ? '?open_only=true' : ''}`),
+  /**
+   * Deciding returns the invitation token once. There is no mail server, so whoever approves has
+   * to relay it; nothing stores it in readable form, and asking again will not produce it.
+   */
   decideRequest: (id: string, decision: RequestDecision) =>
-    request<AccessRequestOut>(`/admin/access-requests/${id}`, {
+    request<DecisionResult>(`/admin/access-requests/${id}`, {
       method: 'POST',
       body: JSON.stringify(decision),
     }),
@@ -228,6 +234,8 @@ export const api = {
     request<CheckoutResult>('/plans', { method: 'POST', body: JSON.stringify(choice) }),
   myInvoices: () => request<InvoiceOut[]>('/plans/invoices'),
   outstandingInvoices: () => request<InvoiceOut[]>('/admin/invoices'),
+  /** What the platform earns, by segment, with renewals and lapses. Administrators only. */
+  revenue: () => request<RevenueSummary>('/subscriptions/revenue'),
   confirmPayment: (id: string, confirmation: PaymentConfirmation) =>
     request<InvoiceOut>(`/admin/invoices/${id}/paid`, {
       method: 'POST',
@@ -282,6 +290,20 @@ export const authApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({ identifier, password }),
+      cache: 'no-store',
+    })
+    if (!res.ok) throw await parseError(res)
+    return ((await res.json()) as { user: User }).user
+  },
+  /**
+   * Accepts an invitation and lands the person in a session, like `login` and for the same reason:
+   * the response carries tokens, so it must not come back through the browser-visible proxy.
+   */
+  async acceptInvitation(token: string, password: string): Promise<User> {
+    const res = await fetch(`/api/auth/invitations/${encodeURIComponent(token)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ password }),
       cache: 'no-store',
     })
     if (!res.ok) throw await parseError(res)

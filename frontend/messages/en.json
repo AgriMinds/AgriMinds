@@ -251,6 +251,17 @@
       "ministry": "Ministry",
       "agent": "Development agent",
       "farmer": "Farmer"
+    },
+    "invite": {
+      "title": "Set your password",
+      "subtitle": "Your organisation has been approved",
+      "lead": "Choose a password and you are in. This link works once.",
+      "passwordLabel": "New password",
+      "passwordHint": "At least {count} characters. A short phrase beats a short password.",
+      "confirmLabel": "Repeat it",
+      "mismatch": "Those two do not match.",
+      "submit": "Set password and continue",
+      "submitting": "Setting up…"
     }
   },
   "farmer": {
@@ -801,7 +812,13 @@
     "decline": "Decline",
     "decided": "Note: {note}",
     "empty": "Nothing waiting",
-    "emptyHint": "Requests from the public form and from farmers asking about premium arrive here."
+    "emptyHint": "Requests from the public form and from farmers asking about premium arrive here.",
+    "invitedOnce": "Copy this invitation link now — it cannot be shown again ({email})",
+    "invitedHint": "Single-use and valid until {date}. Send it to the contact so they can set a password. If it is lost, approve a fresh invitation rather than looking this one up.",
+    "noContactEmail": "Approved, but the enquiry carried no email address, so no account was created. Staff sign in with an email address — collect one and invite them.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "dismiss": "Done"
   },
   "plans": {
     "eyebrow": "Billing",
@@ -865,5 +882,26 @@
         "other": "Other"
       }
     }
+  },
+  "revenue": {
+    "eyebrow": "Billing",
+    "title": "Revenue & payments",
+    "intro": "What the platform has earned, what is waiting to be confirmed, and which accounts need attention. Only settled invoices are counted.",
+    "arr": "Annual recurring",
+    "arrHint": "Active subscriptions, annualised. Unpaid plans excluded.",
+    "mrr": "Monthly recurring",
+    "mrrHint": "The same figure divided across twelve months.",
+    "active": "Active accounts",
+    "activeHint": "Paid and running. A chosen but unpaid plan is not one.",
+    "bySegment": "Where it comes from",
+    "bySegmentDesc": "Annualised value by stakeholder segment.",
+    "count": "{count, plural, one {# account} other {# accounts}}",
+    "noRevenue": "No settled subscription yet.",
+    "watchlist": "Needs attention",
+    "watchlistDesc": "Renewals coming up, and subscriptions that have already lapsed.",
+    "renewing": "Renewing soon",
+    "noRenewals": "Nothing due in the next 60 days.",
+    "lapsed": "Lapsed",
+    "noLapsed": "Nothing has lapsed."
   }
 }

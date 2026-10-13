@@ -85,8 +85,9 @@ def main() -> None:
         pub = upstream.get(name, {}).get("test_rmse")
         fixed = corrected_results[name]["test_rmse"]
         delta = f"{fixed - metrics['test_rmse']:+.3f}"
-        print(f"{name:<24}{pub if pub is not None else '-':>11}"
-              f"{metrics['test_rmse']:>13}{fixed:>11}{delta:>9}")
+        print(
+            f"{name:<24}{pub if pub is not None else '-':>11}{metrics['test_rmse']:>13}{fixed:>11}{delta:>9}"
+        )
     print(f"\nBest model on the verified panel: {corrected_best}")
 
     corrections = [

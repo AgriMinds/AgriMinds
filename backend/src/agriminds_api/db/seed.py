@@ -22,6 +22,7 @@ from agriminds_api.db.models import (
     Crop,
     Farm,
     Locale,
+    Organization,
     PricingTier,
     Region,
     StakeholderType,
@@ -60,6 +61,9 @@ WOREDAS: tuple[WoredaSeed, ...] = (
     WoredaSeed("BSL", "Baso Liben", "ባሶ ሊበን", "Baso Liben", 10.48, 38.05),
     WoredaSeed("AND", "Aneded", "አነደድ", "Aneded", 10.60, 38.00),
 )
+
+
+MINISTRY_NAME = "Ministry of Agriculture (demo account)"
 
 
 async def seed_geography(session: AsyncSession) -> dict[str, Woreda]:
@@ -141,6 +145,20 @@ async def seed_demo(session: AsyncSession, settings: Settings, password: str = D
         await session.flush()
         return user
 
+    # The demo staff belong to an institutional account, because billing is scoped to one: a user
+    # with no organisation is correctly told there is nothing to subscribe, which makes the plans
+    # and invoices pages unreachable in a demonstration. The platform administrator stays
+    # unattached on purpose -- they operate the platform, they are not a customer of it.
+    ministry = await session.scalar(select(Organization).where(Organization.name == MINISTRY_NAME))
+    if ministry is None:
+        ministry = Organization(
+            name=MINISTRY_NAME,
+            stakeholder=StakeholderType.FEDERAL_MINISTRY,
+            contact_email="minister@moa.gov.et",
+        )
+        session.add(ministry)
+        await session.flush()
+
     staff = [
         dict(
             email="minister@moa.gov.et",
@@ -149,6 +167,7 @@ async def seed_demo(session: AsyncSession, settings: Settings, password: str = D
             role=UserRole.MINISTER,
             locale=Locale.EN,
             woreda_id=None,
+            organization_id=ministry.id,
         ),
         dict(
             email="agent.sinan@moa.gov.et",
@@ -157,6 +176,7 @@ async def seed_demo(session: AsyncSession, settings: Settings, password: str = D
             role=UserRole.AGENT,
             locale=Locale.AM,
             woreda_id=by_code["SNN"].id,
+            organization_id=ministry.id,
         ),
         dict(
             email="admin@agriminds.et",
@@ -170,6 +190,14 @@ async def seed_demo(session: AsyncSession, settings: Settings, password: str = D
     for spec in staff:
         if await ensure_user(**spec):
             created_users += 1
+        elif spec.get("organization_id") and spec["email"]:
+            # The account already exists from an earlier seed, and `ensure_user` leaves it alone.
+            # The organisation link has to be applied anyway, or a database seeded before billing
+            # existed keeps staff who can never reach their own plans -- and reseeding, the one
+            # thing anybody would try, would not fix it.
+            existing = await session.scalar(select(User).where(User.email == spec["email"]))
+            if existing is not None and existing.organization_id is None:
+                existing.organization_id = spec["organization_id"]
 
     codes = [s.code for s in WOREDAS]
     for index, name in enumerate(FARMER_NAMES):

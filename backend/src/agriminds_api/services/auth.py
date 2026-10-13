@@ -99,9 +99,7 @@ class AuthService:
         """
         now = datetime.now(UTC)
         invitation = await self._session.scalar(
-            select(Invitation).where(
-                Invitation.token_hash == security.hash_invitation_token(raw_token)
-            )
+            select(Invitation).where(Invitation.token_hash == security.hash_invitation_token(raw_token))
         )
         if invitation is None or not invitation.is_usable(now=now):
             raise UnauthorizedError("That invitation is no longer valid. Ask for a new one.")
@@ -110,7 +108,12 @@ class AuthService:
         if not user.is_active:
             raise UnauthorizedError("That invitation is no longer valid. Ask for a new one.")
 
-        security.validate_password_strength(password, self._settings.password_min_length)
+        try:
+            security.validate_password_strength(password, self._settings.password_min_length)
+        except security.PasswordPolicyError as exc:
+            # A refused password must not spend the invitation: a fumbled first try would
+            # otherwise cost the account its only way in.
+            raise ValidationError(str(exc)) from exc
         user.hashed_password = security.hash_password(password)
         user.last_login_at = now
         # Marked before the tokens are issued, so a retry of the same request cannot accept twice.

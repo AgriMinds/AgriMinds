@@ -251,6 +251,17 @@
       "ministry": "Ministeera",
       "agent": "Hojjetaa misoomaa",
       "farmer": "Qonnaan bulaa"
+    },
+    "invite": {
+      "title": "Jecha darbii kee qopheessi",
+      "subtitle": "Dhaabbanni kee mirkanaa'eera",
+      "lead": "Jecha darbii filadhu, seenuuf qofa. Hidhaan kun al tokko hojjeta.",
+      "passwordLabel": "Jecha darbii haaraa",
+      "passwordHint": "Yoo xiqqaate arfii {count}. Gaalee gabaabaan jecha darbii gabaabaa caala.",
+      "confirmLabel": "Irra deebi’i",
+      "mismatch": "Lamaan isaan wal hin fakkaatan.",
+      "submit": "Jecha darbii qopheessiitii itti fufi",
+      "submitting": "Qopheessaa jira…"
     }
   },
   "farmer": {
@@ -801,7 +812,13 @@
     "decline": "Didi",
     "decided": "Yaadannoo: {note}",
     "empty": "Wanti eegaa jiru hin jiru",
-    "emptyHint": "Gaaffiiwwan unka uummataa fi qonnaan bultoota premium gaafatan asitti dhufu."
+    "emptyHint": "Gaaffiiwwan unka uummataa fi qonnaan bultoota premium gaafatan asitti dhufu.",
+    "invitedOnce": "Hidhaa afeerraa kana amma garagalchi — deebi'ee hin mul'atu ({email})",
+    "invitedHint": "Al tokko qofa hojjeta, hanga {date} tura. Qunnamtichi jecha darbii akka qopheessuuf ergiif. Yoo bade, afeerraa haaraa kenni — kun deebi'ee hin argamu.",
+    "noContactEmail": "Mirkanaa'e, garuu gaaffichi teessoo imeelii hin qabu turre, kanaaf herregni hin uumamne. Hojjettoonni imeeliin seenu — teessoo walitti qabiitii afeeri.",
+    "copy": "Garagalchi",
+    "copied": "Garagalfame",
+    "dismiss": "Xumurame"
   },
   "plans": {
     "eyebrow": "Kaffaltii",
@@ -865,5 +882,26 @@
         "other": "Kan biraa"
       }
     }
+  },
+  "revenue": {
+    "eyebrow": "Kaffaltii",
+    "title": "Galii fi kaffaltiiwwan",
+    "intro": "Pilaatfoormiin maal argate, maal mirkaneessuuf eegaa jira, fi herregoonni xiyyeeffannoo barbaadan. Nagahee kaffalame qofti lakkaa'ama.",
+    "arr": "Waggaatti deddeebi'u",
+    "arrHint": "Galmeewwan hojjetan, waggaatti herregaman. Kan hin kaffalamne hin hammatamu.",
+    "mrr": "Ji'atti deddeebi'u",
+    "mrrHint": "Galii sanuma ji'oota kudha lamaan irratti qoodame.",
+    "active": "Herregoota hojjetan",
+    "activeHint": "Kaffalamanii hojjetan. Kan filatame garuu hin kaffalamne hin lakkaa'amu.",
+    "bySegment": "Eessaa akka dhufu",
+    "bySegmentDesc": "Gatii waggaa kutaa dhaabbataan qoodame.",
+    "count": "{count, plural, one {herrega #} other {herregoota #}}",
+    "noRevenue": "Hanga ammaatti galmeen kaffalame hin jiru.",
+    "watchlist": "Xiyyeeffannoo barbaada",
+    "watchlistDesc": "Haaromsa dhiyootti dhufuu fi galmeewwan yeroon isaanii darbe.",
+    "renewing": "Dhiyootti haaroman",
+    "noRenewals": "Guyyoota 60 dhufan keessatti homaa hin jiru.",
+    "lapsed": "Yeroon darbe",
+    "noLapsed": "Homaa yeroon isaa hin darbine."
   }
 }

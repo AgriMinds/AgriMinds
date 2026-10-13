@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useFormatter, useTranslations } from 'next-intl'
-import { Inbox, Mail, Phone } from 'lucide-react'
-import { STAKEHOLDERS, type AccessRequestOut } from '@agriminds/api-types'
+import { Copy, Inbox, Mail, Phone } from 'lucide-react'
+import { STAKEHOLDERS, type AccessRequestOut, type DecisionResult } from '@agriminds/api-types'
 import {
   Card,
   CardContent,
@@ -110,6 +110,7 @@ function RequestRow({ row }: { row: AccessRequestOut }) {
   const decide = useDecideRequest()
   const [segment, setSegment] = useState(row.stakeholder ?? 'cooperative')
   const [note, setNote] = useState('')
+  const [dismissed, setDismissed] = useState(false)
 
   const open = row.status === 'new' || row.status === 'contacted'
 
@@ -205,11 +206,72 @@ function RequestRow({ row }: { row: AccessRequestOut }) {
         )
       )}
 
+      {decide.data?.invitation_token && !dismissed && (
+        <Invitation result={decide.data} onDismiss={() => setDismissed(true)} />
+      )}
+
+      {/* Approved, and nobody to invite: the account exists but has no way in yet. */}
+      {decide.data && decide.data.invited_email === null && row.kind === 'organization' && (
+        <p role="status" className="rounded-lg border border-border px-2.5 py-2 text-xs text-fg-muted">
+          {t('noContactEmail')}
+        </p>
+      )}
+
       {decide.isError && (
         <p role="alert" className="text-xs text-status-bad">
           {(decide.error as Error).message}
         </p>
       )}
     </li>
+  )
+}
+
+/**
+ * The invitation, shown once and never again.
+ *
+ * There is no mail server here, so this is the only moment the token exists in readable form:
+ * whoever approves copies it and relays it by whatever channel they already use with the customer.
+ * Lost means issuing a fresh invitation, not looking this one up -- only its hash is stored.
+ */
+function Invitation({ result, onDismiss }: { result: DecisionResult; onDismiss: () => void }) {
+  const t = useTranslations('requests')
+  const format = useFormatter()
+  const [copied, setCopied] = useState(false)
+  const link = `${window.location.origin}/invite/${result.invitation_token}`
+
+  return (
+    <div
+      role="status"
+      className="flex flex-col gap-2 rounded-lg border border-primary bg-surface-sunken p-3"
+    >
+      <p className="text-xs font-semibold">{t('invitedOnce', { email: result.invited_email ?? '' })}</p>
+      <div className="flex items-center gap-2">
+        <code className="min-w-0 flex-1 overflow-x-auto rounded bg-surface px-2 py-1.5 text-xs">
+          {link}
+        </code>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            void navigator.clipboard?.writeText(link)
+            setCopied(true)
+          }}
+        >
+          <Copy className="size-3.5" aria-hidden />
+          {copied ? t('copied') : t('copy')}
+        </Button>
+      </div>
+      {result.invitation_expires_at && (
+        <p className="text-[11px] text-fg-muted">
+          {t('invitedHint', {
+            date: format.dateTime(new Date(result.invitation_expires_at), 'date'),
+          })}
+        </p>
+      )}
+      <Button type="button" size="sm" variant="ghost" className="self-start" onClick={onDismiss}>
+        {t('dismiss')}
+      </Button>
+    </div>
   )
 }

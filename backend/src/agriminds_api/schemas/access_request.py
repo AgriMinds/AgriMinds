@@ -66,9 +66,7 @@ class DecisionResult(BaseModel):
     """
 
     request: AccessRequestOut
-    invited_email: str | None = Field(
-        None, description="The account created for the contact, if one was"
-    )
+    invited_email: str | None = Field(None, description="The account created for the contact, if one was")
     invitation_token: str | None = Field(
         None, description="Single-use, expiring. Shown once; relay it to the contact."
     )

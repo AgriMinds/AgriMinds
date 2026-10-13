@@ -54,6 +54,8 @@ export const ALLOWED: ReadonlyArray<{ method: Method; path: RegExp }> = [
   { method: 'GET', path: /^plans\/invoices$/ },
   { method: 'GET', path: /^admin\/invoices$/ },
   { method: 'POST', path: new RegExp(`^admin/invoices/${UUID}/paid$`) },
+  // What the business is actually earning. Admin-only upstream; the service enforces the role.
+  { method: 'GET', path: /^subscriptions\/revenue$/ },
   // commercial surfaces (admin only; the service enforces the role)
   { method: 'GET', path: /^billing\/pricing$/ },
   { method: 'GET', path: new RegExp(`^billing/pricing/${SLUG}$`) },

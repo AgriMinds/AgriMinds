@@ -75,7 +75,9 @@ export type paths = {
         put?: never;
         /**
          * Decide a request
-         * @description Approving an organisation enquiry **creates the account**, in the segment named here rather than the one the enquirer guessed. The link back is kept, so an account can always be traced to the enquiry it came from.
+         * @description Approving an organisation enquiry **creates the account and an account for its contact**, in the segment named here rather than the one the enquirer guessed. The link back is kept, so an account can always be traced to the enquiry it came from.
+         *
+         *     The response carries a single-use invitation token. There is no mail server here, so it is shown once and relayed to the contact by whoever approves -- it is not stored in readable form and re-reading the request will not return it.
          */
         post: operations["decide_api_v1_admin_access_requests__request_id__post"];
         delete?: never;
@@ -192,6 +194,26 @@ export type paths = {
         get: operations["metabase_status_api_v1_analytics_metabase_status_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/invitations/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept an invitation by setting a password
+         * @description Unauthenticated, because the whole point is that the person has no password yet: the token is the credential. It works once and expires, and it grants nothing beyond setting the password on the one account it was issued for. Accepting signs the person in, so there is no second form asking for the password they just chose.
+         */
+        post: operations["accept_invitation_api_v1_auth_invitations__token__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -998,6 +1020,14 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        /**
+         * AcceptInvitation
+         * @description Setting the password an invitation was issued for.
+         */
+        AcceptInvitation: {
+            /** Password */
+            password: string;
+        };
         /** AccessRequestOut */
         AccessRequestOut: {
             /** Contact Email */
@@ -1889,6 +1919,30 @@ export type components = {
              * @enum {string}
              */
             status: "connected" | "synthetic" | "not_connected";
+        };
+        /**
+         * DecisionResult
+         * @description The decided request, plus the credential the administrator has to relay.
+         *
+         *     ``invitation_token`` is present only on the response to the approval itself, and only when an
+         *     account was created. It is never stored in readable form and never returned again -- re-reading
+         *     the request later will not show it. If the administrator loses it, the fix is a fresh
+         *     invitation, not a lookup.
+         */
+        DecisionResult: {
+            /** Invitation Expires At */
+            invitation_expires_at?: string | null;
+            /**
+             * Invitation Token
+             * @description Single-use, expiring. Shown once; relay it to the contact.
+             */
+            invitation_token?: string | null;
+            /**
+             * Invited Email
+             * @description The account created for the contact, if one was
+             */
+            invited_email?: string | null;
+            request: components["schemas"]["AccessRequestOut"];
         };
         /** DeliveryOut */
         DeliveryOut: {
@@ -3863,7 +3917,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AccessRequestOut"];
+                    "application/json": components["schemas"]["DecisionResult"];
                 };
             };
             /** @description Unauthorized */
@@ -4165,6 +4219,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    accept_invitation_api_v1_auth_invitations__token__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptInvitation"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenPair"];
+                };
+            };
+            /** @description Used, expired or unknown invitation */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

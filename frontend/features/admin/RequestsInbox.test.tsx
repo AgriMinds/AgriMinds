@@ -100,3 +100,50 @@ describe('RequestsInbox', () => {
     expect(screen.getByText('Nothing waiting')).toBeInTheDocument()
   })
 })
+
+describe('the invitation an approval produces', () => {
+  const approved = {
+    request: { ...enquiry, status: 'approved' as const, organization_id: 'o1' },
+    invited_email: 'almaz@chokeunion.et',
+    invitation_token: 'tok_abcdefghijklmnop',
+    invitation_expires_at: '2026-10-27T06:00:00Z',
+  }
+
+  beforeEach(() => {
+    inboxQuery.mockReturnValue({ ...idle, data: [enquiry] })
+  })
+
+  it('shows the link to relay, because nothing can show it again', () => {
+    decideMutation.mockReturnValue({ ...idle, mutate: vi.fn(), data: approved })
+    wrap()
+    expect(screen.getByText(/cannot be shown again/)).toBeInTheDocument()
+    expect(screen.getByText(/\/invite\/tok_abcdefghijklmnop$/)).toBeInTheDocument()
+    expect(screen.getByText(/valid until/)).toBeInTheDocument()
+  })
+
+  it('can be dismissed once it has been relayed', () => {
+    decideMutation.mockReturnValue({ ...idle, mutate: vi.fn(), data: approved })
+    wrap()
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }))
+    expect(screen.queryByText(/cannot be shown again/)).not.toBeInTheDocument()
+  })
+
+  it('says so when an approval could invite nobody', () => {
+    // Staff sign in with an email address, so an enquiry without one creates no account.
+    decideMutation.mockReturnValue({
+      ...idle,
+      mutate: vi.fn(),
+      data: { ...approved, invited_email: null, invitation_token: null, invitation_expires_at: null },
+    })
+    wrap()
+    expect(screen.getByText(/no account was created/)).toBeInTheDocument()
+    expect(screen.queryByText(/cannot be shown again/)).not.toBeInTheDocument()
+  })
+
+  it('shows nothing of the sort before a decision is made', () => {
+    decideMutation.mockReturnValue({ ...idle, mutate: vi.fn(), data: undefined })
+    wrap()
+    expect(screen.queryByText(/cannot be shown again/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/no account was created/)).not.toBeInTheDocument()
+  })
+})

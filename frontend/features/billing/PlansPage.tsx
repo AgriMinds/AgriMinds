@@ -16,6 +16,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { QueryError } from '@/components/ui/query-state'
+import { ApiError } from '@/lib/api/client'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatMoney } from '@/features/admin/money'
 
@@ -59,9 +60,14 @@ export function PlansPage() {
       <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {plans.isError ? (
           // A person with no organisation gets the API's own explanation, which says what to do.
+          // No retry offered in that case: nothing about pressing it again can change the answer.
           <QueryError
             error={plans.error}
-            onRetry={() => void plans.refetch()}
+            onRetry={
+              plans.error instanceof ApiError && plans.error.status === 403
+                ? undefined
+                : () => void plans.refetch()
+            }
             isRetrying={plans.isFetching}
           />
         ) : plans.isPending ? (
