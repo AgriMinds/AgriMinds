@@ -18,6 +18,9 @@ import type {
   PlanChoice,
   PlanSet,
   RevenueSummary,
+  AgentAnswer,
+  AgentQuestion,
+  HotlineTurn,
   RequestDecision,
   AccessRequestOut,
   DecisionResult,
@@ -236,6 +239,13 @@ export const api = {
   outstandingInvoices: () => request<InvoiceOut[]>('/admin/invoices'),
   /** What the platform earns, by segment, with renewals and lapses. Administrators only. */
   revenue: () => request<RevenueSummary>('/subscriptions/revenue'),
+
+  // ---- the farmer agent ---------------------------------------------------------------
+  /** Ask the agent. Answers come from this farmer's own plots and the forecast for them. */
+  ask: (question: AgentQuestion) =>
+    request<AgentAnswer>('/agent/ask', { method: 'POST', body: JSON.stringify(question) }),
+  /** What the 977 hotline has been asked lately. Administrators only. */
+  hotlineTraffic: () => request<HotlineTurn[]>('/admin/hotline'),
   confirmPayment: (id: string, confirmation: PaymentConfirmation) =>
     request<InvoiceOut>(`/admin/invoices/${id}/paid`, {
       method: 'POST',

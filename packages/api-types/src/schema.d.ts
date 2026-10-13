@@ -86,6 +86,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/hotline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What the hotline has been asked lately
+         * @description Newest first. `delivered` is false for every row until a carrier is connected, and `registered` false means a farmer the platform has not reached asked it something — which is the most useful column here.
+         */
+        get: operations["recent_api_v1_admin_hotline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/invoices": {
         parameters: {
             query?: never;
@@ -134,6 +154,30 @@ export type paths = {
         put?: never;
         /** Crop advisory for a cell, lead and crop */
         post: operations["evaluate_api_v1_advisories_evaluate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask the farmer agent a question
+         * @description Answers from **this farmer's own plots** and the forecast for them. The agent chooses which of the advisory engine's findings answers the question; it does not compose agronomic advice of its own, so it cannot state a planting date the model never produced.
+         *
+         *     A digit works as well as a sentence — `1` is the drought risk — because the same agent answers the USSD menu on the hotline.
+         *
+         *     When the forecast is unavailable the agent says so rather than answering from a stale number.
+         */
+        post: operations["ask_api_v1_agent_ask_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -733,6 +777,28 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hotline/inbound": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * An SMS, USSD or IVR turn arriving from the carrier
+         * @description Unauthenticated by design: the caller is a phone, not a session. An aggregator posts here and the signature header is what proves the post came from them, so `hotline_webhook_secret` must be set before the short code is public.
+         *
+         *     The reply is returned **and** recorded. With no aggregator connected it is recorded as `held`, never `sent`: a row marked sent when nothing left the building becomes a report claiming the hotline served farmers it never reached.
+         */
+        post: operations["inbound_api_v1_hotline_inbound_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/messaging/{organization_id}/balance": {
         parameters: {
             query?: never;
@@ -938,7 +1004,10 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Every agreement on record */
+        /**
+         * Institutional agreements on record
+         * @description Individual farmer premiums are left out unless asked for: there is one per farmer, and a list that mixes them in with institutional licences stops being a list of accounts. They are counted in `/subscriptions/revenue` either way.
+         */
         get: operations["list_subscriptions_api_v1_subscriptions_get"];
         put?: never;
         /**
@@ -1193,6 +1262,56 @@ export type components = {
             target_date: string;
             /** Water Management */
             water_management: string;
+        };
+        /** AgentAnswer */
+        AgentAnswer: {
+            /** Farm Id */
+            farm_id?: string | null;
+            /** Followups */
+            followups?: string[];
+            /**
+             * Intent
+             * @description What the agent decided the question was
+             */
+            intent: string;
+            /**
+             * Locale
+             * @enum {string}
+             */
+            locale: "en" | "am" | "om";
+            /**
+             * Sms Segments
+             * @default 1
+             */
+            sms_segments: number;
+            /** Sources */
+            sources?: string[];
+            /** Text */
+            text: string;
+        };
+        /** AgentQuestion */
+        AgentQuestion: {
+            /**
+             * Farm Id
+             * @description Ask about one plot; defaults to the worst
+             */
+            farm_id?: string | null;
+            /**
+             * Lead Month
+             * @default 1
+             */
+            lead_month: number;
+            /**
+             * Locale
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "am" | "om";
+            /**
+             * Text
+             * @description What the farmer asked, or a menu digit
+             */
+            text: string;
         };
         /**
          * AnalyticsConnection
@@ -2459,6 +2578,7 @@ export type components = {
             enso_summary?: string | null;
             /** Farms */
             farms: components["schemas"]["FarmOut"][];
+            hotline?: components["schemas"]["HotlineInfo"] | null;
             provenance?: components["schemas"]["ForecastProvenance"] | null;
             user: components["schemas"]["UserOut"];
         };
@@ -2689,6 +2809,95 @@ export type components = {
              * @description How many leads the model was trained for
              */
             trained_leads: number;
+        };
+        /**
+         * HotlineInbound
+         * @description The shape an SMS/USSD aggregator posts. Field names follow the common vendor convention.
+         */
+        HotlineInbound: {
+            /**
+             * Caller
+             * @description The farmer's number, any Ethiopian format
+             */
+            caller: string;
+            /**
+             * Channel
+             * @default sms
+             * @enum {string}
+             */
+            channel: "sms" | "ussd" | "voice" | "chat";
+            /**
+             * Lead Month
+             * @default 1
+             */
+            lead_month: number;
+            /**
+             * Locale
+             * @description Defaults to the farmer's own setting
+             */
+            locale?: ("en" | "am" | "om") | null;
+            /**
+             * Session Id
+             * @description Ties a USSD session together
+             */
+            session_id?: string | null;
+            /**
+             * Text
+             * @default
+             */
+            text: string;
+        };
+        /**
+         * HotlineInfo
+         * @description How to reach the same advice from a phone with no app.
+         *
+         *     Carried on the dashboard so the number lives in one place -- configuration -- rather than being
+         *     written into the interface copy of three languages, where a change of short code would leave
+         *     two of them wrong.
+         */
+        HotlineInfo: {
+            /** Connected */
+            connected: boolean;
+            /** Short Code */
+            short_code: string;
+        };
+        /** HotlineTurn */
+        HotlineTurn: {
+            /** At */
+            at?: string | null;
+            /** Caller */
+            caller: string;
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "sms" | "ussd" | "voice" | "chat";
+            /** Delivered */
+            delivered: boolean;
+            /** Farm Id */
+            farm_id?: string | null;
+            /** Id */
+            id: string;
+            /** Intent */
+            intent: string;
+            /** Locale */
+            locale: string;
+            /**
+             * Note
+             * @description Why it was not delivered, when it was not
+             */
+            note?: string | null;
+            /** Provider */
+            provider: string;
+            /**
+             * Registered
+             * @description Whether the number belongs to a registered farmer
+             */
+            registered: boolean;
+            /** Reply */
+            reply: string;
+            /** Short Code */
+            short_code: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -3959,6 +4168,55 @@ export interface operations {
             };
         };
     };
+    recent_api_v1_admin_hotline_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HotlineTurn"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     outstanding_api_v1_admin_invoices_get: {
         parameters: {
             query?: never;
@@ -4106,6 +4364,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ask_api_v1_agent_ask_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentQuestion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentAnswer"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -5866,6 +6175,50 @@ export interface operations {
             };
         };
     };
+    inbound_api_v1_hotline_inbound_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Hotline-Signature"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HotlineInbound"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HotlineTurn"];
+                };
+            };
+            /** @description Bad or missing webhook signature */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     balance_api_v1_messaging__organization_id__balance_get: {
         parameters: {
             query?: never;
@@ -6488,6 +6841,8 @@ export interface operations {
     list_subscriptions_api_v1_subscriptions_get: {
         parameters: {
             query?: {
+                /** @description Include farmers who bought premium themselves */
+                individuals?: boolean;
                 /** @description Limit to one account */
                 organization_id?: string | null;
             };

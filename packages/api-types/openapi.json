@@ -447,6 +447,70 @@
         }
       }
     },
+    "/api/v1/hotline/inbound": {
+      "post": {
+        "tags": [
+          "Farmer agent"
+        ],
+        "summary": "An SMS, USSD or IVR turn arriving from the carrier",
+        "description": "Unauthenticated by design: the caller is a phone, not a session. An aggregator posts here and the signature header is what proves the post came from them, so `hotline_webhook_secret` must be set before the short code is public.\n\nThe reply is returned **and** recorded. With no aggregator connected it is recorded as `held`, never `sent`: a row marked sent when nothing left the building becomes a report claiming the hotline served farmers it never reached.",
+        "operationId": "inbound_api_v1_hotline_inbound_post",
+        "parameters": [
+          {
+            "name": "X-Hotline-Signature",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Hotline-Signature"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HotlineInbound"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HotlineTurn"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Bad or missing webhook signature",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/drought/map": {
       "get": {
         "tags": [
@@ -3333,7 +3397,8 @@
         "tags": [
           "Subscriptions"
         ],
-        "summary": "Every agreement on record",
+        "summary": "Institutional agreements on record",
+        "description": "Individual farmer premiums are left out unless asked for: there is one per farmer, and a list that mixes them in with institutional licences stops being a list of accounts. They are counted in `/subscriptions/revenue` either way.",
         "operationId": "list_subscriptions_api_v1_subscriptions_get",
         "security": [
           {
@@ -3359,6 +3424,18 @@
               "title": "Organization Id"
             },
             "description": "Limit to one account"
+          },
+          {
+            "name": "individuals",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Include farmers who bought premium themselves",
+              "default": false,
+              "title": "Individuals"
+            },
+            "description": "Include farmers who bought premium themselves"
           }
         ],
         "responses": {
@@ -3603,6 +3680,146 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RevenueSummary"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agent/ask": {
+      "post": {
+        "tags": [
+          "Farmer agent"
+        ],
+        "summary": "Ask the farmer agent a question",
+        "description": "Answers from **this farmer's own plots** and the forecast for them. The agent chooses which of the advisory engine's findings answers the question; it does not compose agronomic advice of its own, so it cannot state a planting date the model never produced.\n\nA digit works as well as a sentence \u2014 `1` is the drought risk \u2014 because the same agent answers the USSD menu on the hotline.\n\nWhen the forecast is unavailable the agent says so rather than answering from a stale number.",
+        "operationId": "ask_api_v1_agent_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentQuestion"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentAnswer"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/hotline": {
+      "get": {
+        "tags": [
+          "Farmer agent"
+        ],
+        "summary": "What the hotline has been asked lately",
+        "description": "Newest first. `delivered` is false for every row until a carrier is connected, and `registered` false means a farmer the platform has not reached asked it something \u2014 which is the most useful column here.",
+        "operationId": "recent_api_v1_admin_hotline_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HotlineTurn"
+                  },
+                  "title": "Response Recent Api V1 Admin Hotline Get"
                 }
               }
             }
@@ -4670,6 +4887,109 @@
           "provenance"
         ],
         "title": "AdvisoryResponse"
+      },
+      "AgentAnswer": {
+        "properties": {
+          "intent": {
+            "type": "string",
+            "title": "Intent",
+            "description": "What the agent decided the question was"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "am",
+              "om"
+            ],
+            "title": "Locale"
+          },
+          "farm_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Farm Id"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "followups": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Followups"
+          },
+          "sms_segments": {
+            "type": "integer",
+            "title": "Sms Segments",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "intent",
+          "text",
+          "locale"
+        ],
+        "title": "AgentAnswer"
+      },
+      "AgentQuestion": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 480,
+            "title": "Text",
+            "description": "What the farmer asked, or a menu digit"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "am",
+              "om"
+            ],
+            "title": "Locale",
+            "default": "en"
+          },
+          "lead_month": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Lead Month",
+            "default": 1
+          },
+          "farm_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Farm Id",
+            "description": "Ask about one plot; defaults to the worst"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "AgentQuestion"
       },
       "AnalyticsConnection": {
         "properties": {
@@ -7652,6 +7972,16 @@
                 "type": "null"
               }
             ]
+          },
+          "hotline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HotlineInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -7981,6 +8311,194 @@
         ],
         "title": "HorizonResponse",
         "description": "The full horizon: what can be forecast, what can only be leaned on, and why.\n\nThe split is the point. A forecast says how likely drought is and is published only where\nthat was measured to beat climatology. An outlook says which way the season leans and never\ncarries a number. Serving the second as the first is the failure this endpoint prevents."
+      },
+      "HotlineInbound": {
+        "properties": {
+          "caller": {
+            "type": "string",
+            "title": "Caller",
+            "description": "The farmer's number, any Ethiopian format"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 480,
+            "title": "Text",
+            "default": ""
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "sms",
+              "ussd",
+              "voice",
+              "chat"
+            ],
+            "title": "Channel",
+            "default": "sms"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "am",
+                  "om"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale",
+            "description": "Defaults to the farmer's own setting"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id",
+            "description": "Ties a USSD session together"
+          },
+          "lead_month": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Lead Month",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "caller"
+        ],
+        "title": "HotlineInbound",
+        "description": "The shape an SMS/USSD aggregator posts. Field names follow the common vendor convention."
+      },
+      "HotlineInfo": {
+        "properties": {
+          "short_code": {
+            "type": "string",
+            "title": "Short Code"
+          },
+          "connected": {
+            "type": "boolean",
+            "title": "Connected"
+          }
+        },
+        "type": "object",
+        "required": [
+          "short_code",
+          "connected"
+        ],
+        "title": "HotlineInfo",
+        "description": "How to reach the same advice from a phone with no app.\n\nCarried on the dashboard so the number lives in one place -- configuration -- rather than being\nwritten into the interface copy of three languages, where a change of short code would leave\ntwo of them wrong."
+      },
+      "HotlineTurn": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "caller": {
+            "type": "string",
+            "title": "Caller"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "sms",
+              "ussd",
+              "voice",
+              "chat"
+            ],
+            "title": "Channel"
+          },
+          "locale": {
+            "type": "string",
+            "title": "Locale"
+          },
+          "intent": {
+            "type": "string",
+            "title": "Intent"
+          },
+          "reply": {
+            "type": "string",
+            "title": "Reply"
+          },
+          "farm_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Farm Id"
+          },
+          "registered": {
+            "type": "boolean",
+            "title": "Registered",
+            "description": "Whether the number belongs to a registered farmer"
+          },
+          "short_code": {
+            "type": "string",
+            "title": "Short Code"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "delivered": {
+            "type": "boolean",
+            "title": "Delivered"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "Why it was not delivered, when it was not"
+          },
+          "at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "caller",
+          "channel",
+          "locale",
+          "intent",
+          "reply",
+          "registered",
+          "short_code",
+          "provider",
+          "delivered"
+        ],
+        "title": "HotlineTurn"
       },
       "InvoiceOut": {
         "properties": {

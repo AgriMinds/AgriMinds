@@ -779,6 +779,27 @@
       "copied": "Garagalfame",
       "active": "Premium hojii irra jira.",
       "activeUntil": "Premium hanga {date} hojii irra jira."
+    },
+    "agent": {
+      "title": "Waa’ee lafa kee gaafadhu",
+      "subtitle": "Deebiin lafa kee fi tilmaama waqtii kana irraa dhufa.",
+      "placeholder": "Yoom facaasuu qaba?",
+      "inputLabel": "Gaaffii kee",
+      "send": "Ergi",
+      "speak": "Gaaffii kee dubbadhu",
+      "readAloud": "Sagaleen dubbisi",
+      "stopReading": "Dhaabi",
+      "thinking": "Lafa kee ilaalaa jira…",
+      "chip": {
+        "risk": "Balaa hongee",
+        "planting": "Yoom facaasuu",
+        "water": "Bishaan",
+        "crop": "Sanyii kam",
+        "plots": "Lafa koo",
+        "season": "Waqtii"
+      },
+      "hotlineNote": "Bilbila ismaartii hin qabduu? Bilbila kamiyyuu irraa {code} bilisaan bilbili yookaan barreessi, gorsaan sunuu deebisa. Hanga ammaa hin hidhamne — koodii gabaabaa Ethio Telecom barbaada.",
+      "hotlineLive": "Bilbila ismaartii hin qabduu? Bilbila kamiyyuu irraa {code} bilisaan bilbili yookaan barreessi, gorsaan sunuu deebisa."
     }
   },
   "requestAccess": {
@@ -916,5 +937,13 @@
     "noRenewals": "Guyyoota 60 dhufan keessatti homaa hin jiru.",
     "lapsed": "Yeroon darbe",
     "noLapsed": "Homaa yeroon isaa hin darbine."
+  },
+  "hotline": {
+    "title": "Sarara bilbilaa 977",
+    "desc": "Qonnaan bultoonni bilbilaan waan gaafatanii fi deebii kenname",
+    "empty": "Hanga ammaa gaaffii hin jiru.",
+    "held": "{n} qabamanii, hin ergamne",
+    "unregistered": "{n} lakkoofsa hin galmoofne irraa",
+    "notRegistered": "Hin galmoofne"
   }
 }

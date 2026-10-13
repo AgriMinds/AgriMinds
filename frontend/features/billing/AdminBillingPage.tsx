@@ -15,6 +15,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { QueryError } from '@/components/ui/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
+import { HotlinePanel } from '@/features/admin/HotlinePanel'
 import { barWidth, formatCompact, formatMoney } from '@/features/admin/money'
 
 import { OutstandingInvoices } from './OutstandingInvoices'
@@ -79,6 +80,7 @@ export function AdminBillingPage() {
               </div>
               <div className="flex flex-col gap-5 xl:col-span-5">
                 <OutstandingInvoices />
+                <HotlinePanel />
                 <Watchlist
                   renewals={data.renewals_due}
                   lapsed={data.lapsed}

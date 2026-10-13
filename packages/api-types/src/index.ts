@@ -212,5 +212,10 @@ export type InvoiceOut = Schemas['InvoiceOut']
 export type PaymentConfirmation = Schemas['PaymentConfirmation']
 export type RevenueSummary = Schemas['RevenueSummary']
 export type SubscriptionOut = Schemas['SubscriptionOut']
+
+// ---- the farmer agent, and the hotline that carries it ---------------------------------
+export type AgentQuestion = Schemas['AgentQuestion']
+export type AgentAnswer = Schemas['AgentAnswer']
+export type HotlineTurn = Schemas['HotlineTurn']
 export type RevenueByStakeholder = Schemas['RevenueByStakeholder']
 export type BillingPeriodName = PlanOption['period']

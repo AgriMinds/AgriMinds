@@ -56,6 +56,11 @@ export const ALLOWED: ReadonlyArray<{ method: Method; path: RegExp }> = [
   { method: 'POST', path: new RegExp(`^admin/invoices/${UUID}/paid$`) },
   // What the business is actually earning. Admin-only upstream; the service enforces the role.
   { method: 'GET', path: /^subscriptions\/revenue$/ },
+  // The farmer agent. The hotline's own inbound webhook is not here on purpose: a carrier posts
+  // to the API directly with a signature, and proxying it through the browser app would make a
+  // public endpoint reachable with a session it does not need.
+  { method: 'POST', path: /^agent\/ask$/ },
+  { method: 'GET', path: /^admin\/hotline$/ },
   // commercial surfaces (admin only; the service enforces the role)
   { method: 'GET', path: /^billing\/pricing$/ },
   { method: 'GET', path: new RegExp(`^billing/pricing/${SLUG}$`) },

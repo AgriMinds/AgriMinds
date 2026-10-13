@@ -4,6 +4,7 @@ from agriminds_api.api.deps import require_metered_principal
 from agriminds_api.api.v1 import (
     access_requests,
     advisory,
+    agent,
     analytics,
     auth,
     billing,
@@ -31,8 +32,11 @@ api_router = APIRouter()
 api_router.include_router(health.router)
 api_router.include_router(auth.router)
 api_router.include_router(geo.router)
-# A sales enquiry from somebody who has never signed in. The only unauthenticated write.
+# A sales enquiry from somebody who has never signed in.
 api_router.include_router(access_requests.public_router)
+# The 977 hotline. Unauthenticated because the caller is a phone: an aggregator posts here and
+# proves itself with a signature over the body, not with a session.
+api_router.include_router(agent.hotline_router)
 
 # Forecast data: a signed-in person or a trusted service (X-API-Key).
 _forecast = APIRouter(
@@ -67,6 +71,8 @@ _private.include_router(system.router)
 _private.include_router(billing.router)
 _private.include_router(organizations.router)
 _private.include_router(subscriptions.router)
+_private.include_router(agent.router)
+_private.include_router(agent.admin_router)
 _private.include_router(plans.router)
 _private.include_router(plans.admin_router)
 _private.include_router(messaging.router)

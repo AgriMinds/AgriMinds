@@ -24,6 +24,20 @@ from agriminds_api.schemas.farm import FarmOut
 
 
 # ------------------------------------------------------------------ farmer
+class HotlineInfo(BaseModel):
+    """How to reach the same advice from a phone with no app.
+
+    Carried on the dashboard so the number lives in one place -- configuration -- rather than being
+    written into the interface copy of three languages, where a change of short code would leave
+    two of them wrong.
+    """
+
+    short_code: str
+    #: False until a carrier is connected. The interface says so rather than printing a number
+    #: that rings nowhere.
+    connected: bool
+
+
 class FarmerDashboard(BaseModel):
     user: UserOut
     farms: list[FarmOut]
@@ -41,6 +55,7 @@ class FarmerDashboard(BaseModel):
     )
     enso_summary: str | None = None
     provenance: ForecastProvenance | None = None
+    hotline: HotlineInfo | None = None
 
 
 # ------------------------------------------------------------------ ministry

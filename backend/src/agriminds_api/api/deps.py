@@ -28,6 +28,7 @@ from agriminds_api.core.exceptions import (
 from agriminds_api.db.models import User, UserRole
 from agriminds_api.domain.geo import GridSpec
 from agriminds_api.services.advisory import AdvisoryService
+from agriminds_api.services.agent import AgentService
 from agriminds_api.services.auth import AuthService
 from agriminds_api.services.crop_yield import CropYieldService
 from agriminds_api.services.dashboard import DashboardService
@@ -35,6 +36,7 @@ from agriminds_api.services.drought import DroughtService
 from agriminds_api.services.enso import EnsoService
 from agriminds_api.services.farm import FarmService
 from agriminds_api.services.horizon import HorizonService
+from agriminds_api.services.hotline import HotlineService
 from agriminds_api.services.inference import InferenceService
 from agriminds_api.services.metabase import MetabaseService
 
@@ -261,6 +263,23 @@ def get_dashboard_service(
     return DashboardService(session, grid, inference, farms, advisory, enso)
 
 
+def get_agent_service(
+    advisory: Annotated[AdvisoryService, Depends(get_advisory)],
+) -> AgentService:
+    return AgentService(advisory)
+
+
+def get_hotline_service(
+    session: SessionDep,
+    settings: SettingsDep,
+    agent: Annotated[AgentService, Depends(get_agent_service)],
+    farms: Annotated[FarmService, Depends(get_farm_service)],
+) -> HotlineService:
+    return HotlineService(session, settings, agent, farms)
+
+
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
+AgentServiceDep = Annotated[AgentService, Depends(get_agent_service)]
+HotlineServiceDep = Annotated[HotlineService, Depends(get_hotline_service)]
 FarmServiceDep = Annotated[FarmService, Depends(get_farm_service)]
 DashboardServiceDep = Annotated[DashboardService, Depends(get_dashboard_service)]

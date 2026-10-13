@@ -54,6 +54,18 @@ class Settings(BaseSettings):
     #: Where a customer sends the money. Configuration rather than a constant in a page, because
     #: it changes with the organisation's banking and must not need a deploy.
     billing_pay_to: str = "Commercial Bank of Ethiopia · AgriMinds AI-DREWS · 1000XXXXXXXXX"
+
+    # ---- farmer hotline -----------------------------------------------------------------
+    #: The short code farmers dial or text. Configurable because it is not assigned yet: it
+    #: takes an Ethio Telecom application, and a number hardcoded in the copy would be a
+    #: promise the platform cannot keep.
+    hotline_short_code: str = "977"
+    #: `none` (default) records replies without sending, `simulator` logs them for review. A real
+    #: aggregator goes here once there is a contract behind it.
+    hotline_sms_provider: str = "none"
+    #: Shared secret an aggregator signs its inbound webhook with. Empty disables the check, which
+    #: is only acceptable before a public short code exists.
+    hotline_webhook_secret: str = ""
     #: Days a customer has to settle an invoice before it is overdue.
     billing_due_days: int = 30
 

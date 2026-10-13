@@ -779,6 +779,27 @@
       "copied": "Copied",
       "active": "Premium is active.",
       "activeUntil": "Premium is active until {date}."
+    },
+    "agent": {
+      "title": "Ask about your land",
+      "subtitle": "Answers come from your own plots and this season’s forecast.",
+      "placeholder": "When should I plant?",
+      "inputLabel": "Your question",
+      "send": "Send",
+      "speak": "Speak your question",
+      "readAloud": "Read aloud",
+      "stopReading": "Stop",
+      "thinking": "Checking your plots…",
+      "chip": {
+        "risk": "Drought risk",
+        "planting": "When to plant",
+        "water": "Water",
+        "crop": "Which seed",
+        "plots": "My plots",
+        "season": "The season"
+      },
+      "hotlineNote": "No smartphone? Text or call {code} free from any phone and the same assistant answers. Not yet connected — it needs an Ethio Telecom short code.",
+      "hotlineLive": "No smartphone? Text or call {code} free from any phone and the same assistant answers."
     }
   },
   "requestAccess": {
@@ -916,5 +937,13 @@
     "noRenewals": "Nothing due in the next 60 days.",
     "lapsed": "Lapsed",
     "noLapsed": "Nothing has lapsed."
+  },
+  "hotline": {
+    "title": "Hotline 977",
+    "desc": "What farmers asked from a phone, and what went back",
+    "empty": "Nothing asked yet.",
+    "held": "{n} held, not sent",
+    "unregistered": "{n} from unregistered numbers",
+    "notRegistered": "Not registered"
   }
 }

@@ -13,6 +13,15 @@ from agriminds_api.db.models.billing import PricingTier, StakeholderType, stakeh
 from agriminds_api.db.models.commerce import ApiKey, ApiUsageDaily, Organization
 from agriminds_api.db.models.farm import Crop, Farm, crop_enum
 from agriminds_api.db.models.geography import Region, Woreda, Zone
+from agriminds_api.db.models.hotline import (
+    Direction,
+    HotlineChannel,
+    HotlineMessage,
+    HotlineStatus,
+    hotline_channel_enum,
+    hotline_direction_enum,
+    hotline_status_enum,
+)
 from agriminds_api.db.models.invitation import INVITATION_VALID_FOR, Invitation
 from agriminds_api.db.models.invoice import (
     Invoice,
@@ -52,9 +61,16 @@ __all__ = [
     "DeliveryChannel",
     "DeliveryStatus",
     "Farm",
+    "Direction",
+    "HotlineChannel",
+    "HotlineMessage",
+    "HotlineStatus",
     "INVITATION_VALID_FOR",
     "Invitation",
     "Invoice",
+    "hotline_channel_enum",
+    "hotline_direction_enum",
+    "hotline_status_enum",
     "InvoiceStatus",
     "Locale",
     "MessageBundle",

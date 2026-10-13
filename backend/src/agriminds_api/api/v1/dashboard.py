@@ -8,11 +8,17 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, Query, Response, status
 from sqlalchemy import select
 
-from agriminds_api.api.deps import DashboardServiceDep, FarmerUser, SessionDep, StaffUser
+from agriminds_api.api.deps import (
+    DashboardServiceDep,
+    FarmerUser,
+    SessionDep,
+    SettingsDep,
+    StaffUser,
+)
 from agriminds_api.core.exceptions import NotFoundError
 from agriminds_api.db.models import AdvisoryRecord, Farm
 from agriminds_api.schemas.common import ErrorResponse
-from agriminds_api.schemas.dashboard import FarmerDashboard, MinistryDashboard
+from agriminds_api.schemas.dashboard import FarmerDashboard, HotlineInfo, MinistryDashboard
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboards"])
 
@@ -25,9 +31,19 @@ LeadMonth = Query(1, ge=1, le=3, description="Forecast lead time in months")
     summary="Your plots, their risk and the advisory that needs attention first",
 )
 async def farmer_dashboard(
-    user: FarmerUser, service: DashboardServiceDep, lead_month: int = LeadMonth
+    user: FarmerUser,
+    service: DashboardServiceDep,
+    settings: SettingsDep,
+    lead_month: int = LeadMonth,
 ) -> FarmerDashboard:
-    return await service.farmer(user, lead_month)
+    dashboard = await service.farmer(user, lead_month)
+    dashboard.hotline = HotlineInfo(
+        short_code=settings.hotline_short_code,
+        # Only a configured provider can carry a message to a handset. Saying "connected" on the
+        # strength of the number existing would put a dead number in front of farmers.
+        connected=settings.hotline_sms_provider not in ("", "none"),
+    )
+    return dashboard
 
 
 @router.get(

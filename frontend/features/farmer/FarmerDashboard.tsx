@@ -11,6 +11,7 @@ import { SegmentedControl } from '@/components/ui/segmented'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AdvisoryActionCard } from '@/features/farmer/AdvisoryActionCard'
 import { PlotCard } from '@/features/farmer/PlotCard'
+import { AgentChat } from '@/features/farmer/AgentChat'
 import { PremiumCard } from '@/features/farmer/PremiumCard'
 import { PlotDialog } from '@/features/farmer/PlotDialog'
 import { useAcknowledge, useFarmAdvisory, useFarmerDashboard } from '@/features/farmer/useFarmer'
@@ -149,6 +150,8 @@ export function FarmerDashboard() {
                 </Button>
               </div>
             )}
+
+            <AgentChat />
 
             <PremiumCard />
 
