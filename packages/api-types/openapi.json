@@ -2950,6 +2950,605 @@
           }
         }
       }
+    },
+    "/api/v1/subscriptions": {
+      "get": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Every agreement on record",
+        "operationId": "list_subscriptions_api_v1_subscriptions_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Limit to one account",
+              "title": "Organization Id"
+            },
+            "description": "Limit to one account"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SubscriptionOut"
+                  },
+                  "title": "Response List Subscriptions Api V1 Subscriptions Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Record that an account agreed to a rate",
+        "description": "The rate is taken from the tier in force for the account's stakeholder type and **copied onto the agreement**, together with the tier version it came from. Repricing the catalogue afterwards therefore changes what new customers pay and leaves this one alone.\n\nSupply `unit_price_cents` only for a negotiated price; leaving it out is the normal case and takes the list rate.",
+        "operationId": "create_subscription_api_v1_subscriptions_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/{subscription_id}": {
+      "delete": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "End an agreement",
+        "description": "The row is kept: it is what the account was charged for the term it ran.",
+        "operationId": "end_subscription_api_v1_subscriptions__subscription_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subscription Id"
+            }
+          },
+          {
+            "name": "on",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Defaults to today",
+              "title": "On"
+            },
+            "description": "Defaults to today"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/revenue": {
+      "get": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "What the platform actually earns",
+        "description": "Counted from agreements that are live on the day asked about \u2014 not from the price list. The catalogue total on the pricing page is what one of everything would fetch if it all sold; this is what is owed.\n\nA perpetual licence contributes **nothing** to ARR, because it recurs never. Its one-off value is reported separately so it cannot be mistaken for recurring revenue.",
+        "operationId": "revenue_api_v1_subscriptions_revenue_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "as_of",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Defaults to today",
+              "title": "As Of"
+            },
+            "description": "Defaults to today"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevenueSummary"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/messaging/bundles": {
+      "post": {
+        "tags": [
+          "Messaging"
+        ],
+        "summary": "Sell an account a bundle of advisory messages",
+        "description": "Credits are priced per message and the rate is frozen on the bundle, so a later price change cannot restate a sale that already happened.",
+        "operationId": "purchase_api_v1_messaging_bundles_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BundlePurchase"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BundleOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/messaging/{organization_id}/balance": {
+      "get": {
+        "tags": [
+          "Messaging"
+        ],
+        "summary": "Credits bought, spent and left",
+        "description": "Derived on every read from the bundles and the deliveries, never stored, so the figure cannot drift from the rows that justify it. A failed message is not charged for.\n\n`deliverable` is false while no aggregator is configured: messages are recorded and queued, and nothing is actually sent.",
+        "operationId": "balance_api_v1_messaging__organization_id__balance_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditBalance"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/messaging/deliveries": {
+      "post": {
+        "tags": [
+          "Messaging"
+        ],
+        "summary": "Queue one advisory for delivery",
+        "description": "Refused with 409 when the account has no credits left.",
+        "operationId": "queue_api_v1_messaging_deliveries_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeliveryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/messaging/{organization_id}/deliveries": {
+      "get": {
+        "tags": [
+          "Messaging"
+        ],
+        "summary": "What has been queued or sent for this account",
+        "operationId": "deliveries_api_v1_messaging__organization_id__deliveries_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeliveryOut"
+                  },
+                  "title": "Response Deliveries Api V1 Messaging  Organization Id  Deliveries Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3429,6 +4028,136 @@
         ],
         "title": "ApiKeyOut"
       },
+      "BundleOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "messages": {
+            "type": "integer",
+            "title": "Messages"
+          },
+          "unit_price_cents": {
+            "type": "integer",
+            "title": "Unit Price Cents"
+          },
+          "unit_price": {
+            "type": "string",
+            "title": "Unit Price"
+          },
+          "value_cents": {
+            "type": "integer",
+            "title": "Value Cents"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "purchased_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Purchased On"
+          },
+          "expires_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires On"
+          },
+          "expired": {
+            "type": "boolean",
+            "title": "Expired"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "messages",
+          "unit_price_cents",
+          "unit_price",
+          "value_cents",
+          "value",
+          "currency",
+          "purchased_on",
+          "expires_on",
+          "expired"
+        ],
+        "title": "BundleOut"
+      },
+      "BundlePurchase": {
+        "properties": {
+          "organization_id": {
+            "type": "string",
+            "title": "Organization Id"
+          },
+          "messages": {
+            "type": "integer",
+            "maximum": 10000000.0,
+            "minimum": 1.0,
+            "title": "Messages"
+          },
+          "unit_price_cents": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Unit Price Cents",
+            "description": "Per message, in minor units"
+          },
+          "purchased_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purchased On"
+          },
+          "expires_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires On"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organization_id",
+          "messages",
+          "unit_price_cents"
+        ],
+        "title": "BundlePurchase"
+      },
       "CacheStatus": {
         "properties": {
           "backend": {
@@ -3670,6 +4399,67 @@
           "woredas_total"
         ],
         "title": "CoverageStats"
+      },
+      "CreditBalance": {
+        "properties": {
+          "organization_id": {
+            "type": "string",
+            "title": "Organization Id"
+          },
+          "organization_name": {
+            "type": "string",
+            "title": "Organization Name"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "purchased": {
+            "type": "integer",
+            "title": "Purchased",
+            "description": "Credits bought and not expired"
+          },
+          "used": {
+            "type": "integer",
+            "title": "Used",
+            "description": "Messages queued or sent; a failure is not charged for"
+          },
+          "remaining": {
+            "type": "integer",
+            "title": "Remaining"
+          },
+          "bundles": {
+            "items": {
+              "$ref": "#/components/schemas/BundleOut"
+            },
+            "type": "array",
+            "title": "Bundles"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider",
+            "description": "Which aggregator is configured, or 'none'"
+          },
+          "deliverable": {
+            "type": "boolean",
+            "title": "Deliverable",
+            "description": "False while no aggregator is configured"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organization_id",
+          "organization_name",
+          "currency",
+          "purchased",
+          "used",
+          "remaining",
+          "bundles",
+          "provider",
+          "deliverable"
+        ],
+        "title": "CreditBalance",
+        "description": "What an organisation has left, derived from bundles bought minus messages charged."
       },
       "CropMixEntry": {
         "properties": {
@@ -4618,6 +5408,131 @@
           "reachable"
         ],
         "title": "DatabaseStatus"
+      },
+      "DeliveryOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "recipient": {
+            "type": "string",
+            "title": "Recipient"
+          },
+          "locale": {
+            "type": "string",
+            "title": "Locale"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "sms",
+              "ussd"
+            ],
+            "title": "Channel"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "sent",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent At"
+          },
+          "failure_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "recipient",
+          "locale",
+          "channel",
+          "status",
+          "body",
+          "created_at",
+          "sent_at",
+          "failure_reason"
+        ],
+        "title": "DeliveryOut"
+      },
+      "DeliveryRequest": {
+        "properties": {
+          "organization_id": {
+            "type": "string",
+            "title": "Organization Id"
+          },
+          "recipient": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 7,
+            "title": "Recipient"
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 640,
+            "minLength": 1,
+            "title": "Body",
+            "description": "The advisory, in the farmer's language"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "am",
+              "or"
+            ],
+            "title": "Locale",
+            "default": "am"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "sms",
+              "ussd"
+            ],
+            "title": "Channel",
+            "default": "sms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organization_id",
+          "recipient",
+          "body"
+        ],
+        "title": "DeliveryRequest"
       },
       "DroughtLeadMetric": {
         "properties": {
@@ -6718,10 +7633,11 @@
               "farmer_premium",
               "cooperative",
               "development_agent",
-              "regional_government",
+              "insurer_lender",
               "federal_ministry",
               "research",
               "international_partner",
+              "regional_government",
               "private_sector"
             ],
             "title": "Stakeholder"
@@ -6774,10 +7690,11 @@
               "farmer_premium",
               "cooperative",
               "development_agent",
-              "regional_government",
+              "insurer_lender",
               "federal_ministry",
               "research",
               "international_partner",
+              "regional_government",
               "private_sector"
             ],
             "title": "Stakeholder"
@@ -6920,6 +7837,13 @@
           "annual_total": {
             "type": "string",
             "title": "Annual Total"
+          },
+          "products": {
+            "items": {
+              "$ref": "#/components/schemas/ProductOut"
+            },
+            "type": "array",
+            "title": "Products"
           }
         },
         "type": "object",
@@ -6986,6 +7910,30 @@
             "description": "Requests per calendar month to include",
             "default": 0
           },
+          "strategy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strategy"
+          },
+          "value_note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Note"
+          },
           "effective_from": {
             "type": "string",
             "format": "date",
@@ -7027,10 +7975,11 @@
               "farmer_premium",
               "cooperative",
               "development_agent",
-              "regional_government",
+              "insurer_lender",
               "federal_ministry",
               "research",
               "international_partner",
+              "regional_government",
               "private_sector"
             ],
             "title": "Stakeholder"
@@ -7055,6 +8004,30 @@
             "type": "integer",
             "title": "Api Quota Monthly",
             "description": "Requests per calendar month this tier includes; 0 means no API access"
+          },
+          "strategy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strategy",
+            "description": "How this segment is sold to"
+          },
+          "value_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Note",
+            "description": "The argument that justifies the price to this buyer"
           },
           "effective_from": {
             "type": "string",
@@ -7104,6 +8077,38 @@
         ],
         "title": "PricingTierOut"
       },
+      "ProductOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "stakeholders": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Stakeholders"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "summary",
+          "stakeholders"
+        ],
+        "title": "ProductOut",
+        "description": "A package the rate card prices. Keeps a price connected to what is delivered for it."
+      },
       "RefreshRequest": {
         "properties": {
           "refresh_token": {
@@ -7118,6 +8123,131 @@
           "refresh_token"
         ],
         "title": "RefreshRequest"
+      },
+      "RevenueByStakeholder": {
+        "properties": {
+          "stakeholder": {
+            "type": "string",
+            "enum": [
+              "farmer_premium",
+              "cooperative",
+              "development_agent",
+              "insurer_lender",
+              "federal_ministry",
+              "research",
+              "international_partner",
+              "regional_government",
+              "private_sector"
+            ],
+            "title": "Stakeholder"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "subscriptions": {
+            "type": "integer",
+            "title": "Subscriptions"
+          },
+          "annualised_cents": {
+            "type": "integer",
+            "title": "Annualised Cents"
+          },
+          "annualised": {
+            "type": "string",
+            "title": "Annualised"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stakeholder",
+          "label",
+          "subscriptions",
+          "annualised_cents",
+          "annualised"
+        ],
+        "title": "RevenueByStakeholder"
+      },
+      "RevenueSummary": {
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "active_subscriptions": {
+            "type": "integer",
+            "title": "Active Subscriptions"
+          },
+          "arr_cents": {
+            "type": "integer",
+            "title": "Arr Cents"
+          },
+          "arr": {
+            "type": "string",
+            "title": "Arr"
+          },
+          "mrr_cents": {
+            "type": "integer",
+            "title": "Mrr Cents"
+          },
+          "mrr": {
+            "type": "string",
+            "title": "Mrr"
+          },
+          "perpetual_cents": {
+            "type": "integer",
+            "title": "Perpetual Cents"
+          },
+          "perpetual": {
+            "type": "string",
+            "title": "Perpetual"
+          },
+          "by_stakeholder": {
+            "items": {
+              "$ref": "#/components/schemas/RevenueByStakeholder"
+            },
+            "type": "array",
+            "title": "By Stakeholder"
+          },
+          "renewals_due": {
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionOut"
+            },
+            "type": "array",
+            "title": "Renewals Due",
+            "description": "Live agreements ending within 90 days"
+          },
+          "lapsed": {
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionOut"
+            },
+            "type": "array",
+            "title": "Lapsed",
+            "description": "Still marked active but past their end date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "as_of",
+          "currency",
+          "active_subscriptions",
+          "arr_cents",
+          "arr",
+          "mrr_cents",
+          "mrr",
+          "perpetual_cents",
+          "perpetual",
+          "by_stakeholder",
+          "renewals_due",
+          "lapsed"
+        ],
+        "title": "RevenueSummary",
+        "description": "What the platform actually earns, counted from signed agreements.\n\nSeparate from the pricing catalogue's total, which is what one of everything would be worth\nif it all sold. Only agreements that are live on `as_of` are counted."
       },
       "RiskBucket": {
         "properties": {
@@ -7201,14 +8331,220 @@
           "farmer_premium",
           "cooperative",
           "development_agent",
-          "regional_government",
+          "insurer_lender",
           "federal_ministry",
           "research",
           "international_partner",
+          "regional_government",
           "private_sector"
         ],
         "title": "StakeholderType",
         "description": "Who is being billed. One entry per row of the commercial model."
+      },
+      "SubscriptionCreate": {
+        "properties": {
+          "organization_id": {
+            "type": "string",
+            "title": "Organization Id"
+          },
+          "billing_period": {
+            "type": "string",
+            "enum": [
+              "annual",
+              "monthly",
+              "daily",
+              "perpetual"
+            ],
+            "title": "Billing Period"
+          },
+          "started_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Started On"
+          },
+          "ends_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends On"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Quantity",
+            "description": "Woredas, seats or members the agreement covers",
+            "default": 1
+          },
+          "unit_price_cents": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Price Cents"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organization_id",
+          "billing_period",
+          "started_on"
+        ],
+        "title": "SubscriptionCreate"
+      },
+      "SubscriptionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "organization_id": {
+            "type": "string",
+            "title": "Organization Id"
+          },
+          "organization_name": {
+            "type": "string",
+            "title": "Organization Name"
+          },
+          "stakeholder": {
+            "type": "string",
+            "enum": [
+              "farmer_premium",
+              "cooperative",
+              "development_agent",
+              "insurer_lender",
+              "federal_ministry",
+              "research",
+              "international_partner",
+              "regional_government",
+              "private_sector"
+            ],
+            "title": "Stakeholder"
+          },
+          "billing_period": {
+            "type": "string",
+            "enum": [
+              "annual",
+              "monthly",
+              "daily",
+              "perpetual"
+            ],
+            "title": "Billing Period"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "suspended",
+              "ended"
+            ],
+            "title": "Status"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity"
+          },
+          "unit_price_cents": {
+            "type": "integer",
+            "title": "Unit Price Cents"
+          },
+          "unit_price": {
+            "type": "string",
+            "title": "Unit Price"
+          },
+          "annualised_cents": {
+            "type": "integer",
+            "title": "Annualised Cents"
+          },
+          "annualised": {
+            "type": "string",
+            "title": "Annualised"
+          },
+          "started_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Started On"
+          },
+          "ends_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends On"
+          },
+          "days_to_renewal": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days To Renewal",
+            "description": "Days until `ends_on`; negative when it has already lapsed"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "organization_id",
+          "organization_name",
+          "stakeholder",
+          "billing_period",
+          "status",
+          "currency",
+          "quantity",
+          "unit_price_cents",
+          "unit_price",
+          "annualised_cents",
+          "annualised",
+          "started_on",
+          "ends_on"
+        ],
+        "title": "SubscriptionOut"
       },
       "TierRates": {
         "properties": {

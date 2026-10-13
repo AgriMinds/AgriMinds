@@ -18,10 +18,12 @@ StakeholderName = Literal[
     "farmer_premium",
     "cooperative",
     "development_agent",
-    "regional_government",
+    "insurer_lender",
     "federal_ministry",
     "research",
     "international_partner",
+    # Retired by the agreed model; kept so existing records stay readable.
+    "regional_government",
     "private_sector",
 ]
 
@@ -69,12 +71,25 @@ class PricingTierOut(BaseModel):
     api_quota_monthly: int = Field(
         description="Requests per calendar month this tier includes; 0 means no API access"
     )
+    strategy: str | None = Field(None, description="How this segment is sold to")
+    value_note: str | None = Field(
+        None, description="The argument that justifies the price to this buyer"
+    )
     effective_from: dt.date
     effective_to: dt.date | None = Field(
         None, description="NULL while the price is in force; set when a later version supersedes it"
     )
     is_current: bool
     notes: str | None = None
+
+
+class ProductOut(BaseModel):
+    """A package the rate card prices. Keeps a price connected to what is delivered for it."""
+
+    code: str
+    name: str
+    summary: str
+    stakeholders: list[str]
 
 
 class PricingCatalogue(BaseModel):
@@ -87,6 +102,7 @@ class PricingCatalogue(BaseModel):
     #: rather than leaving a reader to add eight numbers up by hand.
     annual_total_cents: int
     annual_total: str
+    products: list[ProductOut] = Field(default_factory=list)
 
 
 class PricingTierChange(BaseModel):
@@ -103,6 +119,8 @@ class PricingTierChange(BaseModel):
     monthly_cents: int = Field(ge=0)
     daily_cents: int = Field(ge=0)
     api_quota_monthly: int = Field(0, ge=0, description="Requests per calendar month to include")
+    strategy: str | None = Field(None, max_length=2000)
+    value_note: str | None = Field(None, max_length=2000)
     effective_from: dt.date
     notes: str | None = Field(None, max_length=2000)
 

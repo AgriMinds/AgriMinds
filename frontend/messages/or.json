@@ -641,7 +641,45 @@
     },
     "apiTitle": "Ji'atti gaaffii {n}",
     "noApi": "hin jiru",
-    "noHistory": "Gatiin kun hanga ammaatti hin jijjiiramne, kanaaf wanti wal bira qabamu hin jiru."
+    "noHistory": "Gatiin kun hanga ammaatti hin jijjiiramne, kanaaf wanti wal bira qabamu hin jiru.",
+    "model": {
+      "products": "Waan gurgurru",
+      "productsDesc": "Paakeejii sadii. Gatiin oomisha duuba hin qabne ni caqasama garuu hin dhiyaatu.",
+      "convince": "Qonnaan bulaan akkamitti kaffaluuf amanamaa",
+      "convinceDesc": "Tarkaanfii shan tartiibaan — tokkoon tokkoon isaa kan itti aanuuf mirga argamsiisa",
+      "step": {
+        "evidence": "Rakkoo sana ragaa naannoo dhugaatiin agarsiisi.",
+        "demo": "Kaffaltii gaafachuu dura qonnaan bultootaaf agarsiisa bilisaa kenni.",
+        "action": "Akeekkachiisa hunda gorsa hojiitti hiikamu gochuu.",
+        "economics": "Faayidaa diinagdee mirkaneessi.",
+        "payment": "Filannoo kaffaltii madaalawaa dhiyeessi."
+      },
+      "pillars": "Utubaa sadii",
+      "pillar": {
+        "farmer": "Kalaqa qonnaan bulaa giddugaleessa godhate.",
+        "revenue": "Moodeela maamilaa fi galii bal'aa.",
+        "scaling": "Babal'ina ragaa irratti hundaa'e."
+      },
+      "roadmap": "Mirkaneessa gabaa guyyaa 90",
+      "roadmapDesc": "Babal'isuu dura fedhii mirkaneessi",
+      "phase": {
+        "identify": {
+          "days": "Guyyaa 1–30",
+          "title": "Maamiltoota adda baasuu",
+          "detail": "Eenyu rakkoo fi baajata furmaata argamsiisu akka qabu barbaadi."
+        },
+        "pilot": {
+          "days": "Guyyaa 31–60",
+          "title": "Yaalii gaggeessuu",
+          "detail": "SMS, sagalee fi dhiyeessii ogeessa misoomaa qonnaan bultoota dhugaa irratti yaali."
+        },
+        "partners": {
+          "days": "Guyyaa 61–90",
+          "title": "Michoota kaffalan argachuu",
+          "detail": "Kaffaltii dhugaa galmeessii baasii dhiyeessii shallagi."
+        }
+      }
+    }
   },
   "organizations": {
     "eyebrow": "Daldala",
@@ -686,7 +724,8 @@
       "federal_ministry": "Ministeera federaalaa",
       "research": "Qorannoo / yunivarsiitii",
       "international_partner": "Michuu idil-addunyaa / NGO",
-      "private_sector": "Dhaabbata dhuunfaa"
+      "private_sector": "Dhaabbata dhuunfaa",
+      "insurer_lender": "Inshuraansii fi liqeessitoota"
     },
     "stat": {
       "accounts": "Herregoota kaffalan",

@@ -641,7 +641,45 @@
     },
     "apiTitle": "{n} requests per calendar month",
     "noApi": "none",
-    "noHistory": "This price has not been changed yet, so there is nothing to compare it against."
+    "noHistory": "This price has not been changed yet, so there is nothing to compare it against.",
+    "model": {
+      "products": "What we sell",
+      "productsDesc": "Three packages. A price with no product behind it is the thing that gets quoted and then cannot be delivered.",
+      "convince": "How a farmer is convinced to pay",
+      "convinceDesc": "Five steps, in order — each one earns the right to the next",
+      "step": {
+        "evidence": "Demonstrate the problem using real local evidence.",
+        "demo": "Give farmers a free demonstration before asking for payment.",
+        "action": "Convert each warning into an actionable recommendation.",
+        "economics": "Prove the economic value.",
+        "payment": "Offer affordable payment choices."
+      },
+      "pillars": "Three pillars",
+      "pillar": {
+        "farmer": "Farmer-centred innovation.",
+        "revenue": "A diversified customer and revenue model.",
+        "scaling": "Evidence-based scaling."
+      },
+      "roadmap": "90-day market validation",
+      "roadmapDesc": "Prove demand before scaling the build",
+      "phase": {
+        "identify": {
+          "days": "Days 1–30",
+          "title": "Identify customers",
+          "detail": "Find who has the problem and the budget to solve it."
+        },
+        "pilot": {
+          "days": "Days 31–60",
+          "title": "Run the pilot",
+          "detail": "Test SMS, voice and extension-agent delivery against real farmers."
+        },
+        "partners": {
+          "days": "Days 61–90",
+          "title": "Secure paying partners",
+          "detail": "Record actual payments and calculate delivery costs."
+        }
+      }
+    }
   },
   "organizations": {
     "eyebrow": "Business",
@@ -686,7 +724,8 @@
       "federal_ministry": "Federal ministry",
       "research": "Research / university",
       "international_partner": "International partner / NGO",
-      "private_sector": "Private sector"
+      "private_sector": "Private sector",
+      "insurer_lender": "Insurers & lenders"
     },
     "stat": {
       "accounts": "Paying accounts",

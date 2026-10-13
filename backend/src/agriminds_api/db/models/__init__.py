@@ -14,6 +14,7 @@ from agriminds_api.db.models.messaging import (
     delivery_channel_enum,
     delivery_status_enum,
 )
+from agriminds_api.db.models.product import Product
 from agriminds_api.db.models.risk import PdsiCategory, RiskSnapshot, pdsi_category_enum
 from agriminds_api.db.models.subscription import (
     PERIODS_PER_YEAR,
@@ -41,6 +42,7 @@ __all__ = [
     "Organization",
     "PdsiCategory",
     "PricingTier",
+    "Product",
     "RefreshToken",
     "Region",
     "RiskLevel",

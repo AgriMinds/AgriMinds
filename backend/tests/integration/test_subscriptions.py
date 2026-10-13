@@ -13,7 +13,7 @@ TODAY = dt.date.today()
 def bureau(client, admin_headers, pricing_tiers):
     res = client.post(
         "/api/v1/organizations",
-        json={"name": "Amhara Bureau", "stakeholder": "regional_government"},
+        json={"name": "Amhara Bureau", "stakeholder": "development_agent"},
         headers=admin_headers,
     )
     assert res.status_code == 201, res.text
@@ -33,14 +33,14 @@ def _subscribe(client, headers, org, **over):
 class TestSigning:
     def test_takes_the_rate_in_force_without_being_told(self, client, admin_headers, bureau) -> None:
         sub = _subscribe(client, admin_headers, bureau).json()
-        assert sub["unit_price_cents"] == 180_000_000  # ETB 1,800,000 annual
+        assert sub["unit_price_cents"] == 6_000_000  # ETB 60,000 annual, per woreda
         assert sub["currency"] == "ETB"
 
     def test_the_agreed_rate_survives_a_reprice(self, client, admin_headers, bureau) -> None:
         """The whole point of versioning the catalogue: a signed price must not move."""
         sub = _subscribe(client, admin_headers, bureau).json()
         client.post(
-            "/api/v1/billing/pricing/regional_government",
+            "/api/v1/billing/pricing/development_agent",
             json={
                 "one_time_cents": 1,
                 "annual_cents": 999_000_000,
@@ -52,11 +52,11 @@ class TestSigning:
         )
         again = client.get("/api/v1/subscriptions", headers=admin_headers).json()
         assert again[0]["id"] == sub["id"]
-        assert again[0]["unit_price_cents"] == 180_000_000
+        assert again[0]["unit_price_cents"] == 6_000_000
 
     def test_quantity_multiplies_the_rate(self, client, admin_headers, bureau) -> None:
         sub = _subscribe(client, admin_headers, bureau, quantity=3).json()
-        assert sub["annualised_cents"] == 180_000_000 * 3
+        assert sub["annualised_cents"] == 6_000_000 * 3
 
     def test_refuses_a_period_the_tier_does_not_sell(self, client, admin_headers, pricing_tiers) -> None:
         farmer = client.post(
@@ -83,22 +83,22 @@ class TestRevenue:
 
         _subscribe(client, admin_headers, bureau)
         after = client.get("/api/v1/subscriptions/revenue", headers=admin_headers).json()
-        assert after["arr_cents"] == 180_000_000
-        assert after["mrr_cents"] == 180_000_000 // 12
+        assert after["arr_cents"] == 6_000_000
+        assert after["mrr_cents"] == 6_000_000 // 12
         assert after["active_subscriptions"] == 1
 
     def test_monthly_annualises_by_twelve(self, client, admin_headers, bureau) -> None:
         _subscribe(client, admin_headers, bureau, billing_period="monthly")
         rev = client.get("/api/v1/subscriptions/revenue", headers=admin_headers).json()
-        # Monthly is annual/10, so a year of it is 1.2x the annual rate — the premium for flexibility.
-        assert rev["arr_cents"] == 18_000_000 * 12
+        # The agreed model prices monthly at annual/12, so a year of monthly equals the annual
+        # rate exactly: this card charges nothing for the shorter commitment.
+        assert rev["arr_cents"] == 500_000 * 12 == 6_000_000
 
-    def test_a_perpetual_licence_adds_nothing_recurring(self, client, admin_headers, bureau) -> None:
-        """It recurs never, so counting it as ARR would overstate the business."""
-        _subscribe(client, admin_headers, bureau, billing_period="perpetual", ends_on=None)
-        rev = client.get("/api/v1/subscriptions/revenue", headers=admin_headers).json()
-        assert rev["arr_cents"] == 0
-        assert rev["perpetual_cents"] == 720_000_000  # reported, but on its own
+    def test_the_agreed_model_sells_no_perpetual_licence(self, client, admin_headers, bureau) -> None:
+        """Every tier carries a zero one-off, so a perpetual sale must be refused rather than free."""
+        res = _subscribe(client, admin_headers, bureau, billing_period="perpetual", ends_on=None)
+        assert res.status_code == 422
+        assert "no perpetual rate" in res.json()["error"]["message"]
 
     def test_an_agreement_that_has_not_started_is_not_revenue_yet(
         self, client, admin_headers, bureau

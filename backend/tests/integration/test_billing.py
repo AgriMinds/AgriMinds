@@ -4,15 +4,16 @@ from __future__ import annotations
 
 import datetime as dt
 
+#: The segments the agreed model prices. `regional_government` and `private_sector` are retired:
+#: the enum still carries them so existing records stay readable, but neither has a price.
 STAKEHOLDERS = {
     "farmer_premium",
     "cooperative",
     "development_agent",
-    "regional_government",
+    "insurer_lender",
     "federal_ministry",
     "research",
     "international_partner",
-    "private_sector",
 }
 
 
@@ -38,12 +39,13 @@ class TestCatalogue:
         tiers = {t["stakeholder"]: t for t in body["tiers"]}
         coop = tiers["cooperative"]["rates"]
         # Santim, the minor unit of the birr, exactly as cents are for a dollar.
-        assert coop["annual_cents"] == 3_000_000
-        assert coop["annual"] == "30000.00"
+        assert coop["annual_cents"] == 2_400_000
+        assert coop["annual"] == "24000.00"
+        assert coop["monthly"] == "2000.00"
+        # A farmer buys a season, not a day: the shorter terms are simply not sold.
         farmer = tiers["farmer_premium"]["rates"]
-        # 0.41 birr a day is exactly representable in santim and not in binary floating point.
-        assert farmer["daily_cents"] == 41
-        assert farmer["daily"] == "0.41"
+        assert farmer["annual"] == "465.00"
+        assert farmer["daily_cents"] == 0
 
     def test_the_unit_is_part_of_the_price(self, client, admin_headers, pricing_tiers) -> None:
         tiers = {
@@ -77,7 +79,7 @@ class TestReprice:
         current, superseded = history[0], history[1]
         assert current["is_current"] and current["rates"]["annual_cents"] == 75_000
         # The old rate is still readable at the number it was actually charged at.
-        assert not superseded["is_current"] and superseded["rates"]["annual_cents"] == 3_000_000
+        assert not superseded["is_current"] and superseded["rates"]["annual_cents"] == 2_400_000
         assert superseded["effective_to"] == current["effective_from"]
 
     def test_only_one_price_is_ever_in_force(self, client, admin_headers, pricing_tiers) -> None:

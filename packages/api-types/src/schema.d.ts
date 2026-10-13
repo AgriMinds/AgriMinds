@@ -594,6 +594,85 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/messaging/{organization_id}/balance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Credits bought, spent and left
+         * @description Derived on every read from the bundles and the deliveries, never stored, so the figure cannot drift from the rows that justify it. A failed message is not charged for.
+         *
+         *     `deliverable` is false while no aggregator is configured: messages are recorded and queued, and nothing is actually sent.
+         */
+        get: operations["balance_api_v1_messaging__organization_id__balance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/{organization_id}/deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What has been queued or sent for this account */
+        get: operations["deliveries_api_v1_messaging__organization_id__deliveries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/bundles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sell an account a bundle of advisory messages
+         * @description Credits are priced per message and the rate is frozen on the bundle, so a later price change cannot restate a sale that already happened.
+         */
+        post: operations["purchase_api_v1_messaging_bundles_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Queue one advisory for delivery
+         * @description Refused with 409 when the account has no credits left.
+         */
+        post: operations["queue_api_v1_messaging_deliveries_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/organizations": {
         parameters: {
             query?: never;
@@ -662,6 +741,71 @@ export type paths = {
         };
         /** What this account has spent this month */
         get: operations["usage_api_v1_organizations__organization_id__usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every agreement on record */
+        get: operations["list_subscriptions_api_v1_subscriptions_get"];
+        put?: never;
+        /**
+         * Record that an account agreed to a rate
+         * @description The rate is taken from the tier in force for the account's stakeholder type and **copied onto the agreement**, together with the tier version it came from. Repricing the catalogue afterwards therefore changes what new customers pay and leaves this one alone.
+         *
+         *     Supply `unit_price_cents` only for a negotiated price; leaving it out is the normal case and takes the list rate.
+         */
+        post: operations["create_subscription_api_v1_subscriptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subscriptions/{subscription_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * End an agreement
+         * @description The row is kept: it is what the account was charged for the term it ran.
+         */
+        delete: operations["end_subscription_api_v1_subscriptions__subscription_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subscriptions/revenue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What the platform actually earns
+         * @description Counted from agreements that are live on the day asked about — not from the price list. The catalogue total on the pricing page is what one of everything would fetch if it all sold; this is what is owed.
+         *
+         *     A perpetual licence contributes **nothing** to ARR, because it recurs never. Its one-off value is reported separately so it cannot be mistaken for recurring revenue.
+         */
+        get: operations["revenue_api_v1_subscriptions_revenue_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -908,6 +1052,50 @@ export type components = {
             /** Revoked At */
             revoked_at: string | null;
         };
+        /** BundleOut */
+        BundleOut: {
+            /** Currency */
+            currency: string;
+            /** Expired */
+            expired: boolean;
+            /** Expires On */
+            expires_on: string | null;
+            /** Id */
+            id: string;
+            /** Messages */
+            messages: number;
+            /**
+             * Purchased On
+             * Format: date
+             */
+            purchased_on: string;
+            /** Unit Price */
+            unit_price: string;
+            /** Unit Price Cents */
+            unit_price_cents: number;
+            /** Value */
+            value: string;
+            /** Value Cents */
+            value_cents: number;
+        };
+        /** BundlePurchase */
+        BundlePurchase: {
+            /** Expires On */
+            expires_on?: string | null;
+            /** Messages */
+            messages: number;
+            /** Notes */
+            notes?: string | null;
+            /** Organization Id */
+            organization_id: string;
+            /** Purchased On */
+            purchased_on?: string | null;
+            /**
+             * Unit Price Cents
+             * @description Per message, in minor units
+             */
+            unit_price_cents: number;
+        };
         /** CacheStatus */
         CacheStatus: {
             /** Backend */
@@ -997,6 +1185,42 @@ export type components = {
             woredas_covered: number;
             /** Woredas Total */
             woredas_total: number;
+        };
+        /**
+         * CreditBalance
+         * @description What an organisation has left, derived from bundles bought minus messages charged.
+         */
+        CreditBalance: {
+            /** Bundles */
+            bundles: components["schemas"]["BundleOut"][];
+            /** Currency */
+            currency: string;
+            /**
+             * Deliverable
+             * @description False while no aggregator is configured
+             */
+            deliverable: boolean;
+            /** Organization Id */
+            organization_id: string;
+            /** Organization Name */
+            organization_name: string;
+            /**
+             * Provider
+             * @description Which aggregator is configured, or 'none'
+             */
+            provider: string;
+            /**
+             * Purchased
+             * @description Credits bought and not expired
+             */
+            purchased: number;
+            /** Remaining */
+            remaining: number;
+            /**
+             * Used
+             * @description Messages queued or sent; a failure is not charged for
+             */
+            used: number;
         };
         /** CropMixEntry */
         CropMixEntry: {
@@ -1452,6 +1676,60 @@ export type components = {
              * @enum {string}
              */
             status: "connected" | "synthetic" | "not_connected";
+        };
+        /** DeliveryOut */
+        DeliveryOut: {
+            /** Body */
+            body: string;
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "sms" | "ussd";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Failure Reason */
+            failure_reason: string | null;
+            /** Id */
+            id: string;
+            /** Locale */
+            locale: string;
+            /** Recipient */
+            recipient: string;
+            /** Sent At */
+            sent_at: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "sent" | "failed";
+        };
+        /** DeliveryRequest */
+        DeliveryRequest: {
+            /**
+             * Body
+             * @description The advisory, in the farmer's language
+             */
+            body: string;
+            /**
+             * Channel
+             * @default sms
+             * @enum {string}
+             */
+            channel: "sms" | "ussd";
+            /**
+             * Locale
+             * @default am
+             * @enum {string}
+             */
+            locale: "en" | "am" | "or";
+            /** Organization Id */
+            organization_id: string;
+            /** Recipient */
+            recipient: string;
         };
         /**
          * DroughtLeadMetric
@@ -2384,7 +2662,7 @@ export type components = {
              * Stakeholder
              * @enum {string}
              */
-            stakeholder: "farmer_premium" | "cooperative" | "development_agent" | "regional_government" | "federal_ministry" | "research" | "international_partner" | "private_sector";
+            stakeholder: "farmer_premium" | "cooperative" | "development_agent" | "insurer_lender" | "federal_ministry" | "research" | "international_partner" | "regional_government" | "private_sector";
             /**
              * Woreda Id
              * @description Where they operate; omit for national bodies
@@ -2419,7 +2697,7 @@ export type components = {
              * Stakeholder
              * @enum {string}
              */
-            stakeholder: "farmer_premium" | "cooperative" | "development_agent" | "regional_government" | "federal_ministry" | "research" | "international_partner" | "private_sector";
+            stakeholder: "farmer_premium" | "cooperative" | "development_agent" | "insurer_lender" | "federal_ministry" | "research" | "international_partner" | "regional_government" | "private_sector";
             /** Woreda Id */
             woreda_id: string | null;
         };
@@ -2464,6 +2742,8 @@ export type components = {
             as_of: string;
             /** Currency */
             currency: string;
+            /** Products */
+            products?: components["schemas"]["ProductOut"][];
             /** Tiers */
             tiers: components["schemas"]["PricingTierOut"][];
         };
@@ -2498,8 +2778,12 @@ export type components = {
             notes?: string | null;
             /** One Time Cents */
             one_time_cents: number;
+            /** Strategy */
+            strategy?: string | null;
             /** Unit */
             unit?: string | null;
+            /** Value Note */
+            value_note?: string | null;
         };
         /** PricingTierOut */
         PricingTierOut: {
@@ -2533,17 +2817,99 @@ export type components = {
              * Stakeholder
              * @enum {string}
              */
-            stakeholder: "farmer_premium" | "cooperative" | "development_agent" | "regional_government" | "federal_ministry" | "research" | "international_partner" | "private_sector";
+            stakeholder: "farmer_premium" | "cooperative" | "development_agent" | "insurer_lender" | "federal_ministry" | "research" | "international_partner" | "regional_government" | "private_sector";
+            /**
+             * Strategy
+             * @description How this segment is sold to
+             */
+            strategy?: string | null;
             /**
              * Unit
              * @description What one subscription covers, e.g. 'per woreda'
              */
             unit: string;
+            /**
+             * Value Note
+             * @description The argument that justifies the price to this buyer
+             */
+            value_note?: string | null;
+        };
+        /**
+         * ProductOut
+         * @description A package the rate card prices. Keeps a price connected to what is delivered for it.
+         */
+        ProductOut: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Stakeholders */
+            stakeholders: string[];
+            /** Summary */
+            summary: string;
         };
         /** RefreshRequest */
         RefreshRequest: {
             /** Refresh Token */
             refresh_token: string;
+        };
+        /** RevenueByStakeholder */
+        RevenueByStakeholder: {
+            /** Annualised */
+            annualised: string;
+            /** Annualised Cents */
+            annualised_cents: number;
+            /** Label */
+            label: string;
+            /**
+             * Stakeholder
+             * @enum {string}
+             */
+            stakeholder: "farmer_premium" | "cooperative" | "development_agent" | "insurer_lender" | "federal_ministry" | "research" | "international_partner" | "regional_government" | "private_sector";
+            /** Subscriptions */
+            subscriptions: number;
+        };
+        /**
+         * RevenueSummary
+         * @description What the platform actually earns, counted from signed agreements.
+         *
+         *     Separate from the pricing catalogue's total, which is what one of everything would be worth
+         *     if it all sold. Only agreements that are live on `as_of` are counted.
+         */
+        RevenueSummary: {
+            /** Active Subscriptions */
+            active_subscriptions: number;
+            /** Arr */
+            arr: string;
+            /** Arr Cents */
+            arr_cents: number;
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** By Stakeholder */
+            by_stakeholder: components["schemas"]["RevenueByStakeholder"][];
+            /** Currency */
+            currency: string;
+            /**
+             * Lapsed
+             * @description Still marked active but past their end date
+             */
+            lapsed: components["schemas"]["SubscriptionOut"][];
+            /** Mrr */
+            mrr: string;
+            /** Mrr Cents */
+            mrr_cents: number;
+            /** Perpetual */
+            perpetual: string;
+            /** Perpetual Cents */
+            perpetual_cents: number;
+            /**
+             * Renewals Due
+             * @description Live agreements ending within 90 days
+             */
+            renewals_due: components["schemas"]["SubscriptionOut"][];
         };
         /** RiskBucket */
         RiskBucket: {
@@ -2582,7 +2948,84 @@ export type components = {
          * @description Who is being billed. One entry per row of the commercial model.
          * @enum {string}
          */
-        StakeholderType: "farmer_premium" | "cooperative" | "development_agent" | "regional_government" | "federal_ministry" | "research" | "international_partner" | "private_sector";
+        StakeholderType: "farmer_premium" | "cooperative" | "development_agent" | "insurer_lender" | "federal_ministry" | "research" | "international_partner" | "regional_government" | "private_sector";
+        /** SubscriptionCreate */
+        SubscriptionCreate: {
+            /**
+             * Billing Period
+             * @enum {string}
+             */
+            billing_period: "annual" | "monthly" | "daily" | "perpetual";
+            /** Ends On */
+            ends_on?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Organization Id */
+            organization_id: string;
+            /**
+             * Quantity
+             * @description Woredas, seats or members the agreement covers
+             * @default 1
+             */
+            quantity: number;
+            /**
+             * Started On
+             * Format: date
+             */
+            started_on: string;
+            /** Unit Price Cents */
+            unit_price_cents?: number | null;
+        };
+        /** SubscriptionOut */
+        SubscriptionOut: {
+            /** Annualised */
+            annualised: string;
+            /** Annualised Cents */
+            annualised_cents: number;
+            /**
+             * Billing Period
+             * @enum {string}
+             */
+            billing_period: "annual" | "monthly" | "daily" | "perpetual";
+            /** Currency */
+            currency: string;
+            /**
+             * Days To Renewal
+             * @description Days until `ends_on`; negative when it has already lapsed
+             */
+            days_to_renewal?: number | null;
+            /** Ends On */
+            ends_on: string | null;
+            /** Id */
+            id: string;
+            /** Notes */
+            notes?: string | null;
+            /** Organization Id */
+            organization_id: string;
+            /** Organization Name */
+            organization_name: string;
+            /** Quantity */
+            quantity: number;
+            /**
+             * Stakeholder
+             * @enum {string}
+             */
+            stakeholder: "farmer_premium" | "cooperative" | "development_agent" | "insurer_lender" | "federal_ministry" | "research" | "international_partner" | "regional_government" | "private_sector";
+            /**
+             * Started On
+             * Format: date
+             */
+            started_on: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended" | "ended";
+            /** Unit Price */
+            unit_price: string;
+            /** Unit Price Cents */
+            unit_price_cents: number;
+        };
         /**
          * TierRates
          * @description The four rates, in cents and rendered.
@@ -4593,6 +5036,208 @@ export interface operations {
             };
         };
     };
+    balance_api_v1_messaging__organization_id__balance_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreditBalance"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deliveries_api_v1_messaging__organization_id__deliveries_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeliveryOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    purchase_api_v1_messaging_bundles_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BundlePurchase"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BundleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    queue_api_v1_messaging_deliveries_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeliveryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeliveryOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_organizations_api_v1_organizations_get: {
         parameters: {
             query?: never;
@@ -4852,6 +5497,209 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrganizationUsage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_subscriptions_api_v1_subscriptions_get: {
+        parameters: {
+            query?: {
+                /** @description Limit to one account */
+                organization_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_subscription_api_v1_subscriptions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    end_subscription_api_v1_subscriptions__subscription_id__delete: {
+        parameters: {
+            query?: {
+                /** @description Defaults to today */
+                on?: string | null;
+            };
+            header?: never;
+            path: {
+                subscription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revenue_api_v1_subscriptions_revenue_get: {
+        parameters: {
+            query?: {
+                /** @description Defaults to today */
+                as_of?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevenueSummary"];
                 };
             };
             /** @description Unauthorized */

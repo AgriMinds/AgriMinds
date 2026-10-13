@@ -16,11 +16,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agriminds_api.core.exceptions import ConflictError, NotFoundError
-from agriminds_api.db.models import PricingTier, StakeholderType
+from agriminds_api.db.models import PricingTier, Product, StakeholderType
 from agriminds_api.schemas.billing import (
     PricingCatalogue,
     PricingTierChange,
     PricingTierOut,
+    ProductOut,
     TierRates,
     _as_amount,
 )
@@ -37,6 +38,8 @@ def _out(tier: PricingTier) -> PricingTierOut:
         currency=tier.currency,
         rates=TierRates.of(tier.one_time_cents, tier.annual_cents, tier.monthly_cents, tier.daily_cents),
         api_quota_monthly=tier.api_quota_monthly,
+        strategy=tier.strategy,
+        value_note=tier.value_note,
         effective_from=tier.effective_from,
         effective_to=tier.effective_to,
         is_current=tier.effective_to is None,
@@ -57,12 +60,21 @@ class BillingService:
 
         current = [t for t in tiers if t.effective_to is None]
         total = sum(t.annual_cents for t in current)
+        products = list(
+            (await self._session.scalars(select(Product).order_by(Product.code))).all()
+        )
         return PricingCatalogue(
             currency=current[0].currency if current else "USD",
             as_of=dt.date.today(),
             tiers=[_out(t) for t in tiers],
             annual_total_cents=total,
             annual_total=_as_amount(total),
+            products=[
+                ProductOut(
+                    code=p.code, name=p.name, summary=p.summary, stakeholders=list(p.stakeholders)
+                )
+                for p in products
+            ],
         )
 
     async def history(self, stakeholder: StakeholderType) -> list[PricingTierOut]:
@@ -108,6 +120,8 @@ class BillingService:
             # Carried forward when the caller does not restate it: a price change is usually
             # about money, and silently zeroing a customer's API allowance is not a price change.
             api_quota_monthly=req.api_quota_monthly or live.api_quota_monthly,
+            strategy=req.strategy or live.strategy,
+            value_note=req.value_note or live.value_note,
             effective_from=req.effective_from,
             effective_to=None,
             notes=req.notes,

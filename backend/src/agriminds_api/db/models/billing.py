@@ -29,11 +29,16 @@ class StakeholderType(enum.StrEnum):
 
     FARMER_PREMIUM = "farmer_premium"
     COOPERATIVE = "cooperative"
+    #: Agricultural offices and extension agents, priced per woreda.
     DEVELOPMENT_AGENT = "development_agent"
-    REGIONAL_GOVERNMENT = "regional_government"
+    #: Insurers, microfinance and agricultural lenders: risk analytics rather than advisories.
+    INSURER_LENDER = "insurer_lender"
     FEDERAL_MINISTRY = "federal_ministry"
     RESEARCH = "research"
+    #: Government agencies, NGOs and development partners.
     INTERNATIONAL_PARTNER = "international_partner"
+    #: Retired by the agreed model. Kept so existing records stay readable; no price in force.
+    REGIONAL_GOVERNMENT = "regional_government"
     PRIVATE_SECTOR = "private_sector"
 
 
@@ -86,6 +91,11 @@ class PricingTier(UUIDPrimaryKey, Timestamps, Base):
     #: Requests per calendar month a subscriber of this tier may make against the metered API.
     #: Zero means the tier carries no API access at all, which is the case for farmers.
     api_quota_monthly: Mapped[int] = mapped_column(BigInteger, default=0)
+
+    #: How this segment is sold to, and the argument that justifies the price to the buyer.
+    #: Kept beside the price so a quote and its justification cannot drift apart.
+    strategy: Mapped[str | None] = mapped_column(Text, nullable=True)
+    value_note: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 

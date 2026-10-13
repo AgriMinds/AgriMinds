@@ -219,66 +219,43 @@ async def seed_demo(session: AsyncSession, settings: Settings, password: str = D
 
 # ---------------------------------------------------------------------------- pricing
 
-#: The rate card, in santim (1/100 birr), as (stakeholder, label, unit, rates..., api quota).
+#: The agreed commercial model, in santim. (stakeholder, label, unit, one-off, annual, monthly,
+#: daily, api quota, strategy, value note).
 #:
-#: Birr rather than dollars: Ethiopian institutions budget in birr, and a price list is a local
-#: commercial decision rather than an exchange-rate calculation. Migration 0005 installs the same
-#: figures and deliberately keeps its own copy — a migration is a frozen record of what the schema
-#: held then, so it must not import this module and start changing retroactively when prices move.
-PRICING_TIERS: tuple[tuple[str, str, str, int, int, int, int, int], ...] = (
-    (
-        "federal_ministry",
-        "Federal ministry",
-        "per ministry",
-        1_800_000_000,
-        450_000_000,
-        45_000_000,
-        1_233_000,
-        1_000_000,
-    ),
-    (
-        "international_partner",
-        "International partner / NGO",
-        "per organisation",
-        1_200_000_000,
-        300_000_000,
-        30_000_000,
-        822_000,
-        500_000,
-    ),
-    (
-        "regional_government",
-        "Regional / zonal government",
-        "per bureau",
-        720_000_000,
-        180_000_000,
-        18_000_000,
-        493_000,
-        250_000,
-    ),
-    (
-        "private_sector",
-        "Private sector",
-        "per company",
-        480_000_000,
-        120_000_000,
-        12_000_000,
-        329_000,
-        100_000,
-    ),
-    (
-        "development_agent",
-        "Development agent",
-        "per woreda",
-        48_000_000,
-        12_000_000,
-        1_200_000,
-        33_000,
-        25_000,
-    ),
-    ("research", "Research / university", "per institution", 0, 6_000_000, 600_000, 16_500, 50_000),
-    ("cooperative", "Cooperative", "per cooperative", 12_000_000, 3_000_000, 300_000, 8_200, 10_000),
-    ("farmer_premium", "Farmer (premium)", "per farmer", 0, 15_000, 1_500, 41, 0),
+#: No perpetual licence: the model sells subscriptions. A zero period means the segment is not
+#: sold on that term — a farmer buys a season, not a day.
+#:
+#: Migration 0008 installs the same figures and keeps its own copy, because a migration is a
+#: frozen record of what the schema held then and must not shift when the price list does.
+PRICING_TIERS: tuple[tuple, ...] = (
+    ("federal_ministry", "Federal ministries", "per ministry",
+     0, 60_000_000, 5_000_000, 164_400, 1_000_000,
+     "National or multi-region annual licenses.",
+     "Compare costs with improved drought preparedness."),
+    ("international_partner", "Government agencies, NGOs & development partners", "per organisation",
+     0, 30_000_000, 2_500_000, 82_200, 500_000,
+     "Annual contracts, sponsored farmer access and funded pilot projects.",
+     "Potential losses avoided across the programmes they fund."),
+    ("insurer_lender", "Insurers, microfinance & agricultural lenders", "per institution",
+     0, 18_000_000, 1_500_000, 49_300, 100_000,
+     "Paid analytics, licensed dashboards and data services.",
+     "Compare fees with potential savings on claims and defaults."),
+    ("development_agent", "Agricultural offices & extension agents", "per woreda",
+     0, 6_000_000, 500_000, 16_400, 25_000,
+     "Institutional service contracts and annual licenses.",
+     "Shared across many farmers, reducing the cost per farmer."),
+    ("research", "Research institutes & universities", "per institution",
+     0, 3_000_000, 250_000, 8_200, 50_000,
+     "Affordable annual research licenses.",
+     "Supports climate research and risk analysis at modest cost."),
+    ("cooperative", "Cooperatives & farmer unions", "per cooperative",
+     0, 2_400_000, 200_000, 6_600, 10_000,
+     "Group subscriptions and sponsored member access.",
+     "Shared subscription costs improve affordability for members."),
+    ("farmer_premium", "Farmers (premium)", "per farmer",
+     0, 46_500, 0, 0, 0,
+     "Free basic alerts; affordable premium subscription.",
+     "ETB 70,000 in avoided losses covers the annual subscription cost."),
 )
 
 
@@ -295,7 +272,7 @@ async def seed_pricing_tiers(session: AsyncSession, effective_from: date | None 
     )
     start = effective_from or date.today()
     added = 0
-    for key, label, unit, one_time, annual, monthly, daily, quota in PRICING_TIERS:
+    for key, label, unit, one_time, annual, monthly, daily, quota, strategy, value_note in PRICING_TIERS:
         stakeholder = StakeholderType(key)
         if stakeholder in priced:
             continue
@@ -310,6 +287,8 @@ async def seed_pricing_tiers(session: AsyncSession, effective_from: date | None 
                 monthly_cents=monthly,
                 daily_cents=daily,
                 api_quota_monthly=quota,
+                strategy=strategy,
+                value_note=value_note,
                 effective_from=start,
             )
         )

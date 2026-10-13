@@ -18,13 +18,30 @@ describe('parseApiError', () => {
     expect(parseApiError(500, {}).code).toBe('http');
   });
 
-  it('has newly integrated CRUD and yield functions defined on api', () => {
+  it('has complete integrated APIs across drought grid, crop yield, climate and farm management', () => {
+    // Drought Grid & Catchment
+    expect(typeof api.droughtMap).toBe('function');
+    expect(typeof api.cellRisk).toBe('function');
+    expect(typeof api.watershed).toBe('function');
+    expect(typeof api.horizon).toBe('function');
+
+    // Farm CRUD & Database Sync
+    expect(typeof api.listFarms).toBe('function');
+    expect(typeof api.getFarm).toBe('function');
     expect(typeof api.createFarm).toBe('function');
     expect(typeof api.updateFarm).toBe('function');
     expect(typeof api.deleteFarm).toBe('function');
+    expect(typeof api.farmAdvisory).toBe('function');
+
+    // Crop Yield & What-If Simulation
     expect(typeof api.cropYieldOutlook).toBe('function');
+    expect(typeof api.simulateCropYield).toBe('function');
+    expect(typeof api.cropYieldTimeline).toBe('function');
     expect(typeof api.ensoImpact).toBe('function');
     expect(typeof api.cropYieldModel).toBe('function');
+
+    // Climate Engine & ENSO
+    expect(typeof api.ensoOutlook).toBe('function');
   });
 });
 

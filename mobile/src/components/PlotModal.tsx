@@ -26,23 +26,29 @@ interface Props {
   farm: Farm | null;
   lead: LeadMonth;
   onClose: () => void;
+  initialCoords?: { latitude: number; longitude: number };
 }
 
 interface FormProps {
   farm: Farm | null;
   lead: LeadMonth;
   onClose: () => void;
+  initialCoords?: { latitude: number; longitude: number };
 }
 
-function PlotForm({ farm, lead, onClose }: FormProps) {
+function PlotForm({ farm, lead, onClose, initialCoords }: FormProps) {
   const { t } = useI18n();
   const { colors, dark } = useTheme();
   const { create, update, remove } = useFarmMutations(lead);
   const gps = useDeviceLocation();
 
   const [name, setName] = useState(farm?.name ?? '');
-  const [latitude, setLatitude] = useState(farm ? String(farm.latitude) : '');
-  const [longitude, setLongitude] = useState(farm ? String(farm.longitude) : '');
+  const [latitude, setLatitude] = useState(
+    farm ? String(farm.latitude) : initialCoords ? String(initialCoords.latitude.toFixed(4)) : '',
+  );
+  const [longitude, setLongitude] = useState(
+    farm ? String(farm.longitude) : initialCoords ? String(initialCoords.longitude.toFixed(4)) : '',
+  );
   const [area, setArea] = useState(farm ? String(farm.area_hectares) : '');
   const [crop, setCrop] = useState<Crop>((farm?.primary_crop as Crop) ?? 'tef');
   const [error, setError] = useState<string | null>(null);
@@ -430,7 +436,7 @@ function PlotForm({ farm, lead, onClose }: FormProps) {
   );
 }
 
-export function PlotModal({ visible, farm, lead, onClose }: Props) {
+export function PlotModal({ visible, farm, lead, onClose, initialCoords }: Props) {
   if (!visible) return null;
 
   return (
@@ -441,10 +447,11 @@ export function PlotModal({ visible, farm, lead, onClose }: Props) {
       >
         <Pressable style={styles.backdrop} onPress={onClose} />
         <PlotForm
-          key={`${visible}-${farm?.id ?? 'new'}`}
+          key={`${visible}-${farm?.id ?? 'new'}-${initialCoords?.latitude ?? 0}-${initialCoords?.longitude ?? 0}`}
           farm={farm}
           lead={lead}
           onClose={onClose}
+          initialCoords={initialCoords}
         />
       </KeyboardAvoidingView>
     </Modal>

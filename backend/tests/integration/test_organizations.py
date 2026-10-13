@@ -7,10 +7,10 @@ import pytest
 
 @pytest.fixture
 def org(client, admin_headers, pricing_tiers):
-    """A regional bureau, whose tier carries an API allowance."""
+    """An agricultural office, priced per woreda, whose tier carries an API allowance."""
     res = client.post(
         "/api/v1/organizations",
-        json={"name": "Amhara Bureau of Agriculture", "stakeholder": "regional_government"},
+        json={"name": "Amhara Bureau of Agriculture", "stakeholder": "development_agent"},
         headers=admin_headers,
     )
     assert res.status_code == 201, res.text
@@ -25,7 +25,7 @@ class TestAccess:
 class TestOrganizations:
     def test_quota_comes_from_the_tier_in_force(self, org) -> None:
         # Not stored on the organization: repricing a tier must move every subscriber's allowance.
-        assert org["api_quota_monthly"] == 250_000
+        assert org["api_quota_monthly"] == 25_000
         assert org["api_requests_this_month"] == 0
 
     def test_a_duplicate_name_is_refused(self, client, admin_headers, org) -> None:

@@ -1,4 +1,4 @@
-import type { FarmAdvisory, FarmCreate, FarmerDashboard, FarmUpdate, LeadMonth } from '@agriminds/api-types';
+import type { Farm, FarmAdvisory, FarmCreate, FarmerDashboard, FarmUpdate, LeadMonth } from '@agriminds/api-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/services/api';
@@ -13,6 +13,29 @@ export function useFarmerDashboard(leadMonth?: LeadMonth) {
   return useQuery<FarmerDashboard>({
     queryKey: queryKeys.farmerDashboard(lead),
     queryFn: () => api.farmerDashboard(lead, role === 'da' ? 'da' : 'farmer'),
+  });
+}
+
+export function useFarms(leadMonth?: LeadMonth) {
+  const selLead = useSelection((s) => s.lead);
+  const role = useSelection((s) => s.role);
+  const lead = leadMonth ?? selLead;
+
+  return useQuery<Farm[]>({
+    queryKey: queryKeys.farms(lead),
+    queryFn: () => api.listFarms(lead, role === 'da' ? 'da' : 'farmer'),
+  });
+}
+
+export function useFarm(farmId: string | null, leadMonth?: LeadMonth) {
+  const selLead = useSelection((s) => s.lead);
+  const role = useSelection((s) => s.role);
+  const lead = leadMonth ?? selLead;
+
+  return useQuery<Farm>({
+    queryKey: farmId ? queryKeys.farm(farmId, lead) : ['farms', 'none'],
+    queryFn: () => api.getFarm(farmId!, lead, role === 'da' ? 'da' : 'farmer'),
+    enabled: Boolean(farmId),
   });
 }
 

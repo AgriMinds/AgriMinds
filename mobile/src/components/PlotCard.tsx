@@ -1,7 +1,7 @@
 import type { Farm, PdsiCategory, RiskLevel } from '@agriminds/api-types';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { RiskBadge } from '@/components/RiskBadge';
 import { useI18n } from '@/i18n';
@@ -14,10 +14,20 @@ interface Props {
   selected: boolean;
   onSelect: () => void;
   onEdit?: () => void;
+  onLocateOnGrid?: () => void;
+  onViewYield?: () => void;
   ground?: PdsiCategory | null;
 }
 
-export function PlotCard({ farm, selected, onSelect, onEdit, ground }: Props) {
+export function PlotCard({
+  farm,
+  selected,
+  onSelect,
+  onEdit,
+  onLocateOnGrid,
+  onViewYield,
+  ground,
+}: Props) {
   const { t } = useI18n();
   const { colors, dark } = useTheme();
 
@@ -118,12 +128,44 @@ export function PlotCard({ farm, selected, onSelect, onEdit, ground }: Props) {
         </View>
       ) : null}
 
-      {/* GPS Coordinates */}
-      <View style={styles.coordsRow}>
-        <Ionicons name="location-outline" size={12} color={colors.textMuted} />
-        <Text style={[styles.coordsText, { color: colors.textMuted }]}>
-          {farm.latitude.toFixed(3)}°N, {farm.longitude.toFixed(3)}°E
-        </Text>
+      {/* Grid Coordinates & Action Link Bar */}
+      <View style={styles.footerRow}>
+        <View style={styles.coordsWrap}>
+          <Ionicons name="grid-outline" size={12} color={colors.textMuted} />
+          <Text style={[styles.coordsText, { color: colors.textMuted }]}>
+            Cell [{farm.grid_row}, {farm.grid_col}] · {farm.latitude.toFixed(2)}°N, {farm.longitude.toFixed(2)}°E
+          </Text>
+        </View>
+
+        <View style={styles.quickLinks}>
+          {onLocateOnGrid && (
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation?.();
+                onLocateOnGrid();
+              }}
+              style={[styles.linkBtn, { borderColor: colors.border }]}
+              accessibilityRole="button"
+            >
+              <Ionicons name="map-outline" size={12} color={colors.primary} />
+              <Text style={[styles.linkBtnText, { color: colors.primary }]}>Grid</Text>
+            </TouchableOpacity>
+          )}
+
+          {onViewYield && (
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation?.();
+                onViewYield();
+              }}
+              style={[styles.linkBtn, { borderColor: colors.border }]}
+              accessibilityRole="button"
+            >
+              <Ionicons name="nutrition-outline" size={12} color="#d97706" />
+              <Text style={[styles.linkBtnText, { color: '#d97706' }]}>Yield</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </Pressable>
   );
@@ -220,13 +262,37 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  coordsRow: {
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 6,
+    paddingTop: 2,
+  },
+  coordsWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
   coordsText: {
     fontSize: 11,
-    fontFamily: 'monospace',
+  },
+  quickLinks: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  linkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+  },
+  linkBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
 });

@@ -19,6 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Stat } from '@/components/ui/stat'
 
 import { formatCompact, formatMoney, formatRequests } from './money'
+import { BusinessModel } from './BusinessModel'
 import { RepriceForm } from './RepriceForm'
 import { usePricing, usePricingHistory } from './usePricing'
 
@@ -244,9 +245,14 @@ function Row({
   return (
     <>
       <tr className="bg-surface-sunken/60 transition-colors hover:bg-surface-sunken">
-        <th scope="row" className="rounded-l-lg px-3 py-2.5 text-left font-normal">
+        <th scope="row" className="max-w-xs rounded-l-lg px-3 py-2.5 text-left font-normal">
           <span className="block text-sm font-semibold">{tier.label}</span>
           <span className="block text-[11px] text-fg-subtle">{tier.unit}</span>
+          {/* The strategy and the value argument sit with the price, because a figure a
+              salesperson has to justify from memory is a figure that gets discounted. */}
+          {tier.strategy && (
+            <span className="mt-1 block text-[11px] leading-snug text-fg-muted">{tier.strategy}</span>
+          )}
         </th>
         {/* The annual rate is what a contract is written at, so it is the only figure at full
             weight. The rest are derived from it and are set quieter on purpose. */}
@@ -321,6 +327,9 @@ function MobileTier({
         <span className="min-w-0">
           <span className="block text-sm font-semibold">{tier.label}</span>
           <span className="block text-[11px] text-fg-subtle">{tier.unit}</span>
+          {tier.strategy && (
+            <span className="mt-1 block text-[11px] leading-snug text-fg-muted">{tier.strategy}</span>
+          )}
         </span>
         <span className="shrink-0 text-right">
           <span className="block text-base font-semibold tabular-nums">
@@ -335,6 +344,12 @@ function MobileTier({
         {cell(t('col.daily'), tier.rates.daily)}
         {cell(t('col.oneTime'), tier.rates.one_time)}
       </div>
+
+      {tier.value_note && (
+        <p className="rounded-md bg-surface-sunken/60 px-2 py-1.5 text-[11px] leading-snug text-fg-muted">
+          {tier.value_note}
+        </p>
+      )}
 
       <div className="flex items-center justify-between gap-2 border-t border-border pt-2">
         <span className="text-[11px] text-fg-muted">

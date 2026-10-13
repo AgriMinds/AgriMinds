@@ -173,16 +173,19 @@ export type PricingTierOut = Schemas['PricingTierOut']
 export type PricingTierChange = Schemas['PricingTierChange']
 export type TierRates = Schemas['TierRates']
 export type StakeholderName = PricingTierOut['stakeholder']
+/** The segments the agreed model prices, in the order the rate card presents them. */
 export const STAKEHOLDERS = [
-  'farmer_premium',
-  'cooperative',
-  'development_agent',
-  'regional_government',
   'federal_ministry',
-  'research',
   'international_partner',
-  'private_sector',
+  'insurer_lender',
+  'development_agent',
+  'research',
+  'cooperative',
+  'farmer_premium',
 ] as const satisfies readonly StakeholderName[]
+/** Retired segments: kept in the type so existing records stay readable, never priced. */
+export const RETIRED_STAKEHOLDERS = ['regional_government', 'private_sector'] as const
+export type ProductOut = Schemas['ProductOut']
 
 // ---- organizations & metered API -------------------------------------------------------
 export type OrganizationOut = Schemas['OrganizationOut']

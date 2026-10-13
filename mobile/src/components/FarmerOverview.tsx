@@ -1,5 +1,6 @@
 import { LEAD_MONTHS, type Farm, type LeadMonth } from '@agriminds/api-types';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -79,6 +80,7 @@ export function pdsiKey(cat?: string | null): PdsiKey {
 export function FarmerOverview() {
   const { t, language } = useI18n();
   const { colors, dark } = useTheme();
+  const router = useRouter();
   const sel = useSelection();
 
   const [selectedFarmId, setSelectedFarmId] = useState<string | null>(null);
@@ -254,6 +256,13 @@ export function FarmerOverview() {
                   onEdit={() => {
                     setEditingFarm(farm);
                     setPlotModalVisible(true);
+                  }}
+                  onLocateOnGrid={() => {
+                    sel.selectCell(farm.grid_row, farm.grid_col);
+                    router.push('/(tabs)/grid' as any);
+                  }}
+                  onViewYield={() => {
+                    router.push('/(tabs)/yield' as any);
                   }}
                   ground={farm.risk?.pdsi_category}
                 />
