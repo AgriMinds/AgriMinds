@@ -5,6 +5,7 @@ from agriminds_api.api.v1 import (
     advisory,
     analytics,
     auth,
+    billing,
     crop_yield,
     dashboard,
     drought,
@@ -53,4 +54,5 @@ _private.include_router(farms.router)
 _private.include_router(dashboard.router)
 _private.include_router(analytics.router)
 _private.include_router(system.router)
+_private.include_router(billing.router)
 api_router.include_router(_private)

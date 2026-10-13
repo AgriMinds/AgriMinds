@@ -19,7 +19,8 @@
       "advisories": "Gorsa midhaanii",
       "enso": "Qilleensa (ENSO)",
       "reports": "Gabaasota",
-      "section": "Baafata"
+      "section": "Baafata",
+      "pricing": "Gatii"
     },
     "workspaceSub": "Yuunivarsiitii Dabra Maarqoos · Dhaabbata AI Itoophiyaa",
     "greeting": "Tilmaama hongee",
@@ -597,5 +598,35 @@
       "unavailable": "Moodeelli tilmaama oomishaa diriirsa kana irratti waan hin fe'amneef sararri yeroo fakkaasuun hin danda'amu.",
       "cardTitle": "Oomisha fi Niñoo 3.4, {firstYear}–{throughYear}"
     }
+  },
+  "pricing": {
+    "eyebrow": "Daldala",
+    "title": "Gatii fi qooda fudhattoota",
+    "intro": "Gosti qooda fudhattoota tokkoon tokkoon isaanii pilaatfoormii kana fayyadamuuf kaffalan. Gatiin iddoodhuma isaatti hin sirreeffamu: yeroo jijjiiramu gatiin amma hojii irra jiru cufamee fooyya'iinsi haaraa banama, kanaaf galmeen bara darbe mallatteeffame gatii mallatteeffameen hafa.",
+    "cardTitle": "Gabatee gatii",
+    "cardDesc": "{currency} · galmeen sadarkaa hundaa waggaatti {total} ta'a · hanga {asOf}",
+    "caption": "Gatii gosa qooda fudhataa fi yeroo kaffaltiitiin",
+    "col": {
+      "stakeholder": "Qooda fudhataa",
+      "oneTime": "Al tokko",
+      "annual": "Waggaa",
+      "monthly": "Ji'a",
+      "daily": "Guyyaa",
+      "actions": "Gochaalee"
+    },
+    "action": {
+      "history": "Seenaa",
+      "reprice": "Gatii jijjiiri"
+    },
+    "inForce": "Hojii irra",
+    "from": "{date} irraa",
+    "until": "hanga {date}",
+    "annualAmount": "{amount} waggaatti",
+    "effectiveFrom": "Kan hojii irra oolu",
+    "repriceLabel": "{tier} gatii jijjiiruu",
+    "supersedeNote": "Baay'inni {currency}dhaan. Olkaa'uun guyyaa armaan olii irraa kaasee gatii ammaa bakka bu'a; gatiin durii seenaa keessatti dubbifama.",
+    "save": "Gatii bakka buusi",
+    "saving": "Olkaa'aa jira…",
+    "cancel": "Haqi"
   }
 }

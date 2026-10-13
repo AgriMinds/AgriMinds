@@ -119,6 +119,10 @@ export const STAFF_ROLES = ['agent', 'minister', 'admin'] as const satisfies rea
 export function isStaff(role: Role): boolean {
   return (STAFF_ROLES as readonly Role[]).includes(role)
 }
+/** Only a platform administrator reaches the commercial surfaces. */
+export function isAdmin(role: Role): boolean {
+  return role === 'admin'
+}
 /** Where a signed-in person lands. */
 export function homePathFor(role: Role): '/farm' | '/ministry' {
   return role === 'farmer' ? '/farm' : '/ministry'
@@ -162,3 +166,20 @@ export type EmbedConfig = Schemas['EmbedConfig']
 export type AnalyticsConnection = Schemas['AnalyticsConnection']
 
 export const API_V1_PREFIX = '/api/v1'
+
+// ---- billing (the commercial rate card; admin only) -----------------------------------
+export type PricingCatalogue = Schemas['PricingCatalogue']
+export type PricingTierOut = Schemas['PricingTierOut']
+export type PricingTierChange = Schemas['PricingTierChange']
+export type TierRates = Schemas['TierRates']
+export type StakeholderName = PricingTierOut['stakeholder']
+export const STAKEHOLDERS = [
+  'farmer_premium',
+  'cooperative',
+  'development_agent',
+  'regional_government',
+  'federal_ministry',
+  'research',
+  'international_partner',
+  'private_sector',
+] as const satisfies readonly StakeholderName[]

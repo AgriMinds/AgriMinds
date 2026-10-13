@@ -19,7 +19,8 @@
       "advisories": "Crop advisories",
       "enso": "Climate (ENSO)",
       "reports": "Reports & briefings",
-      "section": "Navigation"
+      "section": "Navigation",
+      "pricing": "Pricing"
     },
     "workspaceSub": "Debre Markos University · AI Institute of Ethiopia",
     "greeting": "Drought outlook",
@@ -597,5 +598,35 @@
       "unavailable": "The crop-yield model is not loaded on this deployment, so the timeline cannot be drawn.",
       "cardTitle": "Yields over Niño 3.4, {firstYear}–{throughYear}"
     }
+  },
+  "pricing": {
+    "eyebrow": "Business",
+    "title": "Pricing & stakeholders",
+    "intro": "What each kind of stakeholder pays to use the platform. A price is never edited in place: changing one closes the rate in force and opens a new version, so a subscription signed last year still resolves to the rate it was signed at.",
+    "cardTitle": "Rate card",
+    "cardDesc": "{currency} · one subscription of every tier totals {total} a year · as of {asOf}",
+    "caption": "Price per stakeholder type, by billing period",
+    "col": {
+      "stakeholder": "Stakeholder",
+      "oneTime": "One-time",
+      "annual": "Annual",
+      "monthly": "Monthly",
+      "daily": "Daily",
+      "actions": "Actions"
+    },
+    "action": {
+      "history": "History",
+      "reprice": "Reprice"
+    },
+    "inForce": "In force",
+    "from": "from {date}",
+    "until": "until {date}",
+    "annualAmount": "{amount} a year",
+    "effectiveFrom": "Effective from",
+    "repriceLabel": "Reprice {tier}",
+    "supersedeNote": "Amounts in {currency}. Saving supersedes the current price from the date above; the old rate stays readable in the history.",
+    "save": "Supersede price",
+    "saving": "Saving…",
+    "cancel": "Cancel"
   }
 }

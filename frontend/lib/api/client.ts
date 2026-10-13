@@ -9,6 +9,10 @@ import type {
   CropYieldScenarioRequest,
   DataInventory,
   CropYieldTimeline,
+  PricingCatalogue,
+  PricingTierChange,
+  PricingTierOut,
+  StakeholderName,
   EnsoImpactResponse,
   DroughtMapResponse,
   EmbedConfig,
@@ -181,6 +185,20 @@ export const api = {
   /** Belt-average yields and Niño 3.4 across the record and the years after it. */
   cropYieldTimeline: (throughYear?: number) =>
     request<CropYieldTimeline>(`/crop-yield/timeline${throughYear ? `?through_year=${throughYear}` : ''}`),
+
+  // ---- billing (admin only) -----------------------------------------------------------
+  /** The rate card in force, or the full history when asked for it. */
+  pricing: (includeHistory = false) =>
+    request<PricingCatalogue>(`/billing/pricing${includeHistory ? '?include_history=true' : ''}`),
+  /** Every price one stakeholder has been charged, newest first. */
+  pricingHistory: (stakeholder: StakeholderName) =>
+    request<PricingTierOut[]>(`/billing/pricing/${stakeholder}`),
+  /** Supersede a stakeholder's price from a date. Never edits the row in force. */
+  reprice: (stakeholder: StakeholderName, change: PricingTierChange) =>
+    request<PricingTierOut>(`/billing/pricing/${stakeholder}`, {
+      method: 'POST',
+      body: JSON.stringify(change),
+    }),
 
   // ---- analytics ----------------------------------------------------------------------
   metabaseStatus: () => request<MetabaseStatus>('/analytics/metabase/status'),

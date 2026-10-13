@@ -32,7 +32,7 @@ from sqlalchemy.pool import NullPool
 from agriminds_api.core.config import Settings
 from agriminds_api.core.security import hash_password, normalise_phone
 from agriminds_api.db.models import Base, Crop, Farm, Locale, User, UserRole, Woreda
-from agriminds_api.db.seed import seed_geography
+from agriminds_api.db.seed import seed_geography, seed_pricing_tiers
 from agriminds_api.main import create_app
 
 TEST_CFG = PipelineConfig(
@@ -296,6 +296,25 @@ async def make_farm(db_session, woredas):
 async def minister_headers(make_user, sign_in):
     """Authorization header for a ministry account."""
     user = await make_user(UserRole.MINISTER, email="inventory-minister@example.et")
+    return sign_in(user.email)["headers"]
+
+
+@pytest_asyncio.fixture
+async def pricing_tiers(db_session):
+    """The opening rate card.
+
+    Reference data, like geography: ``_clean_tables`` truncates after every test, so the rows
+    migration 0004 installs do not survive into the next one and a test that needs prices seeds
+    them itself.
+    """
+    await seed_pricing_tiers(db_session)
+    return db_session
+
+
+@pytest_asyncio.fixture
+async def admin_headers(make_user, sign_in):
+    """Authorization header for a platform administrator."""
+    user = await make_user(UserRole.ADMIN, email="admin@example.et")
     return sign_in(user.email)["headers"]
 
 

@@ -3,22 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import {
-  BarChart3,
-  CalendarRange,
-  Database,
-  Flame,
-  Landmark,
-  ListChecks,
-  Map,
-  PhoneCall,
-  ShieldCheck,
-  Sprout,
-  Waves,
-  Wheat,
-  X,
-  type LucideIcon,
-} from 'lucide-react'
+import { BarChart3, CalendarRange, Coins, Database, Flame, Landmark, ListChecks, Map, PhoneCall, ShieldCheck, Sprout, Waves, Wheat, X, type LucideIcon } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useTransition } from 'react'
 import type { Role } from '@agriminds/api-types'
@@ -36,7 +21,7 @@ type NavItem = { href: string; key: string; icon: LucideIcon }
 /** Navigation is driven by role: a farmer never sees the watershed science view. */
 export function navForRole(role: Role): NavItem[] {
   if (role === 'farmer') return [{ href: '/farm', key: 'farm', icon: Sprout }]
-  return [
+  const staff: NavItem[] = [
     { href: '/ministry', key: 'ministry', icon: Map },
     { href: '/watershed', key: 'watershed', icon: Map },
     { href: '/prediction', key: 'prediction', icon: CalendarRange },
@@ -44,6 +29,10 @@ export function navForRole(role: Role): NavItem[] {
     { href: '/analytics', key: 'analytics', icon: BarChart3 },
     { href: '/data-sources', key: 'dataSources', icon: Database },
   ]
+  // The rate card is commercial, not scientific: an agent and a minister have no business in it,
+  // and the route refuses them anyway, so it is not offered to them either.
+  if (role === 'admin') staff.push({ href: '/admin/pricing', key: 'pricing', icon: Coins })
+  return staff
 }
 
 /** Anchors on the farm dashboard. A farmer has one page, so its sections are the navigation. */

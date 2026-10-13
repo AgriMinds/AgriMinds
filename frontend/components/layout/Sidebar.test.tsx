@@ -34,16 +34,20 @@ describe('navForRole', () => {
   })
 
   it('offers staff analytics and provenance alongside the operational views', () => {
-    for (const role of ['agent', 'minister', 'admin'] as const) {
-      expect(navForRole(role).map((i) => i.href)).toEqual([
-        '/ministry',
-        '/watershed',
-        '/prediction',
-        '/crop-yield',
-        '/analytics',
-        '/data-sources',
-      ])
+    const operational = ['/ministry', '/watershed', '/prediction', '/crop-yield', '/analytics', '/data-sources']
+    for (const role of ['agent', 'minister'] as const) {
+      expect(navForRole(role).map((i) => i.href)).toEqual(operational)
     }
+    // An administrator gets the same views plus the commercial one.
+    expect(navForRole('admin').map((i) => i.href)).toEqual([...operational, '/admin/pricing'])
+  })
+
+  it('offers the rate card to an administrator only', () => {
+    // /admin/pricing redirects everyone else, so offering it would be offering a dead end.
+    for (const role of ['farmer', 'agent', 'minister'] as const) {
+      expect(navForRole(role).some((i) => i.href === '/admin/pricing')).toBe(false)
+    }
+    expect(navForRole('admin').some((i) => i.href === '/admin/pricing')).toBe(true)
   })
 
   it('never offers a farmer a link they would be redirected away from', () => {

@@ -13,3 +13,10 @@ allowBuilds:
   esbuild: true
   unrs-resolver: true
   sharp: true
+
+minimumReleaseAgeExclude:
+  - '@expo/ui@57.0.23'
+  - expo-location@57.0.21
+  - expo-router@57.0.26
+  - expo-splash-screen@57.0.10
+  - jest-expo@57.0.6

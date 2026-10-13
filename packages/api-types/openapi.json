@@ -2194,6 +2194,222 @@
           }
         ]
       }
+    },
+    "/api/v1/billing/pricing": {
+      "get": {
+        "tags": [
+          "Billing"
+        ],
+        "summary": "What every stakeholder pays",
+        "description": "The price in force for each of the eight stakeholder types, with every rate given both as integer cents and as a rendered decimal so a client never divides money itself.\n\nPass `include_history=true` to get superseded versions alongside the current ones. A price is never edited in place: changing one closes its window and opens a new row, so a subscription signed last year still resolves to the rate it was signed at.",
+        "operationId": "pricing_api_v1_billing_pricing_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "include_history",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Include superseded versions",
+              "default": false,
+              "title": "Include History"
+            },
+            "description": "Include superseded versions"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingCatalogue"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/billing/pricing/{stakeholder}": {
+      "get": {
+        "tags": [
+          "Billing"
+        ],
+        "summary": "Every price this stakeholder has ever been charged, newest first",
+        "operationId": "pricing_history_api_v1_billing_pricing__stakeholder__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "stakeholder",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/StakeholderType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PricingTierOut"
+                  },
+                  "title": "Response Pricing History Api V1 Billing Pricing  Stakeholder  Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Billing"
+        ],
+        "summary": "Reprice a stakeholder from a given date",
+        "description": "Writes a new version rather than editing the current one. `effective_from` must fall after the date the price in force started; set it in the future to schedule a change.",
+        "operationId": "reprice_api_v1_billing_pricing__stakeholder__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "stakeholder",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/StakeholderType"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PricingTierChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingTierOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -5803,6 +6019,202 @@
         "title": "ObservedConditions",
         "description": "How dry the ground already is, as opposed to how likely drought is next season."
       },
+      "PricingCatalogue": {
+        "properties": {
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "tiers": {
+            "items": {
+              "$ref": "#/components/schemas/PricingTierOut"
+            },
+            "type": "array",
+            "title": "Tiers"
+          },
+          "annual_total_cents": {
+            "type": "integer",
+            "title": "Annual Total Cents"
+          },
+          "annual_total": {
+            "type": "string",
+            "title": "Annual Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "currency",
+          "as_of",
+          "tiers",
+          "annual_total_cents",
+          "annual_total"
+        ],
+        "title": "PricingCatalogue",
+        "description": "Every stakeholder's price, current unless history was asked for."
+      },
+      "PricingTierChange": {
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "one_time_cents": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "One Time Cents"
+          },
+          "annual_cents": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Annual Cents"
+          },
+          "monthly_cents": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Monthly Cents"
+          },
+          "daily_cents": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Daily Cents"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "one_time_cents",
+          "annual_cents",
+          "monthly_cents",
+          "daily_cents",
+          "effective_from"
+        ],
+        "title": "PricingTierChange",
+        "description": "A new version of one stakeholder's price.\n\nSupplying an ``effective_from`` in the future schedules the change; the current row stays in\nforce until then. Amounts are cents, because that is what the ledger stores."
+      },
+      "PricingTierOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "stakeholder": {
+            "type": "string",
+            "enum": [
+              "farmer_premium",
+              "cooperative",
+              "development_agent",
+              "regional_government",
+              "federal_ministry",
+              "research",
+              "international_partner",
+              "private_sector"
+            ],
+            "title": "Stakeholder"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit",
+            "description": "What one subscription covers, e.g. 'per woreda'"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "rates": {
+            "$ref": "#/components/schemas/TierRates"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To",
+            "description": "NULL while the price is in force; set when a later version supersedes it"
+          },
+          "is_current": {
+            "type": "boolean",
+            "title": "Is Current"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "stakeholder",
+          "label",
+          "unit",
+          "currency",
+          "rates",
+          "effective_from",
+          "is_current"
+        ],
+        "title": "PricingTierOut"
+      },
       "RefreshRequest": {
         "properties": {
           "refresh_token": {
@@ -5893,6 +6305,75 @@
           "hectares_at_risk"
         ],
         "title": "RiskExposure"
+      },
+      "StakeholderType": {
+        "type": "string",
+        "enum": [
+          "farmer_premium",
+          "cooperative",
+          "development_agent",
+          "regional_government",
+          "federal_ministry",
+          "research",
+          "international_partner",
+          "private_sector"
+        ],
+        "title": "StakeholderType",
+        "description": "Who is being billed. One entry per row of the commercial model."
+      },
+      "TierRates": {
+        "properties": {
+          "one_time_cents": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "One Time Cents"
+          },
+          "annual_cents": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Annual Cents"
+          },
+          "monthly_cents": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Monthly Cents"
+          },
+          "daily_cents": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Daily Cents"
+          },
+          "one_time": {
+            "type": "string",
+            "title": "One Time",
+            "description": "Decimal string, e.g. '2400.00'"
+          },
+          "annual": {
+            "type": "string",
+            "title": "Annual"
+          },
+          "monthly": {
+            "type": "string",
+            "title": "Monthly"
+          },
+          "daily": {
+            "type": "string",
+            "title": "Daily"
+          }
+        },
+        "type": "object",
+        "required": [
+          "one_time_cents",
+          "annual_cents",
+          "monthly_cents",
+          "daily_cents",
+          "one_time",
+          "annual",
+          "monthly",
+          "daily"
+        ],
+        "title": "TierRates",
+        "description": "The four rates, in cents and rendered."
       },
       "TokenPair": {
         "properties": {

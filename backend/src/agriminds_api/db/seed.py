@@ -1,6 +1,7 @@
 """Reference data and an optional demonstration dataset.
 
-``seed_geography`` is reference data every deployment needs and is safe to re-run.
+``seed_geography`` and ``seed_pricing_tiers`` are reference data every deployment needs and are
+safe to re-run.
 ``seed_demo`` creates sample accounts and plots; it refuses to run in production because the
 passwords it sets are published in the README.
 """
@@ -10,13 +11,25 @@ from __future__ import annotations
 import logging
 import random
 from dataclasses import dataclass
+from datetime import date
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agriminds_api.core.config import Settings
 from agriminds_api.core.security import hash_password, normalise_phone
-from agriminds_api.db.models import Crop, Farm, Locale, Region, User, UserRole, Woreda, Zone
+from agriminds_api.db.models import (
+    Crop,
+    Farm,
+    Locale,
+    PricingTier,
+    Region,
+    StakeholderType,
+    User,
+    UserRole,
+    Woreda,
+    Zone,
+)
 from agriminds_api.domain.geo import GridSpec
 
 log = logging.getLogger(__name__)
@@ -202,3 +215,62 @@ async def seed_demo(session: AsyncSession, settings: Settings, password: str = D
     }
     log.info("demo data: %s", totals)
     return totals
+
+
+# ---------------------------------------------------------------------------- pricing
+
+#: The opening rate card, in integer cents of USD, as (stakeholder, label, unit, rates).
+#:
+#: Migration 0004 installs the same figures and deliberately keeps its own copy: a migration is a
+#: frozen record of what the schema looked like then, so it must not import this module and start
+#: changing retroactively when the price list does. This copy is what a fresh database or a test
+#: re-seeds from after a truncation.
+PRICING_TIERS: tuple[tuple[str, str, str, int, int, int, int], ...] = (
+    ("farmer_premium", "Farmer (premium)", "per farmer", 0, 300, 30, 1),
+    ("cooperative", "Cooperative", "per cooperative", 240_000, 60_000, 6_000, 160),
+    ("development_agent", "Development agent", "per woreda", 960_000, 240_000, 24_000, 660),
+    ("regional_government", "Regional / zonal government", "per bureau", 14_400_000, 3_600_000, 360_000, 9_900),
+    ("federal_ministry", "Federal ministry", "per ministry", 36_000_000, 9_000_000, 900_000, 24_700),
+    ("research", "Research / university", "per institution", 0, 120_000, 12_000, 330),
+    ("international_partner", "International partner / NGO", "per organisation", 24_000_000, 6_000_000, 600_000, 16_400),
+    ("private_sector", "Private sector", "per company", 9_600_000, 2_400_000, 240_000, 6_600),
+)
+
+
+async def seed_pricing_tiers(session: AsyncSession, effective_from: date | None = None) -> int:
+    """Install the opening rate card for any stakeholder that has no price in force.
+
+    Idempotent: a stakeholder already priced is left exactly as it is, because overwriting a rate
+    an administrator set would restate what somebody is being charged.
+    """
+    priced = set(
+        (
+            await session.scalars(
+                select(PricingTier.stakeholder).where(PricingTier.effective_to.is_(None))
+            )
+        ).all()
+    )
+    start = effective_from or date.today()
+    added = 0
+    for key, label, unit, one_time, annual, monthly, daily in PRICING_TIERS:
+        stakeholder = StakeholderType(key)
+        if stakeholder in priced:
+            continue
+        session.add(
+            PricingTier(
+                stakeholder=stakeholder,
+                label=label,
+                unit=unit,
+                currency="USD",
+                one_time_cents=one_time,
+                annual_cents=annual,
+                monthly_cents=monthly,
+                daily_cents=daily,
+                effective_from=start,
+            )
+        )
+        added += 1
+    if added:
+        await session.commit()
+        log.info("seeded %d pricing tier(s)", added)
+    return added

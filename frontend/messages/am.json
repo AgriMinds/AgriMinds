@@ -19,7 +19,8 @@
       "advisories": "የሰብል ምክረ ሃሳቦች",
       "enso": "የአየር ንብረት (ENSO)",
       "reports": "ሪፖርቶች",
-      "section": "ምናሌ"
+      "section": "ምናሌ",
+      "pricing": "ዋጋ"
     },
     "workspaceSub": "ደብረ ማርቆስ ዩኒቨርሲቲ · የኢትዮጵያ AI ኢንስቲትዩት",
     "greeting": "የድርቅ ትንበያ",
@@ -597,5 +598,35 @@
       "unavailable": "የምርት ትንበያ ሞዴሉ በዚህ ተከላ ስላልተጫነ የጊዜ ሰንጠረዡ መሳል አልተቻለም።",
       "cardTitle": "ምርት ከኒኞ 3.4 ጋር፣ {firstYear}–{throughYear}"
     }
+  },
+  "pricing": {
+    "eyebrow": "ንግድ",
+    "title": "ዋጋና ባለድርሻ አካላት",
+    "intro": "እያንዳንዱ ዓይነት ባለድርሻ አካል መድረኩን ለመጠቀም የሚከፍለው ክፍያ። ዋጋ በቦታው ላይ አይስተካከልም፤ ሲቀየር አሁን ያለው ዋጋ ይዘጋና አዲስ ዕትም ይከፈታል፤ ስለዚህ ባለፈው ዓመት የተፈረመ ምዝገባ በተፈረመበት ዋጋ ይቆያል።",
+    "cardTitle": "የዋጋ ሰንጠረዥ",
+    "cardDesc": "{currency} · የሁሉም ደረጃዎች አንድ ምዝገባ በዓመት {total} ይሆናል · እስከ {asOf}",
+    "caption": "በባለድርሻ ዓይነትና በክፍያ ጊዜ የተከፋፈለ ዋጋ",
+    "col": {
+      "stakeholder": "ባለድርሻ",
+      "oneTime": "አንድ ጊዜ",
+      "annual": "ዓመታዊ",
+      "monthly": "ወርሃዊ",
+      "daily": "ዕለታዊ",
+      "actions": "እርምጃዎች"
+    },
+    "action": {
+      "history": "ታሪክ",
+      "reprice": "ዋጋ ለውጥ"
+    },
+    "inForce": "በሥራ ላይ",
+    "from": "ከ{date} ጀምሮ",
+    "until": "እስከ {date}",
+    "annualAmount": "{amount} በዓመት",
+    "effectiveFrom": "ተፈጻሚ ከ",
+    "repriceLabel": "{tier} ዋጋ መለወጥ",
+    "supersedeNote": "መጠኖች በ{currency}። ማስቀመጥ ከላይ ካለው ቀን ጀምሮ አሁን ያለውን ዋጋ ይተካል፤ የድሮው ዋጋ በታሪክ ውስጥ ይነበባል።",
+    "save": "ዋጋ ተካ",
+    "saving": "በማስቀመጥ ላይ…",
+    "cancel": "ሰርዝ"
   }
 }

@@ -167,6 +167,49 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/billing/pricing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What every stakeholder pays
+         * @description The price in force for each of the eight stakeholder types, with every rate given both as integer cents and as a rendered decimal so a client never divides money itself.
+         *
+         *     Pass `include_history=true` to get superseded versions alongside the current ones. A price is never edited in place: changing one closes its window and opens a new row, so a subscription signed last year still resolves to the rate it was signed at.
+         */
+        get: operations["pricing_api_v1_billing_pricing_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/pricing/{stakeholder}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every price this stakeholder has ever been charged, newest first */
+        get: operations["pricing_history_api_v1_billing_pricing__stakeholder__get"];
+        put?: never;
+        /**
+         * Reprice a stakeholder from a given date
+         * @description Writes a new version rather than editing the current one. `effective_from` must fall after the date the price in force started; set it in the future to schedule a change.
+         */
+        post: operations["reprice_api_v1_billing_pricing__stakeholder__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crop-yield/enso-impact": {
         parameters: {
             query?: never;
@@ -2193,6 +2236,87 @@ export type components = {
             /** Method Note */
             method_note: string;
         };
+        /**
+         * PricingCatalogue
+         * @description Every stakeholder's price, current unless history was asked for.
+         */
+        PricingCatalogue: {
+            /** Annual Total */
+            annual_total: string;
+            /** Annual Total Cents */
+            annual_total_cents: number;
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Currency */
+            currency: string;
+            /** Tiers */
+            tiers: components["schemas"]["PricingTierOut"][];
+        };
+        /**
+         * PricingTierChange
+         * @description A new version of one stakeholder's price.
+         *
+         *     Supplying an ``effective_from`` in the future schedules the change; the current row stays in
+         *     force until then. Amounts are cents, because that is what the ledger stores.
+         */
+        PricingTierChange: {
+            /** Annual Cents */
+            annual_cents: number;
+            /** Daily Cents */
+            daily_cents: number;
+            /**
+             * Effective From
+             * Format: date
+             */
+            effective_from: string;
+            /** Label */
+            label?: string | null;
+            /** Monthly Cents */
+            monthly_cents: number;
+            /** Notes */
+            notes?: string | null;
+            /** One Time Cents */
+            one_time_cents: number;
+            /** Unit */
+            unit?: string | null;
+        };
+        /** PricingTierOut */
+        PricingTierOut: {
+            /** Currency */
+            currency: string;
+            /**
+             * Effective From
+             * Format: date
+             */
+            effective_from: string;
+            /**
+             * Effective To
+             * @description NULL while the price is in force; set when a later version supersedes it
+             */
+            effective_to?: string | null;
+            /** Id */
+            id: string;
+            /** Is Current */
+            is_current: boolean;
+            /** Label */
+            label: string;
+            /** Notes */
+            notes?: string | null;
+            rates: components["schemas"]["TierRates"];
+            /**
+             * Stakeholder
+             * @enum {string}
+             */
+            stakeholder: "farmer_premium" | "cooperative" | "development_agent" | "regional_government" | "federal_ministry" | "research" | "international_partner" | "private_sector";
+            /**
+             * Unit
+             * @description What one subscription covers, e.g. 'per woreda'
+             */
+            unit: string;
+        };
         /** RefreshRequest */
         RefreshRequest: {
             /** Refresh Token */
@@ -2229,6 +2353,37 @@ export type components = {
             lead_month: number;
             /** Target Date */
             target_date: string;
+        };
+        /**
+         * StakeholderType
+         * @description Who is being billed. One entry per row of the commercial model.
+         * @enum {string}
+         */
+        StakeholderType: "farmer_premium" | "cooperative" | "development_agent" | "regional_government" | "federal_ministry" | "research" | "international_partner" | "private_sector";
+        /**
+         * TierRates
+         * @description The four rates, in cents and rendered.
+         */
+        TierRates: {
+            /** Annual */
+            annual: string;
+            /** Annual Cents */
+            annual_cents: number;
+            /** Daily */
+            daily: string;
+            /** Daily Cents */
+            daily_cents: number;
+            /** Monthly */
+            monthly: string;
+            /** Monthly Cents */
+            monthly_cents: number;
+            /**
+             * One Time
+             * @description Decimal string, e.g. '2400.00'
+             */
+            one_time: string;
+            /** One Time Cents */
+            one_time_cents: number;
         };
         /** TokenPair */
         TokenPair: {
@@ -2788,6 +2943,158 @@ export interface operations {
             };
             /** @description Wrong credentials, or the account is locked */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pricing_api_v1_billing_pricing_get: {
+        parameters: {
+            query?: {
+                /** @description Include superseded versions */
+                include_history?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingCatalogue"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pricing_history_api_v1_billing_pricing__stakeholder__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stakeholder: components["schemas"]["StakeholderType"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingTierOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reprice_api_v1_billing_pricing__stakeholder__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stakeholder: components["schemas"]["StakeholderType"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PricingTierChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingTierOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

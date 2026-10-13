@@ -2,6 +2,7 @@
 
 from agriminds_api.db.base import Base
 from agriminds_api.db.models.advisory import AdvisoryRecord, RiskLevel, risk_level_enum
+from agriminds_api.db.models.billing import PricingTier, StakeholderType, stakeholder_type_enum
 from agriminds_api.db.models.farm import Crop, Farm, crop_enum
 from agriminds_api.db.models.geography import Region, Woreda, Zone
 from agriminds_api.db.models.risk import PdsiCategory, RiskSnapshot, pdsi_category_enum
@@ -14,10 +15,12 @@ __all__ = [
     "Farm",
     "Locale",
     "PdsiCategory",
+    "PricingTier",
     "RefreshToken",
     "Region",
     "RiskLevel",
     "RiskSnapshot",
+    "StakeholderType",
     "User",
     "UserRole",
     "Woreda",
@@ -26,5 +29,6 @@ __all__ = [
     "locale_enum",
     "pdsi_category_enum",
     "risk_level_enum",
+    "stakeholder_type_enum",
     "user_role_enum",
 ]
