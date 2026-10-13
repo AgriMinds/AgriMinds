@@ -31,13 +31,20 @@ const rate = (oneTime: string, annual: string, monthly: string, daily: string) =
   daily,
 })
 
-const tier = (stakeholder: string, label: string, unit: string, rates: ReturnType<typeof rate>) => ({
+const tier = (
+  stakeholder: string,
+  label: string,
+  unit: string,
+  rates: ReturnType<typeof rate>,
+  quota = 0,
+) => ({
   id: stakeholder,
   stakeholder,
   label,
   unit,
-  currency: 'USD',
+  currency: 'ETB',
   rates,
+  api_quota_monthly: quota,
   effective_from: '2026-10-12',
   effective_to: null,
   is_current: true,
@@ -45,14 +52,14 @@ const tier = (stakeholder: string, label: string, unit: string, rates: ReturnTyp
 })
 
 const catalogue = {
-  currency: 'USD',
-  as_of: '2026-10-12',
-  annual_total_cents: 60_300,
-  annual_total: '603.00',
+  currency: 'ETB',
+  as_of: '2026-10-13',
+  annual_total_cents: 456_015_000,
+  annual_total: '4560150.00',
   tiers: [
-    tier('cooperative', 'Cooperative', 'per cooperative', rate('2400.00', '600.00', '60.00', '1.60')),
-    tier('development_agent', 'Development agent', 'per woreda', rate('9600.00', '2400.00', '240.00', '6.60')),
-    tier('farmer_premium', 'Farmer (premium)', 'per farmer', rate('0.00', '3.00', '0.30', '0.01')),
+    tier('cooperative', 'Cooperative', 'per cooperative', rate('120000.00', '30000.00', '3000.00', '82.00'), 10_000),
+    tier('development_agent', 'Development agent', 'per woreda', rate('480000.00', '120000.00', '12000.00', '330.00'), 25_000),
+    tier('farmer_premium', 'Farmer (premium)', 'per farmer', rate('0.00', '150.00', '15.00', '0.41'), 0),
   ],
 }
 
@@ -83,12 +90,21 @@ describe('PricingPage', () => {
     repriceMutation.mockReturnValue({ ...idle, mutate: vi.fn(), isPending: false })
   })
 
-  it('shows every rate as sent, without dividing cents itself', () => {
+  it('shows every rate as sent, without dividing santim itself', () => {
     wrap()
     const row = screen.getByRole('row', { name: /Farmer \(premium\)/ })
-    // $0.30 must render as 0.30, which is exactly the trap a cents-to-float division falls into.
-    expect(within(row).getByText('0.30')).toBeInTheDocument()
-    expect(within(row).getByText('3.00')).toBeInTheDocument()
+    // 0.41 birr a day must survive to the screen: it is exactly the value a santim-to-float
+    // division mangles, and the server already sent it rendered.
+    expect(within(row).getByText(/0\.41/)).toBeInTheDocument()
+    expect(within(row).getByText(/150/)).toBeInTheDocument()
+  })
+
+  it('marks a tier that carries no API access rather than printing a bare zero', () => {
+    wrap()
+    const farmer = screen.getByRole('row', { name: /Farmer \(premium\)/ })
+    expect(within(farmer).getByText('none')).toBeInTheDocument()
+    const agent = screen.getByRole('row', { name: /Development agent/ })
+    expect(within(agent).getByText('25K')).toBeInTheDocument()
   })
 
   it('shows what one subscription covers, because the unit is part of the price', () => {
@@ -103,9 +119,10 @@ describe('PricingPage', () => {
     expect(within(row).getByText('—')).toBeInTheDocument()
   })
 
-  it('states the annualised total of the whole card', () => {
+  it('leads with what the whole card is worth, so nobody adds eight rows up by hand', () => {
     wrap()
-    expect(screen.getByText(/totals 603\.00 a year/)).toBeInTheDocument()
+    const tile = screen.getByText('One of each, per year').closest('div')?.parentElement
+    expect(tile?.textContent).toMatch(/4\.6M|4,560,150/)
   })
 
   it('opens a reprice form that supersedes rather than edits', () => {
@@ -128,7 +145,7 @@ describe('PricingPage', () => {
     expect(new Date(from.value).getTime()).toBeGreaterThan(Date.now())
   })
 
-  it('submits money as integer cents', () => {
+  it('submits money as integer santim, and carries the API quota with it', () => {
     const mutate = vi.fn()
     repriceMutation.mockReturnValue({ ...idle, mutate, isPending: false })
     wrap()
@@ -139,7 +156,9 @@ describe('PricingPage', () => {
     expect(mutate).toHaveBeenCalled()
     const { change, stakeholder } = mutate.mock.calls[0]![0]
     expect(stakeholder).toBe('cooperative')
-    expect(change.annual_cents).toBe(60_000)
-    expect(change.daily_cents).toBe(160)
+    expect(change.annual_cents).toBe(3_000_000)
+    expect(change.daily_cents).toBe(8_200)
+    // A price change is about money; it must not silently zero what the customer may call.
+    expect(change.api_quota_monthly).toBe(10_000)
   })
 })

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, type ViewProps } from 'react-native';
 
-import { radius, spacing, type as typo, useTheme } from '@/theme';
+import { spacing, type as typo, useTheme } from '@/theme';
 
 interface CardProps extends ViewProps {
   icon?: React.ReactNode;

@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, CalendarRange, Coins, Database, Flame, Landmark, ListChecks, Map, PhoneCall, ShieldCheck, Sprout, Waves, Wheat, X, type LucideIcon } from 'lucide-react'
+import { BarChart3, Building2, CalendarRange, Coins, Database, Flame, Landmark, ListChecks, Map, PhoneCall, ShieldCheck, Sprout, Waves, Wheat, X, type LucideIcon } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useTransition } from 'react'
 import type { Role } from '@agriminds/api-types'
@@ -31,7 +31,12 @@ export function navForRole(role: Role): NavItem[] {
   ]
   // The rate card is commercial, not scientific: an agent and a minister have no business in it,
   // and the route refuses them anyway, so it is not offered to them either.
-  if (role === 'admin') staff.push({ href: '/admin/pricing', key: 'pricing', icon: Coins })
+  if (role === 'admin') {
+    staff.push(
+      { href: '/admin/organizations', key: 'organizations', icon: Building2 },
+      { href: '/admin/pricing', key: 'pricing', icon: Coins },
+    )
+  }
   return staff
 }
 

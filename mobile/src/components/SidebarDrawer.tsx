@@ -17,20 +17,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFarmerDashboard } from '@/features/useFarmer';
 import { LANGUAGES, useI18n, type Language } from '@/i18n';
 import { useSelection, type UserRole } from '@/state/selection';
-import { radius, spacing } from '@/theme';
+import { spacing } from '@/theme';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
 interface NavItem {
   id: string;
   route: string;
-  titleKey: 'tabs.advisory' | 'tabs.grid' | 'tabs.enso' | 'tabs.settings';
+  titleKey: 'tabs.advisory' | 'tabs.grid' | 'tabs.yield' | 'tabs.enso' | 'tabs.settings';
   icon: IconName;
 }
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'advisory', route: '/(tabs)', titleKey: 'tabs.advisory', icon: 'leaf-outline' },
   { id: 'grid', route: '/(tabs)/grid', titleKey: 'tabs.grid', icon: 'grid-outline' },
+  { id: 'yield', route: '/(tabs)/yield', titleKey: 'tabs.yield', icon: 'nutrition-outline' },
   { id: 'enso', route: '/(tabs)/enso', titleKey: 'tabs.enso', icon: 'thermometer-outline' },
   { id: 'settings', route: '/(tabs)/settings', titleKey: 'tabs.settings', icon: 'settings-outline' },
 ];

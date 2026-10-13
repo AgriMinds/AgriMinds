@@ -394,6 +394,16 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "description": "Monthly API quota spent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "503": {
             "description": "Model unavailable",
             "content": {
@@ -438,6 +448,16 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Monthly API quota spent",
             "content": {
               "application/json": {
                 "schema": {
@@ -589,6 +609,16 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "description": "Monthly API quota spent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "503": {
             "description": "Model unavailable",
             "content": {
@@ -656,6 +686,16 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "description": "Monthly API quota spent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "503": {
             "description": "Model unavailable",
             "content": {
@@ -700,6 +740,16 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Monthly API quota spent",
             "content": {
               "application/json": {
                 "schema": {
@@ -767,6 +817,16 @@
               }
             }
           },
+          "429": {
+            "description": "Monthly API quota spent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "503": {
             "description": "Model unavailable",
             "content": {
@@ -818,6 +878,16 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Monthly API quota spent",
             "content": {
               "application/json": {
                 "schema": {
@@ -926,6 +996,16 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "description": "Monthly API quota spent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "503": {
             "description": "Model unavailable",
             "content": {
@@ -980,6 +1060,16 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Monthly API quota spent",
             "content": {
               "application/json": {
                 "schema": {
@@ -1072,6 +1162,16 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "description": "Monthly API quota spent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "503": {
             "description": "Model unavailable",
             "content": {
@@ -1116,6 +1216,16 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Monthly API quota spent",
             "content": {
               "application/json": {
                 "schema": {
@@ -1173,6 +1283,16 @@
               }
             }
           },
+          "429": {
+            "description": "Monthly API quota spent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "503": {
             "description": "Model unavailable",
             "content": {
@@ -1215,6 +1335,16 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Monthly API quota spent",
             "content": {
               "application/json": {
                 "schema": {
@@ -2410,6 +2540,416 @@
           }
         }
       }
+    },
+    "/api/v1/organizations": {
+      "get": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Every paying account",
+        "operationId": "list_organizations_api_v1_organizations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Organizations Api V1 Organizations Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Register an account",
+        "operationId": "create_organization_api_v1_organizations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/organizations/{organization_id}/keys": {
+      "get": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Credentials issued",
+        "operationId": "list_keys_api_v1_organizations__organization_id__keys_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiKeyOut"
+                  },
+                  "title": "Response List Keys Api V1 Organizations  Organization Id  Keys Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Issue an API key",
+        "description": "The response carries the key itself, once. The platform stores only a SHA-256 hash and the last four characters, so it cannot show the key again and a stolen database does not hand anybody a working credential. Give it to the customer now or revoke and reissue.",
+        "operationId": "issue_key_api_v1_organizations__organization_id__keys_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiKeyCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyIssued"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organization_id}/keys/{key_id}": {
+      "delete": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Revoke a key",
+        "description": "The row is kept: it is the record of what was issued and what it spent.",
+        "operationId": "revoke_key_api_v1_organizations__organization_id__keys__key_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "key_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Key Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organization_id}/usage": {
+      "get": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "What this account has spent this month",
+        "operationId": "usage_api_v1_organizations__organization_id__usage_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationUsage"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2743,6 +3283,151 @@
         ],
         "title": "AnalyticsConnection",
         "description": "A direct SQL connection for analysts who build their own reports."
+      },
+      "ApiKeyCreate": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Label",
+            "description": "What this key is for, e.g. 'EIAR research pipeline'"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "title": "ApiKeyCreate"
+      },
+      "ApiKeyIssued": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "last_four": {
+            "type": "string",
+            "title": "Last Four",
+            "description": "So a customer can tell two keys apart"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key",
+            "description": "Shown once. The platform stores only a hash and cannot show it again."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "last_four",
+          "created_at",
+          "last_used_at",
+          "revoked_at",
+          "is_active",
+          "key"
+        ],
+        "title": "ApiKeyIssued",
+        "description": "The one and only response that carries the key itself."
+      },
+      "ApiKeyOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "last_four": {
+            "type": "string",
+            "title": "Last Four",
+            "description": "So a customer can tell two keys apart"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "last_four",
+          "created_at",
+          "last_used_at",
+          "revoked_at",
+          "is_active"
+        ],
+        "title": "ApiKeyOut"
       },
       "CacheStatus": {
         "properties": {
@@ -6019,6 +6704,197 @@
         "title": "ObservedConditions",
         "description": "How dry the ground already is, as opposed to how likely drought is next season."
       },
+      "OrganizationCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "stakeholder": {
+            "type": "string",
+            "enum": [
+              "farmer_premium",
+              "cooperative",
+              "development_agent",
+              "regional_government",
+              "federal_ministry",
+              "research",
+              "international_partner",
+              "private_sector"
+            ],
+            "title": "Stakeholder"
+          },
+          "contact_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Email"
+          },
+          "woreda_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Woreda Id",
+            "description": "Where they operate; omit for national bodies"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "stakeholder"
+        ],
+        "title": "OrganizationCreate"
+      },
+      "OrganizationOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "stakeholder": {
+            "type": "string",
+            "enum": [
+              "farmer_premium",
+              "cooperative",
+              "development_agent",
+              "regional_government",
+              "federal_ministry",
+              "research",
+              "international_partner",
+              "private_sector"
+            ],
+            "title": "Stakeholder"
+          },
+          "contact_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Email"
+          },
+          "woreda_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Woreda Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "api_quota_monthly": {
+            "type": "integer",
+            "title": "Api Quota Monthly",
+            "description": "Requests per calendar month; 0 means no API access"
+          },
+          "api_requests_this_month": {
+            "type": "integer",
+            "title": "Api Requests This Month"
+          },
+          "active_keys": {
+            "type": "integer",
+            "title": "Active Keys"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "stakeholder",
+          "contact_email",
+          "woreda_id",
+          "is_active",
+          "created_at",
+          "api_quota_monthly",
+          "api_requests_this_month",
+          "active_keys"
+        ],
+        "title": "OrganizationOut"
+      },
+      "OrganizationUsage": {
+        "properties": {
+          "organization_id": {
+            "type": "string",
+            "title": "Organization Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "month": {
+            "type": "string",
+            "title": "Month",
+            "description": "YYYY-MM the quota applies to"
+          },
+          "quota_monthly": {
+            "type": "integer",
+            "title": "Quota Monthly"
+          },
+          "used_this_month": {
+            "type": "integer",
+            "title": "Used This Month"
+          },
+          "remaining": {
+            "type": "integer",
+            "title": "Remaining"
+          },
+          "over_quota": {
+            "type": "boolean",
+            "title": "Over Quota"
+          },
+          "daily": {
+            "items": {
+              "$ref": "#/components/schemas/UsageDay"
+            },
+            "type": "array",
+            "title": "Daily",
+            "description": "Oldest first, for the current month"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organization_id",
+          "name",
+          "month",
+          "quota_monthly",
+          "used_this_month",
+          "remaining",
+          "over_quota",
+          "daily"
+        ],
+        "title": "OrganizationUsage"
+      },
       "PricingCatalogue": {
         "properties": {
           "currency": {
@@ -6103,6 +6979,13 @@
             "minimum": 0.0,
             "title": "Daily Cents"
           },
+          "api_quota_monthly": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Api Quota Monthly",
+            "description": "Requests per calendar month to include",
+            "default": 0
+          },
           "effective_from": {
             "type": "string",
             "format": "date",
@@ -6168,6 +7051,11 @@
           "rates": {
             "$ref": "#/components/schemas/TierRates"
           },
+          "api_quota_monthly": {
+            "type": "integer",
+            "title": "Api Quota Monthly",
+            "description": "Requests per calendar month this tier includes; 0 means no API access"
+          },
           "effective_from": {
             "type": "string",
             "format": "date",
@@ -6210,6 +7098,7 @@
           "unit",
           "currency",
           "rates",
+          "api_quota_monthly",
           "effective_from",
           "is_current"
         ],
@@ -6443,6 +7332,25 @@
         },
         "type": "object",
         "title": "UpdateProfileRequest"
+      },
+      "UsageDay": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "requests": {
+            "type": "integer",
+            "title": "Requests"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "requests"
+        ],
+        "title": "UsageDay"
       },
       "UserOut": {
         "properties": {

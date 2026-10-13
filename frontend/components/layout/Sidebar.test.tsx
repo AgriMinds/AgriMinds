@@ -39,15 +39,21 @@ describe('navForRole', () => {
       expect(navForRole(role).map((i) => i.href)).toEqual(operational)
     }
     // An administrator gets the same views plus the commercial one.
-    expect(navForRole('admin').map((i) => i.href)).toEqual([...operational, '/admin/pricing'])
+    expect(navForRole('admin').map((i) => i.href)).toEqual([
+      ...operational,
+      '/admin/organizations',
+      '/admin/pricing',
+    ])
   })
 
-  it('offers the rate card to an administrator only', () => {
-    // /admin/pricing redirects everyone else, so offering it would be offering a dead end.
-    for (const role of ['farmer', 'agent', 'minister'] as const) {
-      expect(navForRole(role).some((i) => i.href === '/admin/pricing')).toBe(false)
+  it('offers the commercial pages to an administrator only', () => {
+    // Both routes redirect everyone else, so offering them would be offering a dead end.
+    for (const href of ['/admin/pricing', '/admin/organizations']) {
+      for (const role of ['farmer', 'agent', 'minister'] as const) {
+        expect(navForRole(role).some((i) => i.href === href)).toBe(false)
+      }
+      expect(navForRole('admin').some((i) => i.href === href)).toBe(true)
     }
-    expect(navForRole('admin').some((i) => i.href === '/admin/pricing')).toBe(true)
   })
 
   it('never offers a farmer a link they would be redirected away from', () => {

@@ -107,6 +107,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen name="grid" options={{ title: t('tabs.grid'), tabBarIcon: tabIcon('grid-outline') }} />
+      <Tabs.Screen name="yield" options={{ title: t('tabs.yield'), tabBarIcon: tabIcon('nutrition-outline') }} />
       <Tabs.Screen name="enso" options={{ title: t('tabs.enso'), tabBarIcon: tabIcon('thermometer-outline') }} />
       <Tabs.Screen name="settings" options={{ title: t('tabs.settings'), tabBarIcon: tabIcon('settings-outline') }} />
     </Tabs>

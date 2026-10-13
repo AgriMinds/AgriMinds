@@ -594,6 +594,82 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/organizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every paying account */
+        get: operations["list_organizations_api_v1_organizations_get"];
+        put?: never;
+        /** Register an account */
+        post: operations["create_organization_api_v1_organizations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organizations/{organization_id}/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Credentials issued */
+        get: operations["list_keys_api_v1_organizations__organization_id__keys_get"];
+        put?: never;
+        /**
+         * Issue an API key
+         * @description The response carries the key itself, once. The platform stores only a SHA-256 hash and the last four characters, so it cannot show the key again and a stolen database does not hand anybody a working credential. Give it to the customer now or revoke and reissue.
+         */
+        post: operations["issue_key_api_v1_organizations__organization_id__keys_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organizations/{organization_id}/keys/{key_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke a key
+         * @description The row is kept: it is the record of what was issued and what it spent.
+         */
+        delete: operations["revoke_key_api_v1_organizations__organization_id__keys__key_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organizations/{organization_id}/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What this account has spent this month */
+        get: operations["usage_api_v1_organizations__organization_id__usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/system/data-sources": {
         parameters: {
             query?: never;
@@ -769,6 +845,68 @@ export type components = {
             server: string;
             /** Views */
             views: string[];
+        };
+        /** ApiKeyCreate */
+        ApiKeyCreate: {
+            /**
+             * Label
+             * @description What this key is for, e.g. 'EIAR research pipeline'
+             */
+            label: string;
+        };
+        /**
+         * ApiKeyIssued
+         * @description The one and only response that carries the key itself.
+         */
+        ApiKeyIssued: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Key
+             * @description Shown once. The platform stores only a hash and cannot show it again.
+             */
+            key: string;
+            /** Label */
+            label: string;
+            /**
+             * Last Four
+             * @description So a customer can tell two keys apart
+             */
+            last_four: string;
+            /** Last Used At */
+            last_used_at: string | null;
+            /** Revoked At */
+            revoked_at: string | null;
+        };
+        /** ApiKeyOut */
+        ApiKeyOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Label */
+            label: string;
+            /**
+             * Last Four
+             * @description So a customer can tell two keys apart
+             */
+            last_four: string;
+            /** Last Used At */
+            last_used_at: string | null;
+            /** Revoked At */
+            revoked_at: string | null;
         };
         /** CacheStatus */
         CacheStatus: {
@@ -2236,6 +2374,80 @@ export type components = {
             /** Method Note */
             method_note: string;
         };
+        /** OrganizationCreate */
+        OrganizationCreate: {
+            /** Contact Email */
+            contact_email?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Stakeholder
+             * @enum {string}
+             */
+            stakeholder: "farmer_premium" | "cooperative" | "development_agent" | "regional_government" | "federal_ministry" | "research" | "international_partner" | "private_sector";
+            /**
+             * Woreda Id
+             * @description Where they operate; omit for national bodies
+             */
+            woreda_id?: string | null;
+        };
+        /** OrganizationOut */
+        OrganizationOut: {
+            /** Active Keys */
+            active_keys: number;
+            /**
+             * Api Quota Monthly
+             * @description Requests per calendar month; 0 means no API access
+             */
+            api_quota_monthly: number;
+            /** Api Requests This Month */
+            api_requests_this_month: number;
+            /** Contact Email */
+            contact_email: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Stakeholder
+             * @enum {string}
+             */
+            stakeholder: "farmer_premium" | "cooperative" | "development_agent" | "regional_government" | "federal_ministry" | "research" | "international_partner" | "private_sector";
+            /** Woreda Id */
+            woreda_id: string | null;
+        };
+        /** OrganizationUsage */
+        OrganizationUsage: {
+            /**
+             * Daily
+             * @description Oldest first, for the current month
+             */
+            daily: components["schemas"]["UsageDay"][];
+            /**
+             * Month
+             * @description YYYY-MM the quota applies to
+             */
+            month: string;
+            /** Name */
+            name: string;
+            /** Organization Id */
+            organization_id: string;
+            /** Over Quota */
+            over_quota: boolean;
+            /** Quota Monthly */
+            quota_monthly: number;
+            /** Remaining */
+            remaining: number;
+            /** Used This Month */
+            used_this_month: number;
+        };
         /**
          * PricingCatalogue
          * @description Every stakeholder's price, current unless history was asked for.
@@ -2265,6 +2477,12 @@ export type components = {
         PricingTierChange: {
             /** Annual Cents */
             annual_cents: number;
+            /**
+             * Api Quota Monthly
+             * @description Requests per calendar month to include
+             * @default 0
+             */
+            api_quota_monthly: number;
             /** Daily Cents */
             daily_cents: number;
             /**
@@ -2285,6 +2503,11 @@ export type components = {
         };
         /** PricingTierOut */
         PricingTierOut: {
+            /**
+             * Api Quota Monthly
+             * @description Requests per calendar month this tier includes; 0 means no API access
+             */
+            api_quota_monthly: number;
             /** Currency */
             currency: string;
             /**
@@ -2410,6 +2633,16 @@ export type components = {
             full_name?: string | null;
             /** Locale */
             locale?: ("en" | "am" | "or") | null;
+        };
+        /** UsageDay */
+        UsageDay: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Requests */
+            requests: number;
         };
         /** UserOut */
         UserOut: {
@@ -2626,6 +2859,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Monthly API quota spent */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Model unavailable */
@@ -3140,6 +3382,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Monthly API quota spent */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Model unavailable */
             503: {
                 headers: {
@@ -3171,6 +3422,15 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Monthly API quota spent */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3230,6 +3490,15 @@ export interface operations {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
+            /** @description Monthly API quota spent */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Model unavailable */
             503: {
                 headers: {
@@ -3281,6 +3550,15 @@ export interface operations {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
+            /** @description Monthly API quota spent */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Model unavailable */
             503: {
                 headers: {
@@ -3329,6 +3607,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Monthly API quota spent */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Model unavailable */
@@ -3541,6 +3828,15 @@ export interface operations {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
+            /** @description Monthly API quota spent */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Model unavailable */
             503: {
                 headers: {
@@ -3592,6 +3888,15 @@ export interface operations {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
+            /** @description Monthly API quota spent */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Model unavailable */
             503: {
                 headers: {
@@ -3623,6 +3928,15 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Monthly API quota spent */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3680,6 +3994,15 @@ export interface operations {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
+            /** @description Monthly API quota spent */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Model unavailable */
             503: {
                 headers: {
@@ -3711,6 +4034,15 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Monthly API quota spent */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3756,6 +4088,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Monthly API quota spent */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Model unavailable */
             503: {
                 headers: {
@@ -3787,6 +4128,15 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Monthly API quota spent */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4239,6 +4589,296 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    list_organizations_api_v1_organizations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_organization_api_v1_organizations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrganizationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_keys_api_v1_organizations__organization_id__keys_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    issue_key_api_v1_organizations__organization_id__keys_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiKeyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyIssued"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_key_api_v1_organizations__organization_id__keys__key_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key_id: string;
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    usage_api_v1_organizations__organization_id__usage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationUsage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

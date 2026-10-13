@@ -7,8 +7,10 @@ touches the database is built per request around a single session and transactio
 from __future__ import annotations
 
 import hmac
+import uuid
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import Depends, Request
@@ -17,7 +19,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from agriminds_api.core import security
 from agriminds_api.core.config import Settings
-from agriminds_api.core.exceptions import DatabaseUnavailableError, ForbiddenError, UnauthorizedError
+from agriminds_api.core.exceptions import (
+    DatabaseUnavailableError,
+    ForbiddenError,
+    QuotaExceededError,
+    UnauthorizedError,
+)
 from agriminds_api.db.models import User, UserRole
 from agriminds_api.domain.geo import GridSpec
 from agriminds_api.services.advisory import AdvisoryService
@@ -136,6 +143,58 @@ def require_principal(
         # Local development with no credentials configured at all.
         return ServicePrincipal(name="anonymous")
     raise UnauthorizedError("Authentication is required.")
+
+
+@dataclass(frozen=True)
+class OrganizationPrincipal:
+    """A paying customer calling the API with their own key. Metered, unlike a static key."""
+
+    organization_id: uuid.UUID
+    name: str
+
+
+async def require_metered_principal(
+    session: SessionDep,
+    settings: SettingsDep,
+    request: Request,
+    api_key: Annotated[str | None, Depends(api_key_header)] = None,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)] = None,
+) -> Principal | OrganizationPrincipal:
+    """Forecast data for a signed-in person, a trusted internal service, or a paying customer.
+
+    Order matters. A bearer token is checked first and costs no database round trip, so the web
+    app and the mobile app are unaffected by any of this. The static keys in configuration stay
+    unmetered: they belong to this platform's own services, and charging ourselves for our own
+    calls would only pollute the usage a customer is invoiced for. Only a key that resolves to an
+    organization is counted, and counted before the handler runs, so a response that was served
+    is a response that was billed.
+    """
+    if credentials is not None or not api_key or _valid_api_key(settings, api_key):
+        return require_principal(settings, api_key, credentials)
+
+    from agriminds_api.services.commerce import CommerceService
+
+    commerce = CommerceService(session, getattr(request.app.state, "cache", None))
+    resolved = await commerce.resolve_key(api_key)
+    if resolved is None:
+        raise UnauthorizedError("That API key is not valid, or it has been revoked.")
+
+    org, key = resolved
+    quota = await commerce.quota_for(org.stakeholder)
+    if quota <= 0:
+        raise ForbiddenError(
+            f"The {org.stakeholder.value.replace('_', ' ')} tier does not include API access."
+        )
+    used = await commerce.month_to_date(org.id)
+    if used >= quota:
+        raise QuotaExceededError(
+            f"{org.name} has used {used:,} of {quota:,} requests this month. "
+            "The allowance resets on the first of next month."
+        )
+
+    await commerce.record_request(org.id)
+    key.last_used_at = datetime.now(UTC)
+    return OrganizationPrincipal(organization_id=org.id, name=org.name)
 
 
 async def get_current_user(

@@ -66,6 +66,9 @@ class PricingTierOut(BaseModel):
     unit: str = Field(description="What one subscription covers, e.g. 'per woreda'")
     currency: str
     rates: TierRates
+    api_quota_monthly: int = Field(
+        description="Requests per calendar month this tier includes; 0 means no API access"
+    )
     effective_from: dt.date
     effective_to: dt.date | None = Field(
         None, description="NULL while the price is in force; set when a later version supersedes it"
@@ -99,6 +102,7 @@ class PricingTierChange(BaseModel):
     annual_cents: int = Field(ge=0)
     monthly_cents: int = Field(ge=0)
     daily_cents: int = Field(ge=0)
+    api_quota_monthly: int = Field(0, ge=0, description="Requests per calendar month to include")
     effective_from: dt.date
     notes: str | None = Field(None, max_length=2000)
 

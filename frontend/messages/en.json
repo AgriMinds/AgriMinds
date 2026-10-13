@@ -20,7 +20,8 @@
       "enso": "Climate (ENSO)",
       "reports": "Reports & briefings",
       "section": "Navigation",
-      "pricing": "Pricing"
+      "pricing": "Pricing",
+      "organizations": "Accounts"
     },
     "workspaceSub": "Debre Markos University · AI Institute of Ethiopia",
     "greeting": "Drought outlook",
@@ -602,16 +603,17 @@
   "pricing": {
     "eyebrow": "Business",
     "title": "Pricing & stakeholders",
-    "intro": "What each kind of stakeholder pays to use the platform. A price is never edited in place: changing one closes the rate in force and opens a new version, so a subscription signed last year still resolves to the rate it was signed at.",
+    "intro": "What each kind of stakeholder pays to use the platform, in birr. A price is never edited in place: changing one closes the rate in force and opens a new version, so an agreement signed last year still resolves to the rate it was signed at.",
     "cardTitle": "Rate card",
-    "cardDesc": "{currency} · one subscription of every tier totals {total} a year · as of {asOf}",
+    "cardDesc": "All amounts in {currency}. The annual rate is what contracts are written at; the others follow from it.",
     "caption": "Price per stakeholder type, by billing period",
     "col": {
       "stakeholder": "Stakeholder",
-      "oneTime": "One-time",
+      "oneTime": "Perpetual",
       "annual": "Annual",
       "monthly": "Monthly",
       "daily": "Daily",
+      "api": "API / month",
       "actions": "Actions"
     },
     "action": {
@@ -627,6 +629,64 @@
     "supersedeNote": "Amounts in {currency}. Saving supersedes the current price from the date above; the old rate stays readable in the history.",
     "save": "Supersede price",
     "saving": "Saving…",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "structure": "Three rules hold across every paying tier: monthly is a tenth of the annual rate, so paying by the year costs ten months rather than twelve; the daily rate is the annual one over 365; and the perpetual licence is four years. They are commercial decisions, not rounding.",
+    "stat": {
+      "contractValue": "One of each, per year",
+      "contractValueDetail": "Every tier sold once, annualised",
+      "apiCapacity": "API capacity sold",
+      "apiCapacityDetail": "Requests a month across all tiers",
+      "tiers": "Tiers priced",
+      "tiersDetail": "In force as of {asOf}"
+    },
+    "apiTitle": "{n} requests per calendar month",
+    "noApi": "none",
+    "noHistory": "This price has not been changed yet, so there is nothing to compare it against."
+  },
+  "organizations": {
+    "eyebrow": "Business",
+    "title": "Accounts & API access",
+    "intro": "The organisations that pay for the platform and the credentials they call the API with. An account's monthly allowance comes from the tier in force for its stakeholder type, so repricing a tier moves every subscriber at once.",
+    "accounts": "Paying accounts",
+    "accountsDesc": "Select one to manage its API credentials",
+    "addTitle": "Register an account",
+    "addDesc": "One agreement per organisation, not per member",
+    "name": "Organisation",
+    "tier": "Stakeholder type",
+    "add": "Register",
+    "adding": "Registering…",
+    "keys": "API credentials",
+    "keysDesc": "Issue a key, or revoke one that has leaked",
+    "usageMonth": "{used} of {quota} requests used in {month}",
+    "issue": "Issue key",
+    "issuing": "Issuing…",
+    "keyLabel": "What is it for",
+    "keyLabelHint": "e.g. EIAR research pipeline",
+    "issuedOnce": "Copy this key now — it cannot be shown again",
+    "issuedHint": "The platform stores a SHA-256 hash and the last four characters. If it is lost, revoke it and issue another.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "dismiss": "Done",
+    "revoke": "Revoke",
+    "revoked": "Revoked",
+    "lastUsed": "last used {date}",
+    "neverUsed": "never used",
+    "noKeys": "No keys issued yet.",
+    "keyCount": "{n} active",
+    "usage": "{used} of {quota}",
+    "noApiTier": "This tier includes no API access",
+    "pickAccount": "Select an account to issue or revoke its API keys.",
+    "empty": "No paying accounts yet",
+    "emptyHint": "Register a ministry, bureau, cooperative or NGO to put them on a tier and issue API credentials.",
+    "stakeholder": {
+      "farmer_premium": "Farmer (premium)",
+      "cooperative": "Cooperative",
+      "development_agent": "Development agent",
+      "regional_government": "Regional / zonal government",
+      "federal_ministry": "Federal ministry",
+      "research": "Research / university",
+      "international_partner": "International partner / NGO",
+      "private_sector": "Private sector"
+    }
   }
 }

@@ -33,14 +33,17 @@ class TestCatalogue:
 
     def test_money_crosses_as_integers_and_as_text(self, client, admin_headers, pricing_tiers) -> None:
         """A client that renders a price must never have to divide by 100 itself."""
-        tiers = {t["stakeholder"]: t for t in client.get("/api/v1/billing/pricing", headers=admin_headers).json()["tiers"]}
+        body = client.get("/api/v1/billing/pricing", headers=admin_headers).json()
+        assert body["currency"] == "ETB"
+        tiers = {t["stakeholder"]: t for t in body["tiers"]}
         coop = tiers["cooperative"]["rates"]
-        assert coop["annual_cents"] == 60_000
-        assert coop["annual"] == "600.00"
+        # Santim, the minor unit of the birr, exactly as cents are for a dollar.
+        assert coop["annual_cents"] == 3_000_000
+        assert coop["annual"] == "30000.00"
         farmer = tiers["farmer_premium"]["rates"]
-        # $0.30 is exactly representable in cents and not in binary floating point.
-        assert farmer["monthly_cents"] == 30
-        assert farmer["monthly"] == "0.30"
+        # 0.41 birr a day is exactly representable in santim and not in binary floating point.
+        assert farmer["daily_cents"] == 41
+        assert farmer["daily"] == "0.41"
 
     def test_the_unit_is_part_of_the_price(self, client, admin_headers, pricing_tiers) -> None:
         tiers = {t["stakeholder"]: t for t in client.get("/api/v1/billing/pricing", headers=admin_headers).json()["tiers"]}
@@ -73,7 +76,7 @@ class TestReprice:
         current, superseded = history[0], history[1]
         assert current["is_current"] and current["rates"]["annual_cents"] == 75_000
         # The old rate is still readable at the number it was actually charged at.
-        assert not superseded["is_current"] and superseded["rates"]["annual_cents"] == 60_000
+        assert not superseded["is_current"] and superseded["rates"]["annual_cents"] == 3_000_000
         assert superseded["effective_to"] == current["effective_from"]
 
     def test_only_one_price_is_ever_in_force(self, client, admin_headers, pricing_tiers) -> None:

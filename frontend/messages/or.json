@@ -20,7 +20,8 @@
       "enso": "Qilleensa (ENSO)",
       "reports": "Gabaasota",
       "section": "Baafata",
-      "pricing": "Gatii"
+      "pricing": "Gatii",
+      "organizations": "Herregoota"
     },
     "workspaceSub": "Yuunivarsiitii Dabra Maarqoos · Dhaabbata AI Itoophiyaa",
     "greeting": "Tilmaama hongee",
@@ -602,16 +603,17 @@
   "pricing": {
     "eyebrow": "Daldala",
     "title": "Gatii fi qooda fudhattoota",
-    "intro": "Gosti qooda fudhattoota tokkoon tokkoon isaanii pilaatfoormii kana fayyadamuuf kaffalan. Gatiin iddoodhuma isaatti hin sirreeffamu: yeroo jijjiiramu gatiin amma hojii irra jiru cufamee fooyya'iinsi haaraa banama, kanaaf galmeen bara darbe mallatteeffame gatii mallatteeffameen hafa.",
+    "intro": "Gosti qooda fudhattoota tokkoon tokkoon isaanii pilaatfoormii kana fayyadamuuf birriidhaan kaffalan. Gatiin iddoodhuma isaatti hin sirreeffamu: yeroo jijjiiramu gatiin amma hojii irra jiru cufamee fooyya'iinsi haaraa banama.",
     "cardTitle": "Gabatee gatii",
-    "cardDesc": "{currency} · galmeen sadarkaa hundaa waggaatti {total} ta'a · hanga {asOf}",
+    "cardDesc": "Baay'inni hundi {currency}dhaan. Gatiin waggaa kan waliigalteen irratti barreeffamu dha; kaan isa irraa hordofu.",
     "caption": "Gatii gosa qooda fudhataa fi yeroo kaffaltiitiin",
     "col": {
       "stakeholder": "Qooda fudhataa",
-      "oneTime": "Al tokko",
+      "oneTime": "Dhaabbataa",
       "annual": "Waggaa",
       "monthly": "Ji'a",
       "daily": "Guyyaa",
+      "api": "API / ji'a",
       "actions": "Gochaalee"
     },
     "action": {
@@ -627,6 +629,64 @@
     "supersedeNote": "Baay'inni {currency}dhaan. Olkaa'uun guyyaa armaan olii irraa kaasee gatii ammaa bakka bu'a; gatiin durii seenaa keessatti dubbifama.",
     "save": "Gatii bakka buusi",
     "saving": "Olkaa'aa jira…",
-    "cancel": "Haqi"
+    "cancel": "Haqi",
+    "structure": "Sadarkaalee kaffalaman hunda keessatti seerri sadii ni hojjeta: ji'aan kurmaana kudhan waggaa ti, kanaaf waggaadhaan kaffaluun ji'a kudha lamaa caalaa ji'a kudhan baasa; gatiin guyyaa waggaa 365tti qoodame; hayyamni dhaabbataa immoo waggaa afurii ti.",
+    "stat": {
+      "contractValue": "Tokkoon tokkoon isaa, waggaatti",
+      "contractValueDetail": "Sadarkaan hundi al tokko yoo gurguramu",
+      "apiCapacity": "Dandeettii API gurgurame",
+      "apiCapacityDetail": "Gaaffii ji'atti sadarkaalee hunda keessatti",
+      "tiers": "Sadarkaalee gatii qaban",
+      "tiersDetail": "Hanga {asOf} hojii irra"
+    },
+    "apiTitle": "Ji'atti gaaffii {n}",
+    "noApi": "hin jiru",
+    "noHistory": "Gatiin kun hanga ammaatti hin jijjiiramne, kanaaf wanti wal bira qabamu hin jiru."
+  },
+  "organizations": {
+    "eyebrow": "Daldala",
+    "title": "Herrega fi dhaqqabummaa API",
+    "intro": "Dhaabbilee pilaatfoormii kanaaf kaffalanii fi ragaa isaan API waamaniin. Hayyamni ji'aa herregaa sadarkaa gosa qooda fudhataa isaa irraa dhufa.",
+    "accounts": "Herregoota kaffalan",
+    "accountsDesc": "Ragaa API bulchuuf tokko filadhu",
+    "addTitle": "Herrega galmeessi",
+    "addDesc": "Dhaabbata tokkoof waliigaltee tokko",
+    "name": "Dhaabbata",
+    "tier": "Gosa qooda fudhataa",
+    "add": "Galmeessi",
+    "adding": "Galmeessaa jira…",
+    "keys": "Ragaa API",
+    "keysDesc": "Furtuu kenni, yookiin kan dhangala'e haqi",
+    "usageMonth": "{month} keessatti gaaffii {quota} keessaa {used} fayyadame",
+    "issue": "Furtuu kenni",
+    "issuing": "Kennaa jira…",
+    "keyLabel": "Maaliif",
+    "keyLabelHint": "fkn. ujummoo qorannoo EIAR",
+    "issuedOnce": "Furtuu kana amma garagalchi — deebi'ee hin mul'atu",
+    "issuedHint": "Pilaatfoormiin haash SHA-256 fi arfiilee afran dhumaa qofa kaa'a. Yoo bade, haqii kan biraa kenni.",
+    "copy": "Garagalchi",
+    "copied": "Garagalfame",
+    "dismiss": "Xumurame",
+    "revoke": "Haqi",
+    "revoked": "Haqame",
+    "lastUsed": "dhumarratti {date} fayyadame",
+    "neverUsed": "hin fayyadamne",
+    "noKeys": "Hanga ammaatti furtuun hin kennamne.",
+    "keyCount": "{n} hojii irra",
+    "usage": "{quota} keessaa {used}",
+    "noApiTier": "Sadarkaan kun dhaqqabummaa API hin qabu",
+    "pickAccount": "Furtuu API kennuuf yookiin haquuf herrega filadhu.",
+    "empty": "Hanga ammaatti herregi kaffalu hin jiru",
+    "emptyHint": "Ministeera, biiroo, waldaa hojii gamtaa yookiin NGO galmeessi.",
+    "stakeholder": {
+      "farmer_premium": "Qonnaan bulaa (premium)",
+      "cooperative": "Waldaa hojii gamtaa",
+      "development_agent": "Ogeessa misoomaa",
+      "regional_government": "Mootummaa naannoo / godinaa",
+      "federal_ministry": "Ministeera federaalaa",
+      "research": "Qorannoo / yunivarsiitii",
+      "international_partner": "Michuu idil-addunyaa / NGO",
+      "private_sector": "Dhaabbata dhuunfaa"
+    }
   }
 }

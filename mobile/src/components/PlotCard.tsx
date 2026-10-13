@@ -13,10 +13,11 @@ interface Props {
   farm: Farm;
   selected: boolean;
   onSelect: () => void;
+  onEdit?: () => void;
   ground?: PdsiCategory | null;
 }
 
-export function PlotCard({ farm, selected, onSelect, ground }: Props) {
+export function PlotCard({ farm, selected, onSelect, onEdit, ground }: Props) {
   const { t } = useI18n();
   const { colors, dark } = useTheme();
 
@@ -57,12 +58,32 @@ export function PlotCard({ farm, selected, onSelect, ground }: Props) {
           </View>
         </View>
 
-        {selected ? (
-          <View style={[styles.activePill, { backgroundColor: colors.primary }]}>
-            <Ionicons name="checkmark" size={12} color="#ffffff" />
-            <Text style={styles.activePillText}>Active</Text>
-          </View>
-        ) : null}
+        <View style={styles.topActions}>
+          {selected ? (
+            <View style={[styles.activePill, { backgroundColor: colors.primary }]}>
+              <Ionicons name="checkmark" size={12} color="#ffffff" />
+              <Text style={styles.activePillText}>Active</Text>
+            </View>
+          ) : null}
+
+          {onEdit ? (
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation?.();
+                onEdit();
+              }}
+              hitSlop={8}
+              style={[
+                styles.editBtn,
+                { backgroundColor: dark ? '#222' : '#f3f4f6', borderColor: colors.border },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={`Edit ${farm.name}`}
+            >
+              <Ionicons name="create-outline" size={14} color={colors.text} />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       {/* Risk Metrics Section */}
@@ -141,6 +162,19 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
+  },
+  topActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  editBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   activePill: {
     flexDirection: 'row',

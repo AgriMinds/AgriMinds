@@ -106,7 +106,7 @@ export function AdvisoryActionCard({
   acknowledging,
   ground,
 }: Props) {
-  const { t, language } = useI18n();
+  const { t } = useI18n();
   const { colors, dark } = useTheme();
 
   const level = advisory.risk_level as RiskLevel;

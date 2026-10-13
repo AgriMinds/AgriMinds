@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from agriminds_api.api.deps import require_principal
+from agriminds_api.api.deps import require_metered_principal
 from agriminds_api.api.v1 import (
     advisory,
     analytics,
@@ -15,6 +15,7 @@ from agriminds_api.api.v1 import (
     health,
     horizon,
     metrics,
+    organizations,
     system,
 )
 from agriminds_api.schemas.common import ErrorResponse
@@ -29,9 +30,10 @@ api_router.include_router(geo.router)
 
 # Forecast data: a signed-in person or a trusted service (X-API-Key).
 _forecast = APIRouter(
-    dependencies=[Depends(require_principal)],
+    dependencies=[Depends(require_metered_principal)],
     responses={
         401: {"model": ErrorResponse},
+        429: {"model": ErrorResponse, "description": "Monthly API quota spent"},
         503: {"model": ErrorResponse, "description": "Model unavailable"},
     },
 )
@@ -55,4 +57,5 @@ _private.include_router(dashboard.router)
 _private.include_router(analytics.router)
 _private.include_router(system.router)
 _private.include_router(billing.router)
+_private.include_router(organizations.router)
 api_router.include_router(_private)

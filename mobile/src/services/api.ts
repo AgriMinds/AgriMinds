@@ -2,11 +2,17 @@ import type {
   AdvisoryRequest,
   AdvisoryResponse,
   CellRiskResponse,
+  CropYieldModelCard,
+  CropYieldOutlook,
   DroughtMapResponse,
+  EnsoImpactResponse,
   EnsoOutlookResponse,
   ErrorResponse,
+  Farm,
   FarmAdvisory,
+  FarmCreate,
   FarmerDashboard,
+  FarmUpdate,
   HealthResponse,
   LeadMonth,
   MinistryDashboard,
@@ -178,4 +184,34 @@ export const api = {
     authRequest<FarmAdvisory>(role, `/farms/${farmId}/advisory?lead_month=${leadMonth}`),
   acknowledgeAdvisory: (advisoryId: string, role: string = 'farmer') =>
     authRequest<void>(role, `/dashboard/farmer/advisories/${advisoryId}/acknowledge`, { method: 'POST' }),
+
+  // Farm CRUD (Database management)
+  createFarm: (payload: FarmCreate, leadMonth: LeadMonth = 1, role: string = 'farmer') =>
+    authRequest<Farm>(role, `/farms?lead_month=${leadMonth}`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  updateFarm: (id: string, payload: FarmUpdate, leadMonth: LeadMonth = 1, role: string = 'farmer') =>
+    authRequest<Farm>(role, `/farms/${id}?lead_month=${leadMonth}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  deleteFarm: (id: string, role: string = 'farmer') =>
+    authRequest<void>(role, `/farms/${id}`, { method: 'DELETE' }),
+
+  // Agro-ecological crop yield model
+  cropYieldOutlook: (params?: { year?: number; leadMonth?: number }) => {
+    const qs = params
+      ? '?' +
+        new URLSearchParams(
+          Object.entries(params)
+            .filter(([, v]) => v != null)
+            .map(([k, v]) => [k === 'leadMonth' ? 'lead_month' : k, String(v)]),
+        ).toString()
+      : '';
+    return request<CropYieldOutlook>(`/crop-yield/outlook${qs}`);
+  },
+  ensoImpact: () => request<EnsoImpactResponse>('/crop-yield/enso-impact'),
+  cropYieldModel: () => request<CropYieldModelCard>('/crop-yield/model'),
 };
+

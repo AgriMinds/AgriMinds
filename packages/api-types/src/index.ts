@@ -183,3 +183,10 @@ export const STAKEHOLDERS = [
   'international_partner',
   'private_sector',
 ] as const satisfies readonly StakeholderName[]
+
+// ---- organizations & metered API -------------------------------------------------------
+export type OrganizationOut = Schemas['OrganizationOut']
+export type OrganizationCreate = Schemas['OrganizationCreate']
+export type ApiKeyOut = Schemas['ApiKeyOut']
+export type ApiKeyIssued = Schemas['ApiKeyIssued']
+export type OrganizationUsage = Schemas['OrganizationUsage']

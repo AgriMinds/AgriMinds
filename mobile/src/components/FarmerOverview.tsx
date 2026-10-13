@@ -1,7 +1,7 @@
 import { LEAD_MONTHS, type Farm, type LeadMonth } from '@agriminds/api-types';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { OfflineBanner, ProvenanceBanner } from '@/components/Banners';
 import { Card } from '@/components/Card';
@@ -16,6 +16,7 @@ import { useI18n } from '@/i18n';
 import { useSelection } from '@/state/selection';
 import { radius, spacing, useTheme } from '@/theme';
 
+import { PlotModal } from './PlotModal';
 import { AdvisoryActionCard } from './AdvisoryActionCard';
 import { PlotCard } from './PlotCard';
 
@@ -82,6 +83,8 @@ export function FarmerOverview() {
 
   const [selectedFarmId, setSelectedFarmId] = useState<string | null>(null);
   const [acknowledgedIds, setAcknowledgedIds] = useState<Set<string>>(new Set());
+  const [plotModalVisible, setPlotModalVisible] = useState(false);
+  const [editingFarm, setEditingFarm] = useState<Farm | null>(null);
 
   const dashboardQuery = useFarmerDashboard(sel.lead);
   const data = dashboardQuery.data;
@@ -214,17 +217,31 @@ export function FarmerOverview() {
       ) : null}
 
       {/* Registered Plots List */}
-      {data?.farms && data.farms.length > 0 && (
-        <View style={styles.plotsSection}>
-          <View style={styles.plotsHeaderRow}>
+      <View style={styles.plotsSection}>
+        <View style={styles.plotsHeaderTop}>
+          <View style={{ flex: 1 }}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {t('farmer.myPlots', { count: data.farms.length })}
+              {t('farmer.myPlots', { count: data?.farms?.length ?? 0 })}
             </Text>
             <Text style={[styles.plotsHint, { color: colors.textMuted }]}>
               {t('farmer.plotsHint')}
             </Text>
           </View>
 
+          <TouchableOpacity
+            onPress={() => {
+              setEditingFarm(null);
+              setPlotModalVisible(true);
+            }}
+            style={[styles.addPlotBtn, { backgroundColor: colors.primary }]}
+            accessibilityRole="button"
+          >
+            <Ionicons name="add" size={17} color="#ffffff" />
+            <Text style={styles.addPlotBtnText}>{t('farmer.addPlot')}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {data?.farms && data.farms.length > 0 ? (
           <View style={styles.plotsList}>
             {data.farms.map((farm: Farm) => {
               const isSelected = farm.id === activeId;
@@ -234,13 +251,46 @@ export function FarmerOverview() {
                   farm={farm}
                   selected={isSelected}
                   onSelect={() => setSelectedFarmId(farm.id)}
+                  onEdit={() => {
+                    setEditingFarm(farm);
+                    setPlotModalVisible(true);
+                  }}
                   ground={farm.risk?.pdsi_category}
                 />
               );
             })}
           </View>
-        </View>
-      )}
+        ) : (
+          <View
+            style={[
+              styles.emptyPlotsCard,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <Ionicons name="leaf-outline" size={32} color={colors.primary} />
+            <Text style={[styles.emptyPlotsTitle, { color: colors.text }]}>
+              {t('farmer.noPlotsTitle')}
+            </Text>
+            <Text style={[styles.emptyPlotsBody, { color: colors.textMuted }]}>
+              {t('farmer.noPlotsBody')}
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                setEditingFarm(null);
+                setPlotModalVisible(true);
+              }}
+              style={[
+                styles.addPlotBtn,
+                { backgroundColor: colors.primary, marginTop: spacing.sm },
+              ]}
+              accessibilityRole="button"
+            >
+              <Ionicons name="add" size={16} color="#ffffff" />
+              <Text style={styles.addPlotBtnText}>{t('farmer.addPlot')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
 
       {/* Regional Climate Outlook */}
       {data?.enso_summary && (
@@ -253,9 +303,21 @@ export function FarmerOverview() {
           </Text>
         </Card>
       )}
+
+      {/* Plot Create / Edit Modal Dialog */}
+      <PlotModal
+        visible={plotModalVisible}
+        farm={editingFarm}
+        lead={sel.lead}
+        onClose={() => {
+          setPlotModalVisible(false);
+          setEditingFarm(null);
+        }}
+      />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { gap: spacing.lg },
@@ -284,9 +346,47 @@ const styles = StyleSheet.create({
   intro: { fontSize: 13, lineHeight: 19 },
   leadSelector: { marginTop: spacing.xs },
   plotsSection: { gap: spacing.sm },
+  plotsHeaderTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
   plotsHeaderRow: { gap: 2 },
   sectionTitle: { fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
   plotsHint: { fontSize: 12 },
+  addPlotBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    borderRadius: radius.pill,
+  },
+  addPlotBtnText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  emptyPlotsCard: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  emptyPlotsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  emptyPlotsBody: {
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18,
+    maxWidth: 260,
+  },
   plotsList: { gap: spacing.md },
   ensoBody: { fontSize: 13, lineHeight: 20 },
 });

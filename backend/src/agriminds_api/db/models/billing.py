@@ -2,7 +2,7 @@
 
 Two decisions are load-bearing.
 
-**Money is stored as an integer count of cents.** A float cannot hold 0.30 exactly, and a price
+**Money is stored as an integer count of minor units** (santim for ETB, cents for USD). A float cannot hold 0.30 exactly, and a price
 list that drifts by a hundredth under addition is not a price list. Every amount here is minor
 units of ``currency``; the API converts at the edge and nothing in between does arithmetic on a
 float.
@@ -51,6 +51,7 @@ class PricingTier(UUIDPrimaryKey, Timestamps, Base):
         CheckConstraint("annual_cents >= 0", name="ck_pricing_tier_annual_non_negative"),
         CheckConstraint("monthly_cents >= 0", name="ck_pricing_tier_monthly_non_negative"),
         CheckConstraint("daily_cents >= 0", name="ck_pricing_tier_daily_non_negative"),
+        CheckConstraint("api_quota_monthly >= 0", name="ck_pricing_tier_quota_non_negative"),
         CheckConstraint(
             "effective_to IS NULL OR effective_to > effective_from",
             name="ck_pricing_tier_window_ordered",
@@ -81,6 +82,10 @@ class PricingTier(UUIDPrimaryKey, Timestamps, Base):
     effective_from: Mapped[dt.date] = mapped_column(Date, index=True)
     #: NULL means "still in force". A superseding row closes it.
     effective_to: Mapped[dt.date | None] = mapped_column(Date, nullable=True)
+
+    #: Requests per calendar month a subscriber of this tier may make against the metered API.
+    #: Zero means the tier carries no API access at all, which is the case for farmers.
+    api_quota_monthly: Mapped[int] = mapped_column(BigInteger, default=0)
 
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 

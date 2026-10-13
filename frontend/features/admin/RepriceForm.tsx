@@ -31,6 +31,7 @@ export function RepriceForm({ tier, onDone }: { tier: PricingTierOut; onDone: ()
     annual: tier.rates.annual,
     monthly: tier.rates.monthly,
     daily: tier.rates.daily,
+    api_quota_monthly: String(tier.api_quota_monthly),
     effective_from: tomorrow.toISOString().slice(0, 10),
   })
 
@@ -49,6 +50,7 @@ export function RepriceForm({ tier, onDone }: { tier: PricingTierOut; onDone: ()
           annual_cents: toCents(form.annual),
           monthly_cents: toCents(form.monthly),
           daily_cents: toCents(form.daily),
+          api_quota_monthly: Number(form.api_quota_monthly) || 0,
           effective_from: form.effective_from,
         },
       },
@@ -81,6 +83,17 @@ export function RepriceForm({ tier, onDone }: { tier: PricingTierOut; onDone: ()
         {money('annual')}
         {money('monthly')}
         {money('daily')}
+        <label className="flex flex-col gap-1 text-xs" htmlFor={`${id}-quota`}>
+          <span className="text-fg-muted">{t('col.api')}</span>
+          <input
+            id={`${id}-quota`}
+            inputMode="numeric"
+            pattern="[0-9]*"
+            required
+            className="w-28 rounded-md border border-border bg-surface px-2 py-1 text-right tabular-nums"
+            {...field('api_quota_monthly')}
+          />
+        </label>
         <label className="flex flex-col gap-1 text-xs" htmlFor={`${id}-from`}>
           <span className="text-fg-muted">{t('effectiveFrom')}</span>
           <input

@@ -80,6 +80,18 @@ class ConflictError(AppError):
     code = "conflict"
 
 
+class QuotaExceededError(AppError):
+    """A metered client has spent its monthly allowance.
+
+    429 rather than 402 or 403: the request is well-formed and the credential is valid, the
+    customer has simply used what they bought. A retry next month succeeds, which is what 429
+    means and what a client library will handle sensibly.
+    """
+
+    status_code = 429
+    code = "quota_exceeded"
+
+
 class ValidationError(AppError):
     """The request is not valid."""
 

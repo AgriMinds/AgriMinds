@@ -7,4 +7,8 @@ export const queryKeys = {
   ministryDashboard: (lead: number) => ['ministry', 'dashboard', lead] as const,
   farmAdvisory: (farmId: string, lead: number) => ['farm', farmId, 'advisory', lead] as const,
   watershed: ['watershed'] as const,
+  cropYieldOutlook: (year?: number, leadMonth?: number) => ['cropYield', 'outlook', year ?? null, leadMonth ?? null] as const,
+  ensoImpact: ['cropYield', 'ensoImpact'] as const,
+  cropYieldModel: ['cropYield', 'model'] as const,
 };
+

@@ -9,6 +9,11 @@ import type {
   CropYieldScenarioRequest,
   DataInventory,
   CropYieldTimeline,
+  ApiKeyIssued,
+  ApiKeyOut,
+  OrganizationCreate,
+  OrganizationOut,
+  OrganizationUsage,
   PricingCatalogue,
   PricingTierChange,
   PricingTierOut,
@@ -199,6 +204,21 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(change),
     }),
+
+  // ---- organizations & metered API (admin only) ---------------------------------------
+  organizations: () => request<OrganizationOut[]>('/organizations'),
+  createOrganization: (payload: OrganizationCreate) =>
+    request<OrganizationOut>('/organizations', { method: 'POST', body: JSON.stringify(payload) }),
+  organizationKeys: (id: string) => request<ApiKeyOut[]>(`/organizations/${id}/keys`),
+  /** The response carries the key itself, once. It cannot be read back afterwards. */
+  issueKey: (id: string, label: string) =>
+    request<ApiKeyIssued>(`/organizations/${id}/keys`, {
+      method: 'POST',
+      body: JSON.stringify({ label }),
+    }),
+  revokeKey: (id: string, keyId: string) =>
+    request<ApiKeyOut>(`/organizations/${id}/keys/${keyId}`, { method: 'DELETE' }),
+  organizationUsage: (id: string) => request<OrganizationUsage>(`/organizations/${id}/usage`),
 
   // ---- analytics ----------------------------------------------------------------------
   metabaseStatus: () => request<MetabaseStatus>('/analytics/metabase/status'),

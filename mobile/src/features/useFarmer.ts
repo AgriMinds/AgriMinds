@@ -1,4 +1,4 @@
-import type { FarmAdvisory, FarmerDashboard, LeadMonth } from '@agriminds/api-types';
+import type { FarmAdvisory, FarmCreate, FarmerDashboard, FarmUpdate, LeadMonth } from '@agriminds/api-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/services/api';
@@ -28,6 +28,36 @@ export function useFarmAdvisory(farmId: string | null, leadMonth?: LeadMonth, en
   });
 }
 
+export function useFarmMutations(leadMonth?: LeadMonth) {
+  const queryClient = useQueryClient();
+  const selLead = useSelection((s) => s.lead);
+  const role = useSelection((s) => s.role);
+  const lead = leadMonth ?? selLead;
+  const callerRole = role === 'da' ? 'da' : 'farmer';
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ['farmer'] });
+    queryClient.invalidateQueries({ queryKey: ['farm'] });
+    queryClient.invalidateQueries({ queryKey: ['ministry'] });
+  };
+
+  return {
+    create: useMutation({
+      mutationFn: (payload: FarmCreate) => api.createFarm(payload, lead, callerRole),
+      onSuccess: invalidate,
+    }),
+    update: useMutation({
+      mutationFn: ({ id, payload }: { id: string; payload: FarmUpdate }) =>
+        api.updateFarm(id, payload, lead, callerRole),
+      onSuccess: invalidate,
+    }),
+    remove: useMutation({
+      mutationFn: (id: string) => api.deleteFarm(id, callerRole),
+      onSuccess: invalidate,
+    }),
+  };
+}
+
 export function useAcknowledgeAdvisory() {
   const queryClient = useQueryClient();
   const role = useSelection((s) => s.role);
@@ -40,3 +70,4 @@ export function useAcknowledgeAdvisory() {
     },
   });
 }
+

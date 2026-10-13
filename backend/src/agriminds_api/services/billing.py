@@ -38,6 +38,7 @@ def _out(tier: PricingTier) -> PricingTierOut:
         rates=TierRates.of(
             tier.one_time_cents, tier.annual_cents, tier.monthly_cents, tier.daily_cents
         ),
+        api_quota_monthly=tier.api_quota_monthly,
         effective_from=tier.effective_from,
         effective_to=tier.effective_to,
         is_current=tier.effective_to is None,
@@ -106,6 +107,9 @@ class BillingService:
             annual_cents=req.annual_cents,
             monthly_cents=req.monthly_cents,
             daily_cents=req.daily_cents,
+            # Carried forward when the caller does not restate it: a price change is usually
+            # about money, and silently zeroing a customer's API allowance is not a price change.
+            api_quota_monthly=req.api_quota_monthly or live.api_quota_monthly,
             effective_from=req.effective_from,
             effective_to=None,
             notes=req.notes,

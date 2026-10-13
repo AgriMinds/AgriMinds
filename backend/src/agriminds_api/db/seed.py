@@ -219,21 +219,28 @@ async def seed_demo(session: AsyncSession, settings: Settings, password: str = D
 
 # ---------------------------------------------------------------------------- pricing
 
-#: The opening rate card, in integer cents of USD, as (stakeholder, label, unit, rates).
+#: The rate card, in santim (1/100 birr), as (stakeholder, label, unit, rates..., api quota).
 #:
-#: Migration 0004 installs the same figures and deliberately keeps its own copy: a migration is a
-#: frozen record of what the schema looked like then, so it must not import this module and start
-#: changing retroactively when the price list does. This copy is what a fresh database or a test
-#: re-seeds from after a truncation.
-PRICING_TIERS: tuple[tuple[str, str, str, int, int, int, int], ...] = (
-    ("farmer_premium", "Farmer (premium)", "per farmer", 0, 300, 30, 1),
-    ("cooperative", "Cooperative", "per cooperative", 240_000, 60_000, 6_000, 160),
-    ("development_agent", "Development agent", "per woreda", 960_000, 240_000, 24_000, 660),
-    ("regional_government", "Regional / zonal government", "per bureau", 14_400_000, 3_600_000, 360_000, 9_900),
-    ("federal_ministry", "Federal ministry", "per ministry", 36_000_000, 9_000_000, 900_000, 24_700),
-    ("research", "Research / university", "per institution", 0, 120_000, 12_000, 330),
-    ("international_partner", "International partner / NGO", "per organisation", 24_000_000, 6_000_000, 600_000, 16_400),
-    ("private_sector", "Private sector", "per company", 9_600_000, 2_400_000, 240_000, 6_600),
+#: Birr rather than dollars: Ethiopian institutions budget in birr, and a price list is a local
+#: commercial decision rather than an exchange-rate calculation. Migration 0005 installs the same
+#: figures and deliberately keeps its own copy — a migration is a frozen record of what the schema
+#: held then, so it must not import this module and start changing retroactively when prices move.
+PRICING_TIERS: tuple[tuple[str, str, str, int, int, int, int, int], ...] = (
+    ("federal_ministry", "Federal ministry", "per ministry",
+     1_800_000_000, 450_000_000, 45_000_000, 1_233_000, 1_000_000),
+    ("international_partner", "International partner / NGO", "per organisation",
+     1_200_000_000, 300_000_000, 30_000_000, 822_000, 500_000),
+    ("regional_government", "Regional / zonal government", "per bureau",
+     720_000_000, 180_000_000, 18_000_000, 493_000, 250_000),
+    ("private_sector", "Private sector", "per company",
+     480_000_000, 120_000_000, 12_000_000, 329_000, 100_000),
+    ("development_agent", "Development agent", "per woreda",
+     48_000_000, 12_000_000, 1_200_000, 33_000, 25_000),
+    ("research", "Research / university", "per institution",
+     0, 6_000_000, 600_000, 16_500, 50_000),
+    ("cooperative", "Cooperative", "per cooperative",
+     12_000_000, 3_000_000, 300_000, 8_200, 10_000),
+    ("farmer_premium", "Farmer (premium)", "per farmer", 0, 15_000, 1_500, 41, 0),
 )
 
 
@@ -252,7 +259,7 @@ async def seed_pricing_tiers(session: AsyncSession, effective_from: date | None 
     )
     start = effective_from or date.today()
     added = 0
-    for key, label, unit, one_time, annual, monthly, daily in PRICING_TIERS:
+    for key, label, unit, one_time, annual, monthly, daily, quota in PRICING_TIERS:
         stakeholder = StakeholderType(key)
         if stakeholder in priced:
             continue
@@ -261,11 +268,12 @@ async def seed_pricing_tiers(session: AsyncSession, effective_from: date | None 
                 stakeholder=stakeholder,
                 label=label,
                 unit=unit,
-                currency="USD",
+                currency="ETB",
                 one_time_cents=one_time,
                 annual_cents=annual,
                 monthly_cents=monthly,
                 daily_cents=daily,
+                api_quota_monthly=quota,
                 effective_from=start,
             )
         )

@@ -5,50 +5,19 @@ import {
   clearSessionCookies,
   writeSessionCookies,
 } from '@/lib/server/session'
+import { isAllowed, type Method } from '@/lib/server/api-routes'
 import { callUpstream, refreshTokens } from '@/lib/server/upstream'
 
 /**
  * Same-origin proxy to the FastAPI service.
  *
  * - The browser never learns the backend host and never holds a token.
- * - Only documented paths are forwarded; anything else is 404.
+ * - Only documented paths are forwarded; anything else is 404. The list lives in
+ *   `lib/server/api-routes.ts` so a test can check it against what the client calls.
  * - The access token is attached from an httpOnly cookie. If it is missing or the service
  *   rejects it, the refresh token is spent exactly once and the original request is retried.
  * - Nothing is cached: forecasts carry their own `provenance.issued_date`.
  */
-const UUID = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
-
-type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE'
-
-const ALLOWED: ReadonlyArray<{ method: Method; path: RegExp }> = [
-  { method: 'GET', path: /^health(\/ready)?$/ },
-  { method: 'GET', path: /^drought\/(map|cell|watershed|horizon|metrics)$/ },
-  { method: 'POST', path: /^drought\/cell$/ },
-  { method: 'POST', path: /^advisories\/evaluate$/ },
-  { method: 'GET', path: /^enso\/outlook$/ },
-  { method: 'GET', path: /^crop-yield\/(outlook|model|enso-impact)$/ },
-  { method: 'POST', path: /^crop-yield\/simulate$/ },
-  // account
-  { method: 'GET', path: /^auth\/me$/ },
-  { method: 'PATCH', path: /^auth\/me$/ },
-  { method: 'POST', path: /^auth\/me\/password$/ },
-  // farms
-  { method: 'GET', path: /^farms$/ },
-  { method: 'POST', path: /^farms$/ },
-  { method: 'GET', path: new RegExp(`^farms/${UUID}$`) },
-  { method: 'PATCH', path: new RegExp(`^farms/${UUID}$`) },
-  { method: 'DELETE', path: new RegExp(`^farms/${UUID}$`) },
-  { method: 'GET', path: new RegExp(`^farms/${UUID}/advisory$`) },
-  // what the platform is built from (staff)
-  { method: 'GET', path: /^system\/data-sources$/ },
-  // dashboards
-  { method: 'GET', path: /^dashboard\/(farmer|ministry)$/ },
-  { method: 'POST', path: new RegExp(`^dashboard/farmer/advisories/${UUID}/acknowledge$`) },
-  // analytics (staff; the service enforces the role and, where configured, the district scope)
-  { method: 'GET', path: /^analytics\/metabase\/(status|embed)$/ },
-  { method: 'GET', path: /^analytics\/connection$/ },
-]
-
 function errorJson(status: number, code: string, message: string) {
   return NextResponse.json({ error: { code, message } }, { status })
 }
@@ -74,7 +43,7 @@ async function forward(
 ): Promise<NextResponse> {
   const { path } = await ctx.params
   const joined = path.join('/')
-  if (!ALLOWED.some((r) => r.method === method && r.path.test(joined))) {
+  if (!isAllowed(method, joined)) {
     return errorJson(404, 'not_found', 'Unknown API path')
   }
 

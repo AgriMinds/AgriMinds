@@ -2,7 +2,7 @@
   "appName": "AgriMinds AI-DREWS",
   "subtitle": "Choke Mountain Watershed · Field Advisor",
   "organization": "FDRE Ministry of Agriculture",
-  "tabs": { "advisory": "Advisory", "grid": "Drought Grid", "enso": "Climate", "settings": "Settings" },
+  "tabs": { "advisory": "Advisory", "grid": "Drought Grid", "yield": "Crop Yield", "enso": "Climate", "settings": "Settings" },
   "roles": {
     "title": "Portal Mode",
     "farmer": "Farmer (አርሶ አደር)",
@@ -118,6 +118,24 @@
     "legend": "Legend",
     "move": "Move selection"
   },
+  "yield": {
+    "title": "Agro-Ecological Crop Yield",
+    "subtitle": "Altitude belts & seasonal climate response over Choke",
+    "belt": "Agro-ecological belt",
+    "dega": "Dega (Highlands > 2,500m)",
+    "weynaDega": "Woina Dega (Midlands 1,500–2,500m)",
+    "kolla": "Kolla (Lowlands < 1,500m)",
+    "expectedYield": "Expected Yield",
+    "unit": "q/ha",
+    "baseline": "Neutral baseline",
+    "vsBaseline": "vs neutral baseline",
+    "impactTitle": "El Niño Historical Sensitivity",
+    "impactDesc": "Measured yield departures during El Niño anomaly years across Choke belts.",
+    "modelCard": "Yield Model Intelligence",
+    "rmse": "Holdout RMSE: {rmse} q/ha",
+    "allBelts": "All Altitude Belts",
+    "recommendation": "Recommended staple for this belt:"
+  },
   "enso": {
     "title": "ENSO outlook (Niño 3.4)",
     "current": "Current anomaly",
@@ -159,12 +177,36 @@
     "myPlots": "My plots ({count})",
     "plotsHint": "Tap a plot to see the advice for that land.",
     "addPlot": "Add plot",
+    "editPlot": "Edit plot",
+    "deletePlot": "Delete",
+    "confirmDelete": "Tap again to confirm delete",
+    "saveChanges": "Save changes",
+    "registerPlot": "Register new plot",
+    "plotName": "Plot name",
+    "plotNamePlaceholder": "e.g. North Ridge Plot",
+    "latitude": "Latitude (°N)",
+    "longitude": "Longitude (°E)",
+    "area": "Area (hectares)",
+    "areaPlaceholder": "e.g. 1.25",
+    "primaryCrop": "Target staple crop",
+    "useCurrentGps": "Auto-fill with device GPS",
+    "gpsFilled": "GPS acquired ({lat}°N, {lon}°E)",
+    "cancel": "Cancel",
     "hectaresShort": "ha",
     "landRisk": "Risk for this land",
     "riskUnavailable": "Risk not available",
+    "noPlotsTitle": "No plots registered yet",
+    "noPlotsBody": "Add your first plot to see real-time drought risk and tailored agronomic advisories.",
     "groundNow": "Ground now: {band}",
     "groundUnavailable": "Ground reading not available",
-    "ensoNowBand": "Pacific Ocean now: {band}"
+    "ensoNowBand": "Pacific Ocean now: {band}",
+    "errors": {
+      "nameRequired": "Please enter a plot name.",
+      "latitude": "Enter a latitude between -90 and 90.",
+      "longitude": "Enter a longitude between -180 and 180.",
+      "area": "Enter an area greater than 0 hectares.",
+      "generic": "Could not save plot. Please check details and try again."
+    }
   },
   "ministry": {
     "eyebrow": "National overview",
@@ -221,3 +263,4 @@
     "highLaNina": "High La Niña"
   }
 }
+
