@@ -148,7 +148,10 @@ class TestContactAccount:
             json={"identifier": "almaz@chokeunion.et", "password": PASSWORD},
         )
         assert res.status_code == 401
-        assert "waiting to be confirmed" in res.json()["error"]["message"]
+        message = res.json()["error"]["message"]
+        assert "waiting to be approved" in message
+        # Not the farmer's wording: an institution is not waiting on a development agent.
+        assert "holding" not in message
 
     def test_approval_lets_them_in_with_the_password_they_chose(
         self, client, admin_headers, db_ready
@@ -195,7 +198,10 @@ class TestContactAccount:
             json={"identifier": "almaz@chokeunion.et", "password": PASSWORD},
         )
         assert res.status_code == 401
-        assert "not approved" in res.json()["error"]["message"]
+        message = res.json()["error"]["message"]
+        assert "not approved" in message
+        # Again not the farmer's wording: an institution appeals to whoever decided, not a DA.
+        assert "development agent" not in message
 
     def test_a_weak_password_is_refused_on_the_form(self, client, db_ready) -> None:
         res = client.post("/api/v1/access-requests", json={**ENQUIRY, "password": "short"})
