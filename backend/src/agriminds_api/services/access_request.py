@@ -18,16 +18,18 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from agriminds_api.core.config import Settings
 from agriminds_api.core.exceptions import ConflictError, NotFoundError, ValidationError
 from agriminds_api.core.security import (
-    generate_invitation_token,
+    PasswordPolicyError,
+    hash_password,
     normalise_phone,
     unusable_password_hash,
+    validate_password_strength,
 )
 from agriminds_api.db.models import (
-    INVITATION_VALID_FOR,
     AccessRequest,
-    Invitation,
+    ApprovalStatus,
     Organization,
     RequestKind,
     RequestStatus,
@@ -42,6 +44,7 @@ from agriminds_api.schemas.access_request import (
     OrganizationEnquiry,
     RequestDecision,
 )
+from agriminds_api.services.invitation import issue as issue_invitation
 
 log = logging.getLogger(__name__)
 
@@ -65,23 +68,70 @@ def _out(row: AccessRequest) -> AccessRequestOut:
 
 
 class AccessRequestService:
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(self, session: AsyncSession, settings: Settings) -> None:
         self._session = session
+        self._settings = settings
 
     async def enquire(self, req: OrganizationEnquiry) -> AccessRequest:
+        """Record the enquiry and create the contact's account, held pending.
+
+        The account is created now, with the password they chose, and is unusable until an
+        administrator approves. That is the farmer sign-up shape applied here: the person who
+        filled the form is the person who knows the password, and nobody has to read a credential
+        down a telephone.
+
+        An identifier already in use is acknowledged exactly like a fresh one and nothing is
+        written for it, because this form is public and a different answer would make it a way to
+        discover who is already a customer.
+        """
+        email = str(req.contact_email).strip().lower() if req.contact_email else None
+        phone = normalise_phone(req.contact_phone) if req.contact_phone else None
+
         row = AccessRequest(
             kind=RequestKind.ORGANIZATION,
             status=RequestStatus.NEW,
             organization_name=req.organization_name,
             contact_name=req.contact_name,
             stakeholder=StakeholderType(req.stakeholder) if req.stakeholder else None,
-            contact_email=str(req.contact_email) if req.contact_email else None,
-            contact_phone=normalise_phone(req.contact_phone) if req.contact_phone else None,
+            contact_email=email,
+            contact_phone=phone,
             message=req.message,
         )
         self._session.add(row)
         await self._session.flush()
-        log.info("enquiry from %s (%s)", req.organization_name, req.stakeholder or "segment unstated")
+
+        try:
+            validate_password_strength(req.password, self._settings.password_min_length)
+        except PasswordPolicyError as exc:
+            raise ValidationError(str(exc)) from exc
+
+        clause = User.email == email if email else User.phone == phone
+        if await self._session.scalar(select(User).where(clause)):
+            # Same acknowledgement, no account written. The enquiry itself is still recorded:
+            # somebody asking again is a sales signal, not a reason to drop the lead.
+            log.info("enquiry from %s reused an existing identifier", req.organization_name)
+            return row
+
+        user = User(
+            email=email,
+            phone=phone,
+            full_name=req.contact_name,
+            hashed_password=hash_password(req.password),
+            # Institutional staff, not an operator of the platform. The organisation is attached
+            # on approval, because until then there is no organisation to attach.
+            role=UserRole.AGENT,
+            approval_status=ApprovalStatus.PENDING,
+            is_active=True,
+        )
+        self._session.add(user)
+        await self._session.flush()
+        row.user_id = user.id
+        log.info(
+            "enquiry from %s (%s); account %s held pending",
+            req.organization_name,
+            req.stakeholder or "segment unstated",
+            user.id,
+        )
         return row
 
     async def request_upgrade(self, user: User, req: FarmerUpgradeRequest) -> AccessRequestOut:
@@ -161,7 +211,16 @@ class AccessRequestService:
             await self._session.flush()
             row.organization_id = org.id
             log.info("approved %s -> organization %s", name, org.id)
-            invitation = await self._invite_contact(row, org, invited_by=decided_by)
+            invitation = await self._activate_contact(row, org, decided_by=decided_by)
+
+        if status is RequestStatus.DECLINED and row.user_id is not None:
+            # The account was created when they enquired. Declining has to close it, or a refused
+            # organisation keeps a sign-in that is only waiting for somebody to approve it later.
+            declined = await self._session.get(User, row.user_id)
+            if declined is not None and declined.approval_status is ApprovalStatus.PENDING:
+                declined.approval_status = ApprovalStatus.REJECTED
+                declined.approved_by_id = decided_by
+                declined.approved_at = dt.datetime.now(dt.UTC)
 
         row.status = status
         row.decision_note = decision.note
@@ -170,18 +229,33 @@ class AccessRequestService:
         await self._session.flush()
         return DecisionResult(request=_out(row), **invitation)
 
-    async def _invite_contact(
-        self, row: AccessRequest, org: Organization, *, invited_by: uuid.UUID | None
+    async def _activate_contact(
+        self, row: AccessRequest, org: Organization, *, decided_by: uuid.UUID | None
     ) -> dict[str, object | None]:
-        """Create the contact's account, unsigned-into-able until they accept the invitation.
+        """Turn the account created at enquiry time into one they can sign in to.
 
-        Without this the approval creates an organisation nobody can reach: there is no other way
-        an account comes into being, so the customer would be approved and still locked out.
+        The contact already chose their password on the form, so approval is the only thing that
+        was missing. Nothing is generated, nothing is relayed and nothing is read down a phone --
+        the person who filled the form signs in with what they typed.
 
-        An email address is what staff sign in with, so a request that arrived without one cannot
-        be turned into an account here. That is reported rather than guessed at -- inventing an
-        address would create an account the contact can never use.
+        An enquiry that arrived before this flow existed has no account behind it. One is created
+        here, with an unusable password and an invitation to set one, so an old lead is not
+        stranded by the change.
         """
+        if row.user_id is not None:
+            user = await self._session.get(User, row.user_id)
+            if user is not None:
+                user.organization_id = org.id
+                user.approval_status = ApprovalStatus.APPROVED
+                user.approved_by_id = decided_by
+                user.approved_at = dt.datetime.now(dt.UTC)
+                log.info("activated contact %s for organization %s", user.id, org.id)
+                return {
+                    "invited_email": user.email or user.phone,
+                    "invitation_token": None,
+                    "invitation_expires_at": None,
+                }
+
         if not row.contact_email:
             log.info("organization %s approved without a contact email: no account created", org.id)
             return {"invited_email": None, "invitation_token": None, "invitation_expires_at": None}
@@ -189,8 +263,8 @@ class AccessRequestService:
         email = row.contact_email.strip().lower()
         existing = await self._session.scalar(select(User).where(User.email == email))
         if existing is not None:
-            # Someone already signs in with this address: attach them to the new account rather
-            # than refusing the approval over it, and leave their password alone.
+            # Someone already signs in with this address: attach them rather than refusing the
+            # approval over it, and leave their password alone.
             existing.organization_id = org.id
             log.info("linked existing user %s to organization %s", existing.id, org.id)
             return {"invited_email": email, "invitation_token": None, "invitation_expires_at": None}
@@ -199,24 +273,15 @@ class AccessRequestService:
             email=email,
             full_name=row.contact_name,
             hashed_password=unusable_password_hash(),
-            # Institutional staff, not an administrator: this is a customer, not an operator of
-            # the platform. The commercial pages stay out of their reach.
             role=UserRole.AGENT,
             organization_id=org.id,
+            approval_status=ApprovalStatus.APPROVED,
             is_active=True,
         )
         self._session.add(user)
         await self._session.flush()
-
-        raw, token_hash = generate_invitation_token()
-        expires_at = dt.datetime.now(dt.UTC) + INVITATION_VALID_FOR
-        self._session.add(
-            Invitation(
-                user_id=user.id,
-                token_hash=token_hash,
-                expires_at=expires_at,
-                invited_by_id=invited_by,
-            )
+        raw, expires_at = await issue_invitation(
+            self._session, user, invited_by=decided_by, reason="legacy enquiry approved"
         )
         return {
             "invited_email": email,

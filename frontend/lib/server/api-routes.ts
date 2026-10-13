@@ -65,7 +65,11 @@ export const ALLOWED: ReadonlyArray<{ method: Method; path: RegExp }> = [
   // queue is not, and the service enforces that rather than this list.
   { method: 'POST', path: /^signup$/ },
   { method: 'GET', path: /^staff\/signups$/ },
+  { method: 'GET', path: new RegExp(`^organizations/${UUID}/members$`) },
+  { method: 'POST', path: new RegExp(`^organizations/${UUID}/members$`) },
+  { method: 'POST', path: /^staff\/signups\/register$/ },
   { method: 'POST', path: new RegExp(`^staff/signups/${UUID}$`) },
+  { method: 'POST', path: new RegExp(`^staff/signups/${UUID}/reset-password$`) },
   // commercial surfaces (admin only; the service enforces the role)
   { method: 'GET', path: /^billing\/pricing$/ },
   { method: 'GET', path: new RegExp(`^billing/pricing/${SLUG}$`) },

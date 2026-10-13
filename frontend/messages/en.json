@@ -748,7 +748,8 @@
       "requests": "Requests this month",
       "requestsDetail": "{share} of the capacity sold"
     },
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "noMembers": "No one can sign in"
   },
   "farm": {
     "premium": {
@@ -804,23 +805,29 @@
   },
   "requestAccess": {
     "title": "Request access",
-    "intro": "For cooperatives, woreda agricultural offices, insurers and lenders, ministries, NGOs and universities. Tell us who you are and we will be in touch.",
+    "intro": "For cooperatives, woreda agricultural offices, insurers and lenders, ministries, NGOs and universities. Choose a password now — your account opens once we have confirmed who you are.",
     "field": {
       "organization_name": "Organisation",
       "contact_name": "Your name",
       "stakeholder": "What kind of organisation",
       "contact_email": "Email",
       "contact_phone": "Phone",
-      "message": "What do you need it for?"
+      "message": "What do you need it for?",
+      "password": "Choose a password",
+      "confirm": "Repeat it"
     },
     "messagePlaceholder": "How many farmers or woredas would this cover?",
     "reachable": "Give an email address or a phone number so we can reply.",
     "send": "Send request",
     "sending": "Sending…",
     "sentTitle": "Request received",
-    "sentBody": "Thank you. We have your request and will be in touch.",
+    "sentBody": "Thank you. We have your request. You can sign in with the password you chose once we have approved the account.",
     "backToSignIn": "Back to sign in",
-    "haveAccount": "Already have an account? Sign in"
+    "haveAccount": "Already have an account? Sign in",
+    "passwordHint": "At least {count} characters. You will sign in with this once approved.",
+    "mismatch": "Those two do not match.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "requests": {
     "eyebrow": "Business",
@@ -1255,6 +1262,35 @@
     "approve": "Confirm",
     "refuse": "Refuse",
     "confirmRefusal": "Refuse this sign-up",
-    "why": "Why (the applicant is told)"
+    "why": "Why (the applicant is told)",
+    "registerInPerson": "Register a farmer",
+    "theirName": "Their name",
+    "theirPhone": "Their number",
+    "createAndLink": "Create and get link",
+    "noPasswordHere": "You do not set their password. You get a one-time link and they choose their own.",
+    "linkFor": "One-time link for {name} — it cannot be shown again",
+    "linkExpires": "Works once, expires {date}.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "dismiss": "Done"
+  },
+  "members": {
+    "title": "Who can sign in",
+    "invite": "Invite someone",
+    "nobody": "Nobody can sign in for {name} yet. The account exists, but no person is attached to it — invite someone to open it.",
+    "invited": "Invited",
+    "neverIn": "Never signed in",
+    "reset": "Reset password",
+    "theirName": "Their name",
+    "theirEmail": "Their email",
+    "theirRole": "What they see",
+    "roleAgent": "Their woreda",
+    "roleMinister": "The whole watershed",
+    "sendInvite": "Create link",
+    "noPasswordHere": "You do not set their password. You get a one-time link and they choose their own.",
+    "linkOnce": "One-time link for {name} — it cannot be shown again",
+    "expires": "Works once, expires {date}.",
+    "copy": "Copy",
+    "dismiss": "Done"
   }
 }

@@ -3434,6 +3434,155 @@
         }
       }
     },
+    "/api/v1/organizations/{organization_id}/members": {
+      "get": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Who can sign in for this account",
+        "operationId": "members_api_v1_organizations__organization_id__members_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MemberOut"
+                  },
+                  "title": "Response Members Api V1 Organizations  Organization Id  Members Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Invite somebody to an account that already exists",
+        "description": "An organisation created directly \u2014 rather than through an access request \u2014 has no account anybody can sign in to. Neither does one approved from an enquiry that carried no email address. This is how either becomes reachable.\n\n**No password is set.** The response carries a one-time link; the person chooses their own password at it. An administrator who could set it could then sign in as them, and nothing downstream could tell the two apart.\n\nThe link is shown once and only its hash is stored. A lost link is replaced by inviting again, not recovered.",
+        "operationId": "invite_member_api_v1_organizations__organization_id__members_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteMember"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CredentialLink"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/subscriptions": {
       "get": {
         "tags": [
@@ -3950,6 +4099,73 @@
         ]
       }
     },
+    "/api/v1/staff/signups/register": {
+      "post": {
+        "tags": [
+          "Sign-up"
+        ],
+        "summary": "Register a farmer who is standing in front of you",
+        "description": "For the farmer who walks into the office or meets the agent in the field \u2014 the case the hotline points at when it tells an unregistered caller to ask their development agent.\n\nApproved immediately, because the check the queue performs has just been done in person. **No password is set here**: the response carries a one-time link and the farmer chooses their own, so no staff member ends up holding a credential that signs in as a farmer.",
+        "operationId": "register_farmer_api_v1_staff_signups_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterFarmer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CredentialLink"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/staff/signups/{user_id}": {
       "post": {
         "tags": [
@@ -3992,6 +4208,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PendingUser"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/signups/{user_id}/reset-password": {
+      "post": {
+        "tags": [
+          "Sign-up"
+        ],
+        "summary": "Issue a password reset link",
+        "description": "There is no email and no SMS carrier to send a reset to, so the channel is the person who can already identify the farmer: their development agent.\n\nThe link is shown once and only its hash is stored, so it cannot be looked up again \u2014 a lost link is replaced, not recovered. Issuing one also spends any link the account already held, so this revokes whatever was outstanding.",
+        "operationId": "reset_password_api_v1_staff_signups__user_id__reset_password_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CredentialLink"
                 }
               }
             }
@@ -5779,6 +6064,53 @@
           "woredas_total"
         ],
         "title": "CoverageStats"
+      },
+      "CredentialLink": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "instruction": {
+            "type": "string",
+            "title": "Instruction"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "full_name",
+          "phone",
+          "token",
+          "expires_at",
+          "instruction"
+        ],
+        "title": "CredentialLink",
+        "description": "A one-time link, shown once to the staff member who has to relay it.\n\nThere is no mail server and no SMS carrier, so the relay is a person. The token is stored only\nas a hash, so asking again will not produce it -- a lost link is replaced, not recovered."
       },
       "CreditBalance": {
         "properties": {
@@ -8697,6 +9029,39 @@
         ],
         "title": "HotlineTurn"
       },
+      "InviteMember": {
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 2,
+            "title": "Full Name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "What they will sign in with"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "agent",
+              "minister"
+            ],
+            "title": "Role",
+            "description": "`minister` sees the whole watershed; `agent` their own woreda",
+            "default": "agent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "full_name",
+          "email"
+        ],
+        "title": "InviteMember",
+        "description": "Invite a person to an account that already exists.\n\nNo password field, deliberately. An administrator who could set somebody's password could\nthen sign in as them, and nothing downstream could tell the two apart."
+      },
       "InvoiceOut": {
         "properties": {
           "id": {
@@ -9075,6 +9440,57 @@
         ],
         "title": "LoginRequest",
         "description": "Ministry staff sign in with email, farmers with their mobile number."
+      },
+      "MemberOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "has_signed_in": {
+            "type": "boolean",
+            "title": "Has Signed In"
+          },
+          "invitation_pending": {
+            "type": "boolean",
+            "title": "Invitation Pending"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "full_name",
+          "email",
+          "role",
+          "is_active",
+          "has_signed_in",
+          "invitation_pending"
+        ],
+        "title": "MemberOut",
+        "description": "Somebody who can sign in for this account."
       },
       "MetabaseStatus": {
         "properties": {
@@ -9516,6 +9932,13 @@
             "minLength": 2,
             "title": "Contact Name"
           },
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Password",
+            "description": "What you will sign in with"
+          },
           "stakeholder": {
             "anyOf": [
               {
@@ -9579,10 +10002,11 @@
         "type": "object",
         "required": [
           "organization_name",
-          "contact_name"
+          "contact_name",
+          "password"
         ],
         "title": "OrganizationEnquiry",
-        "description": "The public form. No account exists yet, so everything is self-reported."
+        "description": "The public form. No account exists yet, so everything is self-reported.\n\nThe contact chooses their own password here, exactly as a farmer does at sign-up. Nothing is\nusable until an administrator approves: the account is created `pending`, and approval is what\nturns a self-reported claim into an account somebody can sign in to.\n\nAsking for it here rather than relaying a link afterwards removes a step that existed only\nbecause there is no mail server -- and a step where a credential was read down a phone."
       },
       "OrganizationOut": {
         "properties": {
@@ -9652,6 +10076,16 @@
           "active_keys": {
             "type": "integer",
             "title": "Active Keys"
+          },
+          "members": {
+            "type": "integer",
+            "title": "Members",
+            "default": 0
+          },
+          "pending_invitations": {
+            "type": "integer",
+            "title": "Pending Invitations",
+            "default": 0
           }
         },
         "type": "object",
@@ -10341,6 +10775,62 @@
           "refresh_token"
         ],
         "title": "RefreshRequest"
+      },
+      "RegisterFarmer": {
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 2,
+            "title": "Full Name"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 9,
+            "title": "Phone"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "am",
+              "or"
+            ],
+            "title": "Locale",
+            "default": "en"
+          },
+          "woreda_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Woreda Id"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "full_name",
+          "phone"
+        ],
+        "title": "RegisterFarmer",
+        "description": "A development agent opening an account for a farmer standing in front of them.\n\nNo password field: the agent must not choose, know or type the farmer's password. They issue a\nlink and the farmer sets their own, which is the only version where the agent cannot sign in\nas the farmer afterwards."
       },
       "RequestDecision": {
         "properties": {

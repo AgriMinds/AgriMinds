@@ -14,6 +14,7 @@ import datetime as dt
 import hashlib
 import logging
 import secrets
+import uuid
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -21,7 +22,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from agriminds_api.core.cache import Cache
 from agriminds_api.core.exceptions import ConflictError, NotFoundError
-from agriminds_api.db.models import ApiKey, ApiUsageDaily, Organization, PricingTier, StakeholderType
+from agriminds_api.db.models import (
+    ApiKey,
+    ApiUsageDaily,
+    Invitation,
+    Organization,
+    PricingTier,
+    StakeholderType,
+    User,
+)
 
 log = logging.getLogger(__name__)
 
@@ -113,6 +122,54 @@ class CommerceService:
                 )
             ).all()
         )
+
+    async def member_counts(self, organization_id: uuid.UUID) -> tuple[int, int]:
+        """(people who can sign in, invitations still outstanding).
+
+        An account with no members exists and cannot be reached by anybody. That is worth showing
+        in the list rather than leaving to be discovered when somebody asks why they cannot log in.
+        """
+        members = (
+            await self._session.scalar(
+                select(func.count())
+                .select_from(User)
+                .where(User.organization_id == organization_id, User.is_active.is_(True))
+            )
+        ) or 0
+        pending = (
+            await self._session.scalar(
+                select(func.count())
+                .select_from(Invitation)
+                .join(User, User.id == Invitation.user_id)
+                .where(
+                    User.organization_id == organization_id,
+                    Invitation.accepted_at.is_(None),
+                    Invitation.expires_at > dt.datetime.now(dt.UTC),
+                )
+            )
+        ) or 0
+        return int(members), int(pending)
+
+    async def members(self, organization_id: uuid.UUID) -> list[tuple[User, bool]]:
+        """Each member, with whether an invitation is still outstanding for them."""
+        rows = (
+            await self._session.scalars(
+                select(User).where(User.organization_id == organization_id).order_by(User.created_at)
+            )
+        ).all()
+        out: list[tuple[User, bool]] = []
+        for user in rows:
+            open_invite = await self._session.scalar(
+                select(func.count())
+                .select_from(Invitation)
+                .where(
+                    Invitation.user_id == user.id,
+                    Invitation.accepted_at.is_(None),
+                    Invitation.expires_at > dt.datetime.now(dt.UTC),
+                )
+            )
+            out.append((user, bool(open_invite)))
+        return out
 
     async def active_key_count(self, organization_id) -> int:
         return int(

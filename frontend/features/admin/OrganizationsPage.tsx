@@ -19,6 +19,7 @@ import { QueryError } from '@/components/ui/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Stat } from '@/components/ui/stat'
 
+import { MembersPanel } from '@/features/admin/MembersPanel'
 import { OutstandingInvoices } from '@/features/billing/OutstandingInvoices'
 
 import { barWidth, formatRequests, formatShare } from './money'
@@ -166,7 +167,10 @@ export function OrganizationsPage() {
           <div className="flex flex-col gap-5 xl:col-span-5">
           <OutstandingInvoices />
             {active ? (
-              <Credentials organizationId={active} />
+              <Credentials
+                organizationId={active}
+                organizationName={accounts.find((a) => a.id === active)?.name ?? ''}
+              />
             ) : (
               <Card className="p-3.5 sm:p-5">
                 <CardContent>
@@ -214,6 +218,7 @@ function AccountRow({
           <span className="flex items-center gap-2 text-xs text-fg-muted">
             <KeyRound className="size-3.5" aria-hidden />
             {t('keyCount', { n: org.active_keys })}
+            {org.members === 0 && <Badge>{t('noMembers')}</Badge>}
           </span>
         </span>
 
@@ -322,7 +327,13 @@ function NewAccount({ onDone }: { onDone: () => void }) {
   )
 }
 
-function Credentials({ organizationId }: { organizationId: string }) {
+function Credentials({
+  organizationId,
+  organizationName,
+}: {
+  organizationId: string
+  organizationName: string
+}) {
   const t = useTranslations('organizations')
   const format = useFormatter()
   const keys = useOrganizationKeys(organizationId)
@@ -354,6 +365,10 @@ function Credentials({ organizationId }: { organizationId: string }) {
         </CardHeading>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        {/* Who can sign in comes before what machines can call: an account with keys and no
+            members is reachable by a script and by nobody. */}
+        <MembersPanel orgId={organizationId} orgName={organizationName} />
+
         {justIssued && <IssuedKey issued={justIssued} onDismiss={() => setJustIssued(null)} />}
 
         <form

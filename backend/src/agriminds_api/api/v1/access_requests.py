@@ -6,7 +6,13 @@ import uuid
 
 from fastapi import APIRouter, Depends, Query
 
-from agriminds_api.api.deps import CurrentUser, FarmerUser, SessionDep, require_admin
+from agriminds_api.api.deps import (
+    CurrentUser,
+    FarmerUser,
+    SessionDep,
+    SettingsDep,
+    require_admin,
+)
 from agriminds_api.schemas.access_request import (
     AccessRequestOut,
     DecisionResult,
@@ -45,8 +51,8 @@ admin_router = APIRouter(
         "administrator decides it on approval, because the price follows from it."
     ),
 )
-async def enquire(req: OrganizationEnquiry, session: SessionDep) -> EnquiryAccepted:
-    row = await AccessRequestService(session).enquire(req)
+async def enquire(req: OrganizationEnquiry, session: SessionDep, settings: SettingsDep) -> EnquiryAccepted:
+    row = await AccessRequestService(session, settings).enquire(req)
     return EnquiryAccepted(
         id=str(row.id),
         status=row.status.value,
@@ -62,9 +68,9 @@ async def enquire(req: OrganizationEnquiry, session: SessionDep) -> EnquiryAccep
     description="Identity comes from the token, so a farmer only supplies what we do not know.",
 )
 async def request_premium(
-    req: FarmerUpgradeRequest, user: FarmerUser, session: SessionDep
+    req: FarmerUpgradeRequest, user: FarmerUser, session: SessionDep, settings: SettingsDep
 ) -> AccessRequestOut:
-    return await AccessRequestService(session).request_upgrade(user, req)
+    return await AccessRequestService(session, settings).request_upgrade(user, req)
 
 
 @farmer_router.get(
@@ -72,16 +78,19 @@ async def request_premium(
     response_model=AccessRequestOut | None,
     summary="Whether this farmer has already asked, and what happened",
 )
-async def my_premium_request(user: FarmerUser, session: SessionDep) -> AccessRequestOut | None:
-    return await AccessRequestService(session).mine(user)
+async def my_premium_request(
+    user: FarmerUser, session: SessionDep, settings: SettingsDep
+) -> AccessRequestOut | None:
+    return await AccessRequestService(session, settings).mine(user)
 
 
 @admin_router.get("", response_model=list[AccessRequestOut], summary="Everyone who has asked")
 async def inbox(
     session: SessionDep,
+    settings: SettingsDep,
     open_only: bool = Query(False, description="Only requests still waiting on a decision"),
 ) -> list[AccessRequestOut]:
-    return await AccessRequestService(session).inbox(open_only=open_only)
+    return await AccessRequestService(session, settings).inbox(open_only=open_only)
 
 
 @admin_router.post(
@@ -98,6 +107,10 @@ async def inbox(
     ),
 )
 async def decide(
-    request_id: uuid.UUID, decision: RequestDecision, session: SessionDep, user: CurrentUser
+    request_id: uuid.UUID,
+    decision: RequestDecision,
+    session: SessionDep,
+    settings: SettingsDep,
+    user: CurrentUser,
 ) -> DecisionResult:
-    return await AccessRequestService(session).decide(request_id, decision, decided_by=user.id)
+    return await AccessRequestService(session, settings).decide(request_id, decision, decided_by=user.id)

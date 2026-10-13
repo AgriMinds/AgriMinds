@@ -3,8 +3,13 @@
 import { useState } from 'react'
 import { useFormatter, useTranslations } from 'next-intl'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { UserCheck } from 'lucide-react'
-import type { ApprovalDecision, PendingUser } from '@agriminds/api-types'
+import { Copy, KeyRound, UserCheck, UserPlus } from 'lucide-react'
+import type {
+  ApprovalDecision,
+  CredentialLink,
+  PendingUser,
+  RegisterFarmer,
+} from '@agriminds/api-types'
 import {
   Card,
   CardContent,
@@ -32,6 +37,10 @@ export function SignupQueue() {
   const qc = useQueryClient()
   const [refusing, setRefusing] = useState<string | null>(null)
   const [note, setNote] = useState('')
+  const [registering, setRegistering] = useState(false)
+  const EMPTY: RegisterFarmer = { full_name: '', phone: '', locale: 'en' }
+  const [applicant, setApplicant] = useState<RegisterFarmer>(EMPTY)
+  const [link, setLink] = useState<CredentialLink | null>(null)
 
   const queue = useQuery({
     queryKey: ['staff', 'signups'],
@@ -50,6 +59,16 @@ export function SignupQueue() {
     },
   })
 
+  const register = useMutation({
+    mutationFn: (req: RegisterFarmer) => api.registerFarmer(req),
+    onSuccess: (created) => {
+      setLink(created)
+      setRegistering(false)
+      setApplicant(EMPTY)
+      void qc.invalidateQueries({ queryKey: ['staff', 'signups'] })
+    },
+  })
+
   const rows = queue.data ?? []
 
   return (
@@ -64,8 +83,58 @@ export function SignupQueue() {
             <CardDescription>{t('desc')}</CardDescription>
           </div>
         </CardHeading>
+        <Button size="sm" variant="ghost" onClick={() => setRegistering((v) => !v)}>
+          <UserPlus className="size-3.5" aria-hidden />
+          {t('registerInPerson')}
+        </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-3">
+        {/* The farmer who walks into the office: the case the hotline points at. */}
+        {registering && (
+          <form
+            aria-label={t('registerInPerson')}
+            className="flex flex-wrap items-end gap-2 rounded-lg border border-border p-3"
+            onSubmit={(e) => {
+              e.preventDefault()
+              register.mutate(applicant)
+            }}
+          >
+            <label className="flex min-w-36 flex-1 flex-col gap-1 text-xs">
+              <span className="text-fg-muted">{t('theirName')}</span>
+              <input
+                value={applicant.full_name}
+                onChange={(e) => setApplicant({ ...applicant, full_name: e.target.value })}
+                required
+                className="rounded-md border border-border bg-surface px-2 py-1.5"
+              />
+            </label>
+            <label className="flex min-w-36 flex-1 flex-col gap-1 text-xs">
+              <span className="text-fg-muted">{t('theirPhone')}</span>
+              <input
+                value={applicant.phone}
+                onChange={(e) => setApplicant({ ...applicant, phone: e.target.value })}
+                required
+                inputMode="tel"
+                placeholder="0912345678"
+                className="rounded-md border border-border bg-surface px-2 py-1.5"
+              />
+            </label>
+            <Button type="submit" size="sm" disabled={register.isPending}>
+              {t('createAndLink')}
+            </Button>
+            {/* Stated on the form: the agent is not choosing anybody's password. */}
+            <p className="w-full text-[11px] text-fg-subtle">{t('noPasswordHere')}</p>
+          </form>
+        )}
+
+        {link && <OneTimeLink link={link} onDismiss={() => setLink(null)} />}
+
+        {register.isError && (
+          <p role="alert" className="text-xs text-status-bad">
+            {(register.error as Error).message}
+          </p>
+        )}
+
         {queue.isError ? (
           <QueryError
             error={queue.error}
@@ -157,5 +226,56 @@ export function SignupQueue() {
         )}
       </CardContent>
     </Card>
+  )
+}
+
+
+/**
+ * A link that is shown once and never again.
+ *
+ * Only its hash is stored, so this is the single moment it exists in readable form. The staff
+ * member hands it over, reads it down the phone, or writes it on a slip — there is no mail server
+ * and no SMS carrier to do it for them, which is exactly why it expires and works once.
+ */
+function OneTimeLink({ link, onDismiss }: { link: CredentialLink; onDismiss: () => void }) {
+  const t = useTranslations('signups')
+  const format = useFormatter()
+  const [copied, setCopied] = useState(false)
+  const url = `${window.location.origin}/invite/${link.token}`
+
+  return (
+    <div
+      role="status"
+      className="flex flex-col gap-2 rounded-lg border border-primary bg-surface-sunken p-3"
+    >
+      <p className="flex items-center gap-2 text-xs font-semibold">
+        <KeyRound className="size-3.5 text-primary" aria-hidden />
+        {t('linkFor', { name: link.full_name })}
+      </p>
+      <div className="flex items-center gap-2">
+        <code className="min-w-0 flex-1 overflow-x-auto rounded bg-surface px-2 py-1.5 text-xs">
+          {url}
+        </code>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            void navigator.clipboard?.writeText(url)
+            setCopied(true)
+          }}
+        >
+          <Copy className="size-3.5" aria-hidden />
+          {copied ? t('copied') : t('copy')}
+        </Button>
+      </div>
+      <p className="text-[11px] leading-relaxed text-fg-muted">{link.instruction}</p>
+      <p className="text-[11px] text-fg-subtle">
+        {t('linkExpires', { date: format.dateTime(new Date(link.expires_at), 'date') })}
+      </p>
+      <Button type="button" size="sm" variant="ghost" className="self-start" onClick={onDismiss}>
+        {t('dismiss')}
+      </Button>
+    </div>
   )
 }

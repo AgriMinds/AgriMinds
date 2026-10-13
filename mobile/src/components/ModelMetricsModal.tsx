@@ -62,7 +62,7 @@ export function ModelMetricsModal({ visible, onClose }: ModelMetricsModalProps) 
                   {language === 'am'
                     ? 'ሳይንሳዊ ግምገማ እና ውጤት'
                     : language === 'or'
-                      ? 'Qorannoo Saayinsii fi Bu''aa'
+                      ? "Qorannoo Saayinsii fi Bu'aa"
                       : 'Scientific Model Validation'}
                 </Text>
               </View>
@@ -289,7 +289,7 @@ export function ModelMetricsModal({ visible, onClose }: ModelMetricsModalProps) 
                           {m.MAE?.toFixed(2) ?? '—'}
                         </Text>
                         <Text style={[styles.tdMono, { flex: 1, color: colors.primary }]}>
-                          {m.correlation?.toFixed(2) ?? '—'}
+                          {m.corr?.toFixed(2) ?? '—'}
                         </Text>
                       </View>
                     ))}

@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+PASSWORD = "almaz-own-passphrase"
+
 ENQUIRY = {
     "organization_name": "Choke Farmers Union",
     "contact_name": "Almaz Bekele",
     "stakeholder": "cooperative",
     "contact_email": "almaz@chokeunion.et",
+    "password": PASSWORD,
     "message": "We represent 1,200 members across three woredas.",
 }
 
@@ -125,8 +128,8 @@ class TestDeciding:
         assert not any(o["name"] == "Choke Farmers Union" for o in orgs)
 
 
-class TestInvitation:
-    """Approval has to end in an account somebody can sign in to, or it ends in a locked door."""
+class TestContactAccount:
+    """The enquirer chooses their password on the form; approval is what makes it work."""
 
     def _approve(self, client, admin_headers, enquiry: dict | None = None) -> dict:
         row = client.post("/api/v1/access-requests", json=enquiry or ENQUIRY).json()
@@ -138,35 +141,38 @@ class TestInvitation:
         assert res.status_code == 200, res.text
         return res.json()
 
-    def test_approval_hands_back_an_invitation_for_the_contact(self, client, admin_headers, db_ready) -> None:
+    def test_the_account_is_held_until_somebody_approves_it(self, client, db_ready) -> None:
+        client.post("/api/v1/access-requests", json=ENQUIRY)
+        res = client.post(
+            "/api/v1/auth/login",
+            json={"identifier": "almaz@chokeunion.et", "password": PASSWORD},
+        )
+        assert res.status_code == 401
+        assert "waiting to be confirmed" in res.json()["error"]["message"]
+
+    def test_approval_lets_them_in_with_the_password_they_chose(
+        self, client, admin_headers, db_ready
+    ) -> None:
+        """No link to relay and no credential read down a telephone."""
         body = self._approve(client, admin_headers)
         assert body["invited_email"] == "almaz@chokeunion.et"
-        assert body["invitation_token"]
-        assert body["invitation_expires_at"]
+        # Nothing to hand over: the password never left the person who chose it.
+        assert body["invitation_token"] is None
 
-    def test_the_token_is_never_returned_a_second_time(self, client, admin_headers, db_ready) -> None:
-        """Only the hash is stored, so re-reading the request cannot show it -- by construction."""
-        body = self._approve(client, admin_headers)
-        inbox = client.get("/api/v1/admin/access-requests", headers=admin_headers).json()
-        assert body["invitation_token"] not in str(inbox)
+        signed_in = client.post(
+            "/api/v1/auth/login",
+            json={"identifier": "almaz@chokeunion.et", "password": PASSWORD},
+        )
+        assert signed_in.status_code == 200, signed_in.text
+        assert signed_in.json()["user"]["role"] == "agent"
 
-    def test_accepting_sets_a_password_and_signs_the_person_in(self, client, admin_headers, db_ready) -> None:
-        token = self._approve(client, admin_headers)["invitation_token"]
-        res = client.post(f"/api/v1/auth/invitations/{token}", json={"password": "a-long-enough-passphrase"})
-        assert res.status_code == 200, res.text
-        body = res.json()
-        assert body["access_token"]
-        assert body["user"]["email"] == "almaz@chokeunion.et"
-        # The account is institutional staff, not an operator of the platform.
-        assert body["user"]["role"] == "agent"
-
-    def test_the_new_account_can_reach_its_own_plans_and_nothing_commercial(
+    def test_the_new_account_reaches_its_own_plans_and_nothing_commercial(
         self, client, admin_headers, pricing_tiers
     ) -> None:
-        """The whole point of the invitation: the loop from approval to a payable plan closes."""
-        token = self._approve(client, admin_headers)["invitation_token"]
+        self._approve(client, admin_headers)
         pair = client.post(
-            f"/api/v1/auth/invitations/{token}", json={"password": "a-long-enough-passphrase"}
+            "/api/v1/auth/login",
+            json={"identifier": "almaz@chokeunion.et", "password": PASSWORD},
         ).json()
         headers = {"Authorization": f"Bearer {pair['access_token']}"}
 
@@ -174,40 +180,46 @@ class TestInvitation:
         assert plans.status_code == 200, plans.text
         # Priced for the segment the administrator chose, not the one the enquirer guessed.
         assert plans.json()["stakeholder"] == "cooperative"
-        # Customers do not get the administrator's view of everyone else's money.
         assert client.get("/api/v1/admin/invoices", headers=headers).status_code == 403
 
-    def test_an_invitation_works_once(self, client, admin_headers, db_ready) -> None:
-        token = self._approve(client, admin_headers)["invitation_token"]
-        body = {"password": "a-long-enough-passphrase"}
-        assert client.post(f"/api/v1/auth/invitations/{token}", json=body).status_code == 200
-        # A second use would let anyone holding a relayed token reset the password later.
-        assert client.post(f"/api/v1/auth/invitations/{token}", json=body).status_code == 401
-
-    def test_a_weak_password_is_refused_by_the_configured_policy(
-        self, client, admin_headers, db_ready
-    ) -> None:
-        token = self._approve(client, admin_headers)["invitation_token"]
-        res = client.post(f"/api/v1/auth/invitations/{token}", json={"password": "short"})
-        assert res.status_code == 422, res.text
-        # And the invitation survives, so a fumbled first try does not cost the account.
-        assert (
-            client.post(
-                f"/api/v1/auth/invitations/{token}", json={"password": "a-long-enough-passphrase"}
-            ).status_code
-            == 200
+    def test_declining_closes_the_account_it_created(self, client, admin_headers, db_ready) -> None:
+        """Otherwise a refused organisation keeps a sign-in waiting for a later approval."""
+        row = client.post("/api/v1/access-requests", json=ENQUIRY).json()
+        client.post(
+            f"/api/v1/admin/access-requests/{row['id']}",
+            json={"status": "declined", "note": "Out of scope"},
+            headers=admin_headers,
         )
-
-    def test_an_unknown_token_is_indistinguishable_from_a_spent_one(self, client, db_ready) -> None:
         res = client.post(
-            "/api/v1/auth/invitations/not-a-real-token", json={"password": "a-long-enough-passphrase"}
+            "/api/v1/auth/login",
+            json={"identifier": "almaz@chokeunion.et", "password": PASSWORD},
         )
         assert res.status_code == 401
+        assert "not approved" in res.json()["error"]["message"]
 
-    def test_an_enquiry_without_an_email_is_approved_but_invites_nobody(
+    def test_a_weak_password_is_refused_on_the_form(self, client, db_ready) -> None:
+        res = client.post("/api/v1/access-requests", json={**ENQUIRY, "password": "short"})
+        assert res.status_code == 422, res.text
+
+    def test_an_address_already_in_use_is_acknowledged_the_same_way(
+        self, client, make_user, db_ready
+    ) -> None:
+        """This form is public, so a different answer would reveal who is already a customer."""
+        fresh = client.post(
+            "/api/v1/access-requests",
+            json={**ENQUIRY, "contact_email": "nobody@chokeunion.et"},
+        )
+        taken = client.post("/api/v1/access-requests", json=ENQUIRY)
+        again = client.post("/api/v1/access-requests", json=ENQUIRY)
+        assert fresh.status_code == taken.status_code == again.status_code == 202
+        assert set(taken.json()) == set(again.json()) == {"id", "status", "message"}
+        assert taken.json()["message"] == again.json()["message"]
+
+    def test_an_enquiry_reachable_only_by_phone_still_gets_an_account(
         self, client, admin_headers, db_ready
     ) -> None:
-        """Staff sign in with an email address. Inventing one creates an unusable account."""
+        """Staff usually sign in by email, but a number is an identifier too -- and it is all
+        some callers have."""
         body = self._approve(
             client,
             admin_headers,
@@ -215,8 +227,13 @@ class TestInvitation:
                 "organization_name": "Phone Only Union",
                 "contact_name": "Kebede Alemu",
                 "contact_phone": "+251911234567",
+                "password": "kebede-own-passphrase",
             },
         )
-        assert body["request"]["organization_id"]  # the account still exists
-        assert body["invited_email"] is None
-        assert body["invitation_token"] is None
+        assert body["request"]["organization_id"]
+        assert body["invited_email"] == "+251911234567"
+        signed_in = client.post(
+            "/api/v1/auth/login",
+            json={"identifier": "0911234567", "password": "kebede-own-passphrase"},
+        )
+        assert signed_in.status_code == 200, signed_in.text

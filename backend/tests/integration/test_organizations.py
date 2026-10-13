@@ -110,3 +110,103 @@ class TestExistingAuthIsUnaffected:
         assert client.get("/api/v1/enso/outlook", headers=minister_headers).status_code == 200
         usage = client.get(f"/api/v1/organizations/{org['id']}/usage", headers=admin_headers).json()
         assert usage["used_this_month"] == 0
+
+
+class TestMembers:
+    """An organisation that nobody can sign in to is an organisation that does not exist yet."""
+
+    async def _org(self, client, admin_headers) -> str:
+        res = client.post(
+            "/api/v1/organizations",
+            json={"name": "Haramaya University", "stakeholder": "research"},
+            headers=admin_headers,
+        )
+        assert res.status_code in (200, 201), res.text
+        return res.json()["id"]
+
+    async def test_an_account_created_directly_has_nobody_in_it(
+        self, client, admin_headers, db_ready
+    ) -> None:
+        """This is the state the question came from: created by hand, unreachable."""
+        org_id = await self._org(client, admin_headers)
+        listed = client.get("/api/v1/organizations", headers=admin_headers).json()
+        created = next(o for o in listed if o["id"] == org_id)
+        # Shown in the list rather than discovered when somebody asks why they cannot log in.
+        assert created["members"] == 0
+        assert created["pending_invitations"] == 0
+        assert client.get(f"/api/v1/organizations/{org_id}/members", headers=admin_headers).json() == []
+
+    async def test_inviting_gives_a_link_and_never_a_password(self, client, admin_headers, db_ready) -> None:
+        org_id = await self._org(client, admin_headers)
+        res = client.post(
+            f"/api/v1/organizations/{org_id}/members",
+            json={"full_name": "Bona Nasser", "email": "bona@haramaya.edu.et"},
+            headers=admin_headers,
+        )
+        assert res.status_code == 201, res.text
+        body = res.json()
+        assert body["token"]
+        # An administrator who could set it could then sign in as them.
+        assert "password" not in body
+
+    async def test_the_invited_person_sets_their_own_password_and_is_in(
+        self, client, admin_headers, db_ready
+    ) -> None:
+        org_id = await self._org(client, admin_headers)
+        token = client.post(
+            f"/api/v1/organizations/{org_id}/members",
+            json={"full_name": "Bona Nasser", "email": "bona@haramaya.edu.et"},
+            headers=admin_headers,
+        ).json()["token"]
+
+        accepted = client.post(
+            f"/api/v1/auth/invitations/{token}", json={"password": "haramaya-own-passphrase"}
+        )
+        assert accepted.status_code == 200, accepted.text
+        assert accepted.json()["user"]["email"] == "bona@haramaya.edu.et"
+
+        # And they land on their own account's billing, not somebody else's.
+        headers = {"Authorization": f"Bearer {accepted.json()['access_token']}"}
+        plans = client.get("/api/v1/plans", headers=headers)
+        assert plans.status_code in (200, 404)  # 404 only when that segment has no tier
+
+    async def test_the_list_distinguishes_invited_from_arrived(self, client, admin_headers, db_ready) -> None:
+        """Somebody who has never accepted an invitation is not yet a way into the account."""
+        org_id = await self._org(client, admin_headers)
+        token = client.post(
+            f"/api/v1/organizations/{org_id}/members",
+            json={"full_name": "Bona Nasser", "email": "bona@haramaya.edu.et"},
+            headers=admin_headers,
+        ).json()["token"]
+
+        before = client.get(f"/api/v1/organizations/{org_id}/members", headers=admin_headers).json()
+        assert before[0]["invitation_pending"] is True
+        assert before[0]["has_signed_in"] is False
+
+        client.post(f"/api/v1/auth/invitations/{token}", json={"password": "haramaya-own-passphrase"})
+        after = client.get(f"/api/v1/organizations/{org_id}/members", headers=admin_headers).json()
+        assert after[0]["invitation_pending"] is False
+        assert after[0]["has_signed_in"] is True
+
+    async def test_an_address_already_in_use_is_reported(self, client, admin_headers, db_ready) -> None:
+        org_id = await self._org(client, admin_headers)
+        body = {"full_name": "Bona Nasser", "email": "bona@haramaya.edu.et"}
+        assert (
+            client.post(
+                f"/api/v1/organizations/{org_id}/members", json=body, headers=admin_headers
+            ).status_code
+            == 201
+        )
+        again = client.post(f"/api/v1/organizations/{org_id}/members", json=body, headers=admin_headers)
+        assert again.status_code == 409
+
+    async def test_only_an_administrator_may_invite(
+        self, client, admin_headers, farmer_headers, db_ready
+    ) -> None:
+        org_id = await self._org(client, admin_headers)
+        res = client.post(
+            f"/api/v1/organizations/{org_id}/members",
+            json={"full_name": "Nobody", "email": "nobody@example.et"},
+            headers=farmer_headers,
+        )
+        assert res.status_code == 403

@@ -153,3 +153,101 @@ class TestLocaleCodes:
 
 def test_the_role_enum_is_unchanged() -> None:
     assert UserRole.FARMER.value == "farmer"
+
+
+class TestAgentRegistersAFarmer:
+    """The hotline tells unregistered callers to ask their agent. This is that capability."""
+
+    REGISTRATION = {"full_name": "Kebede Alemu", "phone": "0911303030", "locale": "am"}
+
+    def test_the_agent_gets_a_link_and_never_a_password(self, client, agent_headers, db_ready) -> None:
+        res = client.post("/api/v1/staff/signups/register", json=self.REGISTRATION, headers=agent_headers)
+        assert res.status_code == 201, res.text
+        body = res.json()
+        assert body["token"]
+        # An agent who could set the password could sign in as the farmer afterwards.
+        assert "password" not in body
+
+    def test_the_farmer_chooses_their_own_password_and_is_in(self, client, agent_headers, db_ready) -> None:
+        token = client.post(
+            "/api/v1/staff/signups/register", json=self.REGISTRATION, headers=agent_headers
+        ).json()["token"]
+
+        accepted = client.post(f"/api/v1/auth/invitations/{token}", json={"password": "my-own-chosen-phrase"})
+        assert accepted.status_code == 200, accepted.text
+        assert accepted.json()["user"]["role"] == "farmer"
+        # Registered in person, so there is no queue to wait in.
+        assert client.get("/api/v1/staff/signups", headers=agent_headers).json() == []
+
+    def test_a_number_already_registered_is_reported_to_the_agent(
+        self, client, agent_headers, db_ready
+    ) -> None:
+        # Unlike the public form, which must not reveal this: an agent is already trusted with the
+        # register and needs to know so they can look the farmer up instead.
+        client.post("/api/v1/staff/signups/register", json=self.REGISTRATION, headers=agent_headers)
+        again = client.post("/api/v1/staff/signups/register", json=self.REGISTRATION, headers=agent_headers)
+        assert again.status_code == 409
+
+    def test_a_farmer_cannot_register_anybody(self, client, farmer_headers, db_ready) -> None:
+        res = client.post("/api/v1/staff/signups/register", json=self.REGISTRATION, headers=farmer_headers)
+        assert res.status_code == 403
+
+
+class TestPasswordReset:
+    """Somebody forgets their password. There is no inbox to send a reset to."""
+
+    def test_an_agent_can_let_a_farmer_back_in(self, client, agent_headers, db_ready) -> None:
+        user_id = client.post(
+            "/api/v1/staff/signups/register",
+            json={"full_name": "Second Farmer", "phone": "0911505505"},
+            headers=agent_headers,
+        ).json()["user_id"]
+
+        reset = client.post(f"/api/v1/staff/signups/{user_id}/reset-password", headers=agent_headers)
+        assert reset.status_code == 200, reset.text
+        assert reset.json()["token"]
+
+        changed = client.post(
+            f"/api/v1/auth/invitations/{reset.json()['token']}",
+            json={"password": "a-replacement-passphrase"},
+        )
+        assert changed.status_code == 200, changed.text
+        signed_in = client.post(
+            "/api/v1/auth/login",
+            json={"identifier": "0911505505", "password": "a-replacement-passphrase"},
+        )
+        assert signed_in.status_code == 200
+
+    def test_a_reset_revokes_the_link_it_replaces(self, client, agent_headers, db_ready) -> None:
+        """Otherwise the link you meant to revoke still opens the account."""
+        first = client.post(
+            "/api/v1/staff/signups/register",
+            json={"full_name": "Twice Invited", "phone": "0911606606"},
+            headers=agent_headers,
+        ).json()
+
+        client.post(f"/api/v1/staff/signups/{first['user_id']}/reset-password", headers=agent_headers)
+
+        spent = client.post(
+            f"/api/v1/auth/invitations/{first['token']}", json={"password": "should-not-work-now"}
+        )
+        assert spent.status_code == 401
+
+    def test_the_reset_is_not_public(self, client, agent_headers, db_ready) -> None:
+        user_id = client.post(
+            "/api/v1/staff/signups/register",
+            json={"full_name": "Private Matter", "phone": "0911707707"},
+            headers=agent_headers,
+        ).json()["user_id"]
+        assert client.post(f"/api/v1/staff/signups/{user_id}/reset-password").status_code == 401
+
+    def test_a_farmer_cannot_reset_another_farmer(
+        self, client, agent_headers, farmer_headers, db_ready
+    ) -> None:
+        user_id = client.post(
+            "/api/v1/staff/signups/register",
+            json={"full_name": "Someone Else", "phone": "0911808808"},
+            headers=agent_headers,
+        ).json()["user_id"]
+        res = client.post(f"/api/v1/staff/signups/{user_id}/reset-password", headers=farmer_headers)
+        assert res.status_code == 403

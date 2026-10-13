@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { Check, Send } from 'lucide-react'
+import { Check, Eye, EyeOff, Send } from 'lucide-react'
 import { STAKEHOLDERS, type OrganizationEnquiry } from '@agriminds/api-types'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api/client'
+import { cn } from '@/lib/utils'
 
 /**
  * The only form in the platform anybody can submit without signing in.
@@ -19,6 +20,9 @@ import { api } from '@/lib/api/client'
  * The acknowledgement is identical whether or not the organisation is already a customer. A form
  * that said "you already have an account" would let anyone test names against the customer list.
  */
+/** Matches the server's configured minimum; the server is still the one that decides. */
+const MIN_LENGTH = 10
+
 export function RequestAccessForm() {
   const t = useTranslations('requestAccess')
   const ts = useTranslations('organizations.stakeholder')
@@ -31,8 +35,15 @@ export function RequestAccessForm() {
     stakeholder: 'cooperative',
     contact_email: '',
     contact_phone: '',
+    password: '',
+    confirm: '',
     message: '',
   })
+
+  const [reveal, setReveal] = useState(false)
+  // Checked here only to catch a typo before a submission is spent; the server decides.
+  const mismatch = form.confirm.length > 0 && form.confirm !== form.password
+  const tooShort = form.password.length > 0 && form.password.length < MIN_LENGTH
 
   const set = (key: keyof typeof form) => (e: { target: { value: string } }) =>
     setForm({ ...form, [key]: e.target.value })
@@ -88,6 +99,7 @@ export function RequestAccessForm() {
               stakeholder: form.stakeholder as OrganizationEnquiry['stakeholder'],
               contact_email: form.contact_email || null,
               contact_phone: form.contact_phone || null,
+              password: form.password,
               message: form.message || null,
             }
             await api.enquire(payload)
@@ -121,6 +133,53 @@ export function RequestAccessForm() {
           {field('contact_email', 'email')}
           {field('contact_phone', 'tel')}
         </div>
+
+        {/* Chosen here, so approval is the only thing standing between them and signing in. */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-fg-muted">{t('field.password')}</span>
+            <div className="relative">
+              <input
+                type={reveal ? 'text' : 'password'}
+                required
+                minLength={MIN_LENGTH}
+                value={form.password}
+                onChange={set('password')}
+                autoComplete="new-password"
+                className="w-full rounded-lg border border-border bg-surface px-3 py-2 pr-11"
+              />
+              <button
+                type="button"
+                onClick={() => setReveal((v) => !v)}
+                aria-pressed={reveal}
+                aria-label={reveal ? t('hidePassword') : t('showPassword')}
+                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-fg-muted hover:text-fg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              >
+                {reveal ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-fg-muted">{t('field.confirm')}</span>
+            <input
+              type={reveal ? 'text' : 'password'}
+              required
+              value={form.confirm}
+              onChange={set('confirm')}
+              autoComplete="new-password"
+              aria-invalid={mismatch}
+              className="rounded-lg border border-border bg-surface px-3 py-2"
+            />
+          </label>
+          <p className={cn('text-xs sm:col-span-2', tooShort ? 'text-status-bad' : 'text-fg-subtle')}>
+            {t('passwordHint', { count: MIN_LENGTH })}
+          </p>
+          {mismatch && (
+            <p role="alert" className="text-xs text-status-bad sm:col-span-2">
+              {t('mismatch')}
+            </p>
+          )}
+        </div>
         {/* One reply route is required; a lead nobody can answer is not a lead. */}
         <p className="text-xs text-fg-subtle">{t('reachable')}</p>
 
@@ -142,7 +201,7 @@ export function RequestAccessForm() {
           </p>
         )}
 
-        <Button type="submit" disabled={busy}>
+        <Button type="submit" disabled={busy || mismatch || tooShort}>
           <Send className="size-4" aria-hidden />
           {busy ? t('sending') : t('send')}
         </Button>

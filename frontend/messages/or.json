@@ -748,7 +748,8 @@
       "requests": "Gaaffiiwwan ji'a kanaa",
       "requestsDetail": "dandeettii gurgurame keessaa {share}"
     },
-    "cancel": "Haqi"
+    "cancel": "Haqi",
+    "noMembers": "Namni seenuu danda'u hin jiru"
   },
   "farm": {
     "premium": {
@@ -804,23 +805,29 @@
   },
   "requestAccess": {
     "title": "Dhaqqabummaa gaafadhu",
-    "intro": "Waldaalee hojii gamtaa, waajjiraalee qonnaa aanaa, inshuraansii fi liqeessitoota, ministeerota, NGOwwanii fi yunivarsiitiiwwaniif. Eenyu akka taatan nutti himaa, isin qunnamna.",
+    "intro": "Waldaalee, waajjiraalee qonnaa aanaa, inshuraansii fi liqeessitoota, ministeerota, dhaabbilee miti-mootummaa fi yunivarsiitiiwwaniif. Amma jecha darbii filadhu — eenyummaan kee erga mirkanaa'ee herregni kee ni banama.",
     "field": {
       "organization_name": "Dhaabbata",
       "contact_name": "Maqaa keessan",
       "stakeholder": "Gosa dhaabbataa",
       "contact_email": "Imeelii",
       "contact_phone": "Bilbila",
-      "message": "Maaliif isin barbaachisa?"
+      "message": "Maaliif isin barbaachisa?",
+      "password": "Jecha darbii filadhu",
+      "confirm": "Irra deebi'i"
     },
     "messagePlaceholder": "Qonnaan bultoota yookiin aanaalee meeqa haguuga?",
     "reachable": "Deebii kennuuf imeelii yookiin lakkoofsa bilbilaa kennaa.",
     "send": "Gaaffii ergi",
     "sending": "Ergaa jira…",
     "sentTitle": "Gaaffiin nu gaheera",
-    "sentBody": "Galatoomaa. Gaaffii keessan qabna, isin qunnamna.",
+    "sentBody": "Galatoomi. Gaaffiin kee nu gahe. Herregni erga mirkanaa'ee jecha darbii filatteen seenuu dandeessa.",
     "backToSignIn": "Gara seensaatti deebi'i",
-    "haveAccount": "Herrega qabduu? Seeni"
+    "haveAccount": "Herrega qabduu? Seeni",
+    "passwordHint": "Yoo xiqqaate arfii {count}. Erga mirkanaa'ee kanaan seenta.",
+    "mismatch": "Lamaan isaan wal hin fakkaatan.",
+    "showPassword": "Jecha darbii agarsiisi",
+    "hidePassword": "Jecha darbii dhoksi"
   },
   "requests": {
     "eyebrow": "Daldala",
@@ -1127,7 +1134,17 @@
     "approve": "Mirkaneessi",
     "refuse": "Didi",
     "confirmRefusal": "Galmee kana didi",
-    "why": "Maaliif (gaafataaf ni himama)"
+    "why": "Maaliif (gaafataaf ni himama)",
+    "registerInPerson": "Qonnaan bulaa galmeessi",
+    "theirName": "Maqaa isaanii",
+    "theirPhone": "Lakkoofsa isaanii",
+    "createAndLink": "Uumiitii hidhaa argadhu",
+    "noPasswordHere": "Jecha darbii isaanii ati hin qopheessitu. Hidhaa al tokko hojjetu argatta, isaanis kan ofii isaanii filatu.",
+    "linkFor": "{name}f hidhaa al tokko hojjetu — deebi'ee hin mul'atu",
+    "linkExpires": "Al tokko hojjeta, {date} ni dhuma.",
+    "copy": "Garagalchi",
+    "copied": "Garagalfame",
+    "dismiss": "Xumurame"
   },
   "howItWorks": {
     "eyebrow": "Mala",
@@ -1256,5 +1273,24 @@
     "talkLead": "Dhaabbileen herrega gaafatu, nutis karoora kutaa isaaniitiif qabannee deebina. Qonnaan bultoonni kallattiidhaan galmaa'u, hojjetaan misoomaas lafa mirkaneessa.",
     "ctaAccess": "Gahumsa gaafadhu",
     "ctaSignup": "Galmee qonnaan bulaa"
+  },
+  "members": {
+    "title": "Eenyu seenuu danda’a",
+    "invite": "Nama afeeri",
+    "nobody": "{name}f namni seenuu danda'u hanga ammaa hin jiru. Herregni ni jira, garuu namni itti hin hidhamne — banuuf nama afeeri.",
+    "invited": "Afeerame",
+    "neverIn": "Takkaa hin seenne",
+    "reset": "Jecha darbii haaromsi",
+    "theirName": "Maqaa isaanii",
+    "theirEmail": "Imeelii isaanii",
+    "theirRole": "Waan arganu",
+    "roleAgent": "Aanaa isaanii",
+    "roleMinister": "Laga guutuu",
+    "sendInvite": "Hidhaa uumi",
+    "noPasswordHere": "Jecha darbii isaanii ati hin qopheessitu. Hidhaa al tokko hojjetu argatta, isaanis kan ofii isaanii filatu.",
+    "linkOnce": "{name}f hidhaa al tokko hojjetu — deebi'ee hin mul'atu",
+    "expires": "Al tokko hojjeta, {date} ni dhuma.",
+    "copy": "Garagalchi",
+    "dismiss": "Xumurame"
   }
 }

@@ -14,10 +14,20 @@ RequestStatusName = Literal["new", "contacted", "approved", "declined"]
 
 
 class OrganizationEnquiry(BaseModel):
-    """The public form. No account exists yet, so everything is self-reported."""
+    """The public form. No account exists yet, so everything is self-reported.
+
+    The contact chooses their own password here, exactly as a farmer does at sign-up. Nothing is
+    usable until an administrator approves: the account is created `pending`, and approval is what
+    turns a self-reported claim into an account somebody can sign in to.
+
+    Asking for it here rather than relaying a link afterwards removes a step that existed only
+    because there is no mail server -- and a step where a credential was read down a phone.
+    """
 
     organization_name: str = Field(min_length=2, max_length=160)
     contact_name: str = Field(min_length=2, max_length=120)
+    #: Bounded only against absurd input; the strength rule lives in `validate_password_strength`.
+    password: str = Field(min_length=1, max_length=256, description="What you will sign in with")
     stakeholder: StakeholderName | None = Field(
         None, description="Which segment they believe they are; an administrator may decide otherwise"
     )
@@ -27,7 +37,8 @@ class OrganizationEnquiry(BaseModel):
 
     @model_validator(mode="after")
     def _reachable(self) -> OrganizationEnquiry:
-        # A lead nobody can reply to is not a lead.
+        # A lead nobody can reply to is not a lead -- and an account with no identifier is an
+        # account nobody can sign in to, since the identifier is what sign-in is keyed on.
         if not self.contact_email and not self.contact_phone:
             raise ValueError("give an email address or a phone number so we can reply")
         return self

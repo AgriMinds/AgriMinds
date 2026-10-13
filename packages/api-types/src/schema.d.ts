@@ -937,6 +937,31 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/organizations/{organization_id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who can sign in for this account */
+        get: operations["members_api_v1_organizations__organization_id__members_get"];
+        put?: never;
+        /**
+         * Invite somebody to an account that already exists
+         * @description An organisation created directly — rather than through an access request — has no account anybody can sign in to. Neither does one approved from an enquiry that carried no email address. This is how either becomes reachable.
+         *
+         *     **No password is set.** The response carries a one-time link; the person chooses their own password at it. An administrator who could set it could then sign in as them, and nothing downstream could tell the two apart.
+         *
+         *     The link is shown once and only its hash is stored. A lost link is replaced by inviting again, not recovered.
+         */
+        post: operations["invite_member_api_v1_organizations__organization_id__members_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/organizations/{organization_id}/usage": {
         parameters: {
             query?: never;
@@ -1053,6 +1078,50 @@ export type paths = {
          * @description Open to any staff member, not only an administrator: the person who can actually say whether a holding exists is the development agent for that woreda. Who decided and when is recorded on the account.
          */
         post: operations["decide_api_v1_staff_signups__user_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/signups/{user_id}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue a password reset link
+         * @description There is no email and no SMS carrier to send a reset to, so the channel is the person who can already identify the farmer: their development agent.
+         *
+         *     The link is shown once and only its hash is stored, so it cannot be looked up again — a lost link is replaced, not recovered. Issuing one also spends any link the account already held, so this revokes whatever was outstanding.
+         */
+        post: operations["reset_password_api_v1_staff_signups__user_id__reset_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/signups/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register a farmer who is standing in front of you
+         * @description For the farmer who walks into the office or meets the agent in the field — the case the hotline points at when it tells an unregistered caller to ask their development agent.
+         *
+         *     Approved immediately, because the check the queue performs has just been done in person. **No password is set here**: the response carries a one-time link and the farmer chooses their own, so no staff member ends up holding a credential that signs in as a farmer.
+         */
+        post: operations["register_farmer_api_v1_staff_signups_register_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1616,6 +1685,30 @@ export type components = {
             woredas_covered: number;
             /** Woredas Total */
             woredas_total: number;
+        };
+        /**
+         * CredentialLink
+         * @description A one-time link, shown once to the staff member who has to relay it.
+         *
+         *     There is no mail server and no SMS carrier, so the relay is a person. The token is stored only
+         *     as a hash, so asking again will not produce it -- a lost link is replaced, not recovered.
+         */
+        CredentialLink: {
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Full Name */
+            full_name: string;
+            /** Instruction */
+            instruction: string;
+            /** Phone */
+            phone: string | null;
+            /** Token */
+            token: string;
+            /** User Id */
+            user_id: string;
         };
         /**
          * CreditBalance
@@ -2973,6 +3066,30 @@ export type components = {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /**
+         * InviteMember
+         * @description Invite a person to an account that already exists.
+         *
+         *     No password field, deliberately. An administrator who could set somebody's password could
+         *     then sign in as them, and nothing downstream could tell the two apart.
+         */
+        InviteMember: {
+            /**
+             * Email
+             * Format: email
+             * @description What they will sign in with
+             */
+            email: string;
+            /** Full Name */
+            full_name: string;
+            /**
+             * Role
+             * @description `minister` sees the whole watershed; `agent` their own woreda
+             * @default agent
+             * @enum {string}
+             */
+            role: "agent" | "minister";
+        };
         /** InvoiceOut */
         InvoiceOut: {
             /** Amount */
@@ -3112,6 +3229,26 @@ export type components = {
             identifier: string;
             /** Password */
             password: string;
+        };
+        /**
+         * MemberOut
+         * @description Somebody who can sign in for this account.
+         */
+        MemberOut: {
+            /** Email */
+            email: string | null;
+            /** Full Name */
+            full_name: string;
+            /** Has Signed In */
+            has_signed_in: boolean;
+            /** Id */
+            id: string;
+            /** Invitation Pending */
+            invitation_pending: boolean;
+            /** Is Active */
+            is_active: boolean;
+            /** Role */
+            role: string;
         };
         /** MetabaseStatus */
         MetabaseStatus: {
@@ -3292,6 +3429,13 @@ export type components = {
         /**
          * OrganizationEnquiry
          * @description The public form. No account exists yet, so everything is self-reported.
+         *
+         *     The contact chooses their own password here, exactly as a farmer does at sign-up. Nothing is
+         *     usable until an administrator approves: the account is created `pending`, and approval is what
+         *     turns a self-reported claim into an account somebody can sign in to.
+         *
+         *     Asking for it here rather than relaying a link afterwards removes a step that existed only
+         *     because there is no mail server -- and a step where a credential was read down a phone.
          */
         OrganizationEnquiry: {
             /** Contact Email */
@@ -3304,6 +3448,11 @@ export type components = {
             message?: string | null;
             /** Organization Name */
             organization_name: string;
+            /**
+             * Password
+             * @description What you will sign in with
+             */
+            password: string;
             /**
              * Stakeholder
              * @description Which segment they believe they are; an administrator may decide otherwise
@@ -3332,8 +3481,18 @@ export type components = {
             id: string;
             /** Is Active */
             is_active: boolean;
+            /**
+             * Members
+             * @default 0
+             */
+            members: number;
             /** Name */
             name: string;
+            /**
+             * Pending Invitations
+             * @default 0
+             */
+            pending_invitations: number;
             /**
              * Stakeholder
              * @enum {string}
@@ -3600,6 +3759,30 @@ export type components = {
         RefreshRequest: {
             /** Refresh Token */
             refresh_token: string;
+        };
+        /**
+         * RegisterFarmer
+         * @description A development agent opening an account for a farmer standing in front of them.
+         *
+         *     No password field: the agent must not choose, know or type the farmer's password. They issue a
+         *     link and the farmer sets their own, which is the only version where the agent cannot sign in
+         *     as the farmer afterwards.
+         */
+        RegisterFarmer: {
+            /** Full Name */
+            full_name: string;
+            /**
+             * Locale
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "am" | "or";
+            /** Note */
+            note?: string | null;
+            /** Phone */
+            phone: string;
+            /** Woreda Id */
+            woreda_id?: string | null;
         };
         /**
          * RequestDecision
@@ -6798,6 +6981,108 @@ export interface operations {
             };
         };
     };
+    members_api_v1_organizations__organization_id__members_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    invite_member_api_v1_organizations__organization_id__members_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteMember"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialLink"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     usage_api_v1_organizations__organization_id__usage_get: {
         parameters: {
             query?: never;
@@ -7067,6 +7352,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PendingUser"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_password_api_v1_staff_signups__user_id__reset_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialLink"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    register_farmer_api_v1_staff_signups_register_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterFarmer"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialLink"];
                 };
             };
             /** @description Unauthorized */

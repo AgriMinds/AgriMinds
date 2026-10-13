@@ -40,10 +40,9 @@ export function BillingModal({ visible, onClose }: BillingModalProps) {
   });
 
   const chooseMutation = useMutation({
-    mutationFn: (planKey: string) =>
+    mutationFn: () =>
       api.choosePlan(
         {
-          stakeholder: planKey as any,
           period: 'annual',
           quantity: 1,
         },
@@ -268,7 +267,7 @@ export function BillingModal({ visible, onClose }: BillingModalProps) {
                       <TouchableOpacity
                         onPress={() => {
                           setSelectedPlanKey(tier.key);
-                          chooseMutation.mutate(tier.key);
+                          chooseMutation.mutate();
                         }}
                         style={[
                           styles.subscribeBtn,

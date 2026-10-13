@@ -442,6 +442,20 @@ export function SidebarDrawer() {
             <Text style={styles.footerText}>{t('sidebar.systemInfo')}</Text>
           </View>
         </View>
+
+        {/* Platform Parity Modals */}
+        <DataSourcesModal
+          visible={isDataSourcesModalOpen}
+          onClose={() => setDataSourcesModalOpen(false)}
+        />
+        <ModelMetricsModal
+          visible={isMetricsModalOpen}
+          onClose={() => setMetricsModalOpen(false)}
+        />
+        <BillingModal
+          visible={isBillingModalOpen}
+          onClose={() => setBillingModalOpen(false)}
+        />
       </View>
     </Modal>
   );
@@ -829,5 +843,29 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: 'rgba(255, 255, 255, 0.45)',
     textAlign: 'center',
+  },
+  servicesList: {
+    marginTop: spacing.sm,
+    gap: 6,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  serviceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  serviceItemText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.85)',
   },
 });

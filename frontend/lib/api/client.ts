@@ -22,6 +22,10 @@ import type {
   AgentQuestion,
   HotlineTurn,
   ApprovalDecision,
+  CredentialLink,
+  InviteMember,
+  MemberOut,
+  RegisterFarmer,
   PendingUser,
   SignupAccepted,
   SignupRequest,
@@ -257,6 +261,23 @@ export const api = {
     request<SignupAccepted>('/signup', { method: 'POST', body: JSON.stringify(req) }),
   /** Who is waiting to be confirmed, oldest first. Staff only. */
   pendingSignups: () => request<PendingUser[]>('/staff/signups'),
+  /** Who can sign in for an account. Zero means nobody can reach it. */
+  members: (orgId: string) => request<MemberOut[]>(`/organizations/${orgId}/members`),
+  /** Invite somebody to an existing account. Returns a one-time link; never a password. */
+  inviteMember: (orgId: string, req: InviteMember) =>
+    request<CredentialLink>(`/organizations/${orgId}/members`, {
+      method: 'POST',
+      body: JSON.stringify(req),
+    }),
+  /** Open an account for a farmer in person. Returns a one-time link; never a password. */
+  registerFarmer: (req: RegisterFarmer) =>
+    request<CredentialLink>('/staff/signups/register', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    }),
+  /** Let somebody back in who has forgotten their password. Shown once. */
+  resetPassword: (id: string) =>
+    request<CredentialLink>(`/staff/signups/${id}/reset-password`, { method: 'POST' }),
   decideSignup: (id: string, decision: ApprovalDecision) =>
     request<PendingUser>(`/staff/signups/${id}`, {
       method: 'POST',

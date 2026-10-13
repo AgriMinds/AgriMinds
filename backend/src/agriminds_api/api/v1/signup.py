@@ -10,7 +10,9 @@ from agriminds_api.api.deps import CurrentUser, SessionDep, SettingsDep, require
 from agriminds_api.schemas.common import ErrorResponse
 from agriminds_api.schemas.signup import (
     ApprovalDecision,
+    CredentialLink,
     PendingUser,
+    RegisterFarmer,
     SignupAccepted,
     SignupRequest,
 )
@@ -50,6 +52,27 @@ async def pending(session: SessionDep, settings: SettingsDep) -> list[PendingUse
 
 
 @staff_router.post(
+    "/register",
+    response_model=CredentialLink,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a farmer who is standing in front of you",
+    description=(
+        "For the farmer who walks into the office or meets the agent in the field — the case the "
+        "hotline points at when it tells an unregistered caller to ask their development "
+        "agent.\n\n"
+        "Approved immediately, because the check the queue performs has just been done in "
+        "person. **No password is set here**: the response carries a one-time link and the farmer "
+        "chooses their own, so no staff member ends up holding a credential that signs in as a "
+        "farmer."
+    ),
+)
+async def register_farmer(
+    req: RegisterFarmer, session: SessionDep, settings: SettingsDep, staff: CurrentUser
+) -> CredentialLink:
+    return await SignupService(session, settings).register_farmer(req, registered_by=staff.id)
+
+
+@staff_router.post(
     "/{user_id}",
     response_model=PendingUser,
     summary="Confirm or refuse a sign-up",
@@ -67,3 +90,21 @@ async def decide(
     staff: CurrentUser,
 ) -> PendingUser:
     return await SignupService(session, settings).decide(user_id, decision, decided_by=staff.id)
+
+
+@staff_router.post(
+    "/{user_id}/reset-password",
+    response_model=CredentialLink,
+    summary="Issue a password reset link",
+    description=(
+        "There is no email and no SMS carrier to send a reset to, so the channel is the person "
+        "who can already identify the farmer: their development agent.\n\n"
+        "The link is shown once and only its hash is stored, so it cannot be looked up again — a "
+        "lost link is replaced, not recovered. Issuing one also spends any link the account "
+        "already held, so this revokes whatever was outstanding."
+    ),
+)
+async def reset_password(
+    user_id: uuid.UUID, session: SessionDep, settings: SettingsDep, staff: CurrentUser
+) -> CredentialLink:
+    return await SignupService(session, settings).reset_password(user_id, issued_by=staff.id)
