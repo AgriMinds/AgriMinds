@@ -753,7 +753,7 @@
   "farm": {
     "premium": {
       "title": "Premium advisories",
-      "value": "ETB 465 a year. One drought season avoided is worth around ETB 70,000 to a holding this size — the subscription costs a fraction of a single bad year.",
+      "value": "One drought season avoided is worth around ETB 70,000 to a holding this size — the subscription costs a fraction of a single bad year.",
       "includes": {
         "sms": "Warnings by SMS, so you get them without opening the app",
         "plots": "Advice for every plot, not just the one that needs it most",
@@ -765,7 +765,20 @@
       "asking": "Sending…",
       "noPayment": "No payment is taken here. We will contact you to arrange it.",
       "pending": "We have your request and will be in touch.",
-      "approved": "Your premium access has been approved."
+      "approved": "Your premium access has been approved.",
+      "approvedTitle": "Your request was approved",
+      "price": "{price} a year",
+      "subscribe": "Subscribe for a year",
+      "subscribing": "Setting up…",
+      "noPaymentHere": "No money is taken on this page. You will get a reference to pay against.",
+      "awaiting": "Waiting for your payment of {amount}",
+      "payRef": "Quote this reference",
+      "payHint": "Pay to {payTo} by bank transfer or telebirr, and quote the reference above so we can match it.",
+      "startsWhenConfirmed": "Premium starts as soon as we confirm the payment arrived.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "active": "Premium is active.",
+      "activeUntil": "Premium is active until {date}."
     }
   },
   "requestAccess": {

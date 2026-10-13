@@ -30,28 +30,13 @@ class PlanOption(BaseModel):
     )
 
 
-class PlanSet(BaseModel):
-    stakeholder: StakeholderName
-    label: str
-    unit: str
-    currency: str
-    strategy: str | None
-    value_note: str | None
-    api_quota_monthly: int
-    options: list[PlanOption]
-    current: SubscriptionOut | None = Field(None, description="What this account is already on")
-
-
-class PlanChoice(BaseModel):
-    period: BillingPeriodName
-    quantity: int = Field(1, ge=1, le=10_000, description="Woredas, seats or members covered")
-    starts_on: dt.date | None = Field(None, description="Defaults to today")
-
-
 class InvoiceOut(BaseModel):
     id: str
     reference: str = Field(description="Quote this on the transfer")
-    organization_id: str
+    organization_id: str | None
+    #: Who the bill is addressed to. An administrator confirming a payment needs the name, and it
+    #: is the only thing that distinguishes one farmer's ETB 465 from another's.
+    payer_name: str
     subscription_id: str | None
     amount_cents: int
     amount: str
@@ -64,6 +49,30 @@ class InvoiceOut(BaseModel):
     method: PaymentMethodName | None
     payment_reference: str | None
     overdue: bool
+
+
+class PlanSet(BaseModel):
+    stakeholder: StakeholderName
+    label: str
+    unit: str
+    currency: str
+    strategy: str | None
+    value_note: str | None
+    api_quota_monthly: int
+    options: list[PlanOption]
+    current: SubscriptionOut | None = Field(None, description="What this account is already on")
+    #: Where to send the money. Carried here as well as on the checkout result, so a customer who
+    #: closes the page and comes back to an unpaid bill can still see what to pay into.
+    pay_to: str
+    #: The unpaid bill for `current`, if there is one. Same reason: the reference has to survive a
+    #: reload, or the only copy of it was on a screen the customer has already left.
+    outstanding: InvoiceOut | None = None
+
+
+class PlanChoice(BaseModel):
+    period: BillingPeriodName
+    quantity: int = Field(1, ge=1, le=10_000, description="Woredas, seats or members covered")
+    starts_on: dt.date | None = Field(None, description="Defaults to today")
 
 
 class CheckoutResult(BaseModel):

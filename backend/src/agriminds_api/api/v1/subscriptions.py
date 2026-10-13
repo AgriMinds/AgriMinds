@@ -14,12 +14,22 @@ from agriminds_api.services.subscription import SubscriptionService
 router = APIRouter(prefix="/subscriptions", tags=["Subscriptions"], dependencies=[Depends(require_admin)])
 
 
-@router.get("", response_model=list[SubscriptionOut], summary="Every agreement on record")
+@router.get(
+    "",
+    response_model=list[SubscriptionOut],
+    summary="Institutional agreements on record",
+    description=(
+        "Individual farmer premiums are left out unless asked for: there is one per farmer, and a "
+        "list that mixes them in with institutional licences stops being a list of accounts. They "
+        "are counted in `/subscriptions/revenue` either way."
+    ),
+)
 async def list_subscriptions(
     session: SessionDep,
     organization_id: uuid.UUID | None = Query(None, description="Limit to one account"),
+    individuals: bool = Query(False, description="Include farmers who bought premium themselves"),
 ) -> list[SubscriptionOut]:
-    return await SubscriptionService(session).list(organization_id=organization_id)
+    return await SubscriptionService(session).list(organization_id=organization_id, individuals=individuals)
 
 
 @router.post(

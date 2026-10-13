@@ -7994,8 +7994,19 @@
             "description": "Quote this on the transfer"
           },
           "organization_id": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Organization Id"
+          },
+          "payer_name": {
+            "type": "string",
+            "title": "Payer Name"
           },
           "subscription_id": {
             "anyOf": [
@@ -8094,6 +8105,7 @@
           "id",
           "reference",
           "organization_id",
+          "payer_name",
           "subscription_id",
           "amount_cents",
           "amount",
@@ -9210,6 +9222,20 @@
               }
             ],
             "description": "What this account is already on"
+          },
+          "pay_to": {
+            "type": "string",
+            "title": "Pay To"
+          },
+          "outstanding": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InvoiceOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -9221,7 +9247,8 @@
           "strategy",
           "value_note",
           "api_quota_monthly",
-          "options"
+          "options",
+          "pay_to"
         ],
         "title": "PlanSet"
       },
@@ -9887,12 +9914,27 @@
             "title": "Id"
           },
           "organization_id": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Organization Id"
           },
-          "organization_name": {
+          "payer_name": {
             "type": "string",
-            "title": "Organization Name"
+            "title": "Payer Name"
+          },
+          "payer_kind": {
+            "type": "string",
+            "enum": [
+              "organization",
+              "farmer"
+            ],
+            "title": "Payer Kind"
           },
           "stakeholder": {
             "type": "string",
@@ -9998,7 +10040,8 @@
         "required": [
           "id",
           "organization_id",
-          "organization_name",
+          "payer_name",
+          "payer_kind",
           "stakeholder",
           "billing_period",
           "status",

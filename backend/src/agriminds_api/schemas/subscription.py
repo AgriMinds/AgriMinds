@@ -33,8 +33,11 @@ class SubscriptionCreate(BaseModel):
 
 class SubscriptionOut(BaseModel):
     id: str
-    organization_id: str
-    organization_name: str
+    #: Set for an institutional customer, null when a farmer bought premium for themselves.
+    organization_id: str | None
+    #: Who owes it, whichever kind of payer it is. Named for reading, not for joining.
+    payer_name: str
+    payer_kind: Literal["organization", "farmer"]
     stakeholder: StakeholderName
     billing_period: BillingPeriodName
     status: SubscriptionStatusName

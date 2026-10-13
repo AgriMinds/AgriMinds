@@ -14,9 +14,11 @@ from __future__ import annotations
 import datetime as dt
 import logging
 import uuid
+from dataclasses import dataclass
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from agriminds_api.core.config import Settings
 from agriminds_api.core.exceptions import ConflictError, NotFoundError, ValidationError
@@ -28,8 +30,10 @@ from agriminds_api.db.models import (
     Organization,
     PaymentMethod,
     PricingTier,
+    StakeholderType,
     Subscription,
     SubscriptionStatus,
+    User,
 )
 from agriminds_api.schemas.billing import _as_amount
 from agriminds_api.schemas.plan import (
@@ -46,11 +50,79 @@ from agriminds_api.services.subscription import _out as _subscription_out
 log = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True)
+class Payer:
+    """Who is buying: an institution, or one farmer buying premium for themselves.
+
+    Everything downstream -- the rate card to read, the row to write, the invoice to address --
+    follows from this one distinction, so it is resolved once at the edge and passed down rather
+    than re-derived from a nullable column in each method.
+    """
+
+    stakeholder: StakeholderType
+    name: str
+    organization: Organization | None = None
+    user: User | None = None
+
+    @classmethod
+    def institution(cls, org: Organization) -> Payer:
+        return cls(stakeholder=org.stakeholder, name=org.name, organization=org)
+
+    @classmethod
+    def farmer(cls, user: User) -> Payer:
+        return cls(stakeholder=StakeholderType.FARMER_PREMIUM, name=user.full_name, user=user)
+
+    @property
+    def owner_clause(self):
+        """The `where` that selects this payer's own rows, and nobody else's."""
+        if self.organization is not None:
+            return Subscription.organization_id == self.organization.id
+        return Subscription.user_id == self.user.id
+
+    @property
+    def invoice_clause(self):
+        if self.organization is not None:
+            return Invoice.organization_id == self.organization.id
+        return Invoice.user_id == self.user.id
+
+    @property
+    def columns(self) -> dict[str, uuid.UUID]:
+        """The payer columns to write. Exactly one, which the check constraint also enforces."""
+        if self.organization is not None:
+            return {"organization_id": self.organization.id}
+        return {"user_id": self.user.id}
+
+
+def term_end(starts: dt.date, period: BillingPeriod) -> dt.date | None:
+    """When the term bought runs out, or None for a perpetual licence.
+
+    A self-serve subscription was being created open-ended, which meant no plan ever reached its
+    end date: the renewals and lapsed lists an administrator works from stayed empty however many
+    annual plans were sold. A term that was paid for has an end, and it is this.
+    """
+    if period is BillingPeriod.PERPETUAL:
+        return None
+    if period is BillingPeriod.DAILY:
+        return starts + dt.timedelta(days=1)
+    if period is BillingPeriod.ANNUAL:
+        # 29 February plus a year is 28 February: the term still ends, a day earlier.
+        try:
+            return starts.replace(year=starts.year + 1)
+        except ValueError:
+            return starts.replace(year=starts.year + 1, day=28)
+    month = starts.month % 12 + 1
+    year = starts.year + (1 if starts.month == 12 else 0)
+    # The 31st of a 30-day month lands on its last day rather than overflowing into the next.
+    last = (dt.date(year + (month == 12), month % 12 + 1, 1) - dt.timedelta(days=1)).day
+    return dt.date(year, month, min(starts.day, last))
+
+
 def _invoice_out(inv: Invoice, *, today: dt.date) -> InvoiceOut:
     return InvoiceOut(
         id=str(inv.id),
         reference=inv.reference,
-        organization_id=str(inv.organization_id),
+        organization_id=str(inv.organization_id) if inv.organization_id else None,
+        payer_name=inv.payer_name,
         subscription_id=str(inv.subscription_id) if inv.subscription_id else None,
         amount_cents=inv.amount_cents,
         amount=_as_amount(inv.amount_cents),
@@ -71,21 +143,21 @@ class PlanService:
         self._session = session
         self._settings = settings
 
-    async def _tier(self, org: Organization) -> PricingTier:
+    async def _tier(self, payer: Payer) -> PricingTier:
         tier = await self._session.scalar(
             select(PricingTier).where(
-                PricingTier.stakeholder == org.stakeholder, PricingTier.effective_to.is_(None)
+                PricingTier.stakeholder == payer.stakeholder, PricingTier.effective_to.is_(None)
             )
         )
         if tier is None:
             raise NotFoundError(
-                f"There is no plan for {org.stakeholder.value.replace('_', ' ')} at the moment. "
+                f"There is no plan for {payer.stakeholder.value.replace('_', ' ')} at the moment. "
                 "Contact us and we will arrange one."
             )
         return tier
 
-    async def plans(self, org: Organization) -> PlanSet:
-        tier = await self._tier(org)
+    async def plans(self, payer: Payer) -> PlanSet:
+        tier = await self._tier(payer)
         offered: list[tuple[BillingPeriod, int]] = []
         for period, column in PRICE_COLUMN.items():
             price = getattr(tier, column)
@@ -119,16 +191,32 @@ class PlanService:
         current = await self._session.scalar(
             select(Subscription)
             .where(
-                Subscription.organization_id == org.id,
+                payer.owner_clause,
                 Subscription.status.in_([SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING_PAYMENT]),
             )
             .order_by(Subscription.started_on.desc())
         )
         if current is not None:
-            await self._session.refresh(current, ["organization"])
+            await self._session.refresh(current, ["organization", "user"])
+
+        # The reference on an unpaid bill is the only thing a customer can quote on a transfer, so
+        # it has to be readable again after they close the page rather than only at checkout.
+        today = dt.date.today()
+        open_bill = (
+            await self._session.scalar(
+                select(Invoice)
+                .where(payer.invoice_clause, Invoice.status == InvoiceStatus.ISSUED)
+                .options(selectinload(Invoice.organization), selectinload(Invoice.user))
+                .order_by(Invoice.issued_on.desc())
+            )
+            if current is not None
+            else None
+        )
 
         return PlanSet(
-            stakeholder=org.stakeholder.value,
+            pay_to=self._settings.billing_pay_to,
+            outstanding=_invoice_out(open_bill, today=today) if open_bill else None,
+            stakeholder=payer.stakeholder.value,
             label=tier.label,
             unit=tier.unit,
             currency=tier.currency,
@@ -136,7 +224,7 @@ class PlanService:
             value_note=tier.value_note,
             api_quota_monthly=tier.api_quota_monthly,
             options=options,
-            current=_subscription_out(current, today=dt.date.today()) if current else None,
+            current=_subscription_out(current, today=today) if current else None,
         )
 
     async def _next_reference(self, today: dt.date) -> str:
@@ -144,8 +232,8 @@ class PlanService:
         number = await self._session.scalar(select(func.nextval("invoice_reference_seq")))
         return f"AGM-{today:%Y}-{int(number):06d}"
 
-    async def choose(self, org: Organization, choice: PlanChoice) -> CheckoutResult:
-        tier = await self._tier(org)
+    async def choose(self, payer: Payer, choice: PlanChoice) -> CheckoutResult:
+        tier = await self._tier(payer)
         period = BillingPeriod(choice.period)
         price = getattr(tier, PRICE_COLUMN[period])
         if price <= 0:
@@ -153,7 +241,7 @@ class PlanService:
 
         live = await self._session.scalar(
             select(Subscription).where(
-                Subscription.organization_id == org.id,
+                payer.owner_clause,
                 Subscription.status.in_([SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING_PAYMENT]),
             )
         )
@@ -162,41 +250,48 @@ class PlanService:
                 "This account already has a plan. End the current one before choosing another."
             )
 
+        quantity = choice.quantity
+        if payer.user is not None and quantity != 1:
+            # The farmer tier is priced "per farmer" and the payer is one farmer. A quantity here
+            # would silently multiply their bill with nothing to show for it.
+            raise ValidationError("Premium is per farmer, so the quantity is always one.")
+
         today = dt.date.today()
         starts = choice.starts_on or today
         subscription = Subscription(
-            organization_id=org.id,
+            **payer.columns,
             pricing_tier_id=tier.id,
             billing_period=period,
             # Frozen now: the price agreed at the moment of choosing, not whatever the catalogue
             # says when somebody eventually pays.
             unit_price_cents=price,
             currency=tier.currency,
-            quantity=choice.quantity,
+            quantity=quantity,
             started_on=starts,
+            ends_on=term_end(starts, period),
             status=SubscriptionStatus.PENDING_PAYMENT,
         )
         self._session.add(subscription)
         await self._session.flush()
 
-        amount = price * choice.quantity
+        amount = price * quantity
         invoice = Invoice(
             reference=await self._next_reference(today),
-            organization_id=org.id,
+            **payer.columns,
             subscription_id=subscription.id,
             amount_cents=amount,
             currency=tier.currency,
-            description=f"{tier.label} — {choice.period}"
-            + (f" x{choice.quantity}" if choice.quantity > 1 else ""),
+            description=f"{tier.label} — {choice.period}" + (f" x{quantity}" if quantity > 1 else ""),
             issued_on=today,
             due_on=today + dt.timedelta(days=self._settings.billing_due_days),
             status=InvoiceStatus.ISSUED,
         )
         self._session.add(invoice)
         await self._session.flush()
-        await self._session.refresh(subscription, ["organization"])
+        await self._session.refresh(subscription, ["organization", "user"])
+        await self._session.refresh(invoice, ["organization", "user"])
 
-        log.info("%s chose %s; invoice %s for %s", org.name, period.value, invoice.reference, amount)
+        log.info("%s chose %s; invoice %s for %s", payer.name, period.value, invoice.reference, amount)
         return CheckoutResult(
             subscription=_subscription_out(subscription, today=today),
             invoice=_invoice_out(invoice, today=today),
@@ -207,25 +302,34 @@ class PlanService:
             ),
         )
 
-    async def invoices(self, organization_id: uuid.UUID) -> list[InvoiceOut]:
+    async def invoices(self, payer: Payer) -> list[InvoiceOut]:
         rows = await self._session.scalars(
             select(Invoice)
-            .where(Invoice.organization_id == organization_id)
+            .where(payer.invoice_clause)
+            .options(selectinload(Invoice.organization), selectinload(Invoice.user))
             .order_by(Invoice.issued_on.desc())
         )
         today = dt.date.today()
         return [_invoice_out(i, today=today) for i in rows.all()]
 
     async def outstanding(self) -> list[InvoiceOut]:
+        """Every unsettled bill, farmers' included: each one is waiting on the same human step."""
         rows = await self._session.scalars(
-            select(Invoice).where(Invoice.status == InvoiceStatus.ISSUED).order_by(Invoice.due_on)
+            select(Invoice)
+            .where(Invoice.status == InvoiceStatus.ISSUED)
+            .options(selectinload(Invoice.organization), selectinload(Invoice.user))
+            .order_by(Invoice.due_on)
         )
         today = dt.date.today()
         return [_invoice_out(i, today=today) for i in rows.all()]
 
     async def confirm_payment(self, invoice_id: uuid.UUID, confirmation: PaymentConfirmation) -> InvoiceOut:
         """Mark a bill settled, and start the subscription it paid for."""
-        invoice = await self._session.get(Invoice, invoice_id)
+        invoice = await self._session.get(
+            Invoice,
+            invoice_id,
+            options=[selectinload(Invoice.organization), selectinload(Invoice.user)],
+        )
         if invoice is None:
             raise NotFoundError("No such invoice.")
         if invoice.status is InvoiceStatus.PAID:

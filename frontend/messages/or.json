@@ -753,7 +753,7 @@
   "farm": {
     "premium": {
       "title": "Gorsa premium",
-      "value": "Waggaatti ETB 465. Waqtii hongee tokko ittisuun qabeenya hamma kanaaf gara ETB 70,000 baasa — galmeen kun waggaa hamaa tokkoo kutaa xiqqoo baasa.",
+      "value": "Waqtiin hongee tokko ittisamuun qonna hamma kanaaf gara Birr 70,000 ni baasa — galmeen kun kasaaraa waggaa tokko gadhee keessaa qooda xinnoo qofa.",
       "includes": {
         "sms": "Akeekkachiisa SMSn, appii banuu malee",
         "plots": "Lafa hundaaf gorsa, kan tokkoof qofa miti",
@@ -765,7 +765,20 @@
       "asking": "Ergaa jira…",
       "noPayment": "Asitti kaffaltiin hin fudhatamu. Qindeessuuf isin qunnamna.",
       "pending": "Gaaffii keessan nu qaqqabeera, isin qunnamna.",
-      "approved": "Dhaqqabummaan premium keessan mirkanaa'eera."
+      "approved": "Dhaqqabummaan premium keessan mirkanaa'eera.",
+      "approvedTitle": "Gaaffiin kee mirkanaa'eera",
+      "price": "waggaatti {price}",
+      "subscribe": "Waggaa tokkoof galmaa’i",
+      "subscribing": "Qopheessaa jira…",
+      "noPaymentHere": "Fuula kana irratti maallaqni hin fudhatamu. Lakkoofsa wabii kaffaltii ni argatta.",
+      "awaiting": "Kaffaltii kee {amount} eegaa jirra",
+      "payRef": "Wabii kana caqasi",
+      "payHint": "{payTo} irratti bankii yookaan telebirr'n kaffali, akka walsimsiisnuuf wabii armaan olii caqasi.",
+      "startsWhenConfirmed": "Kaffaltiin gahuu akkuma mirkaneessinee premium battalumatti jalqaba.",
+      "copy": "Garagalchi",
+      "copied": "Garagalfame",
+      "active": "Premium hojii irra jira.",
+      "activeUntil": "Premium hanga {date} hojii irra jira."
     }
   },
   "requestAccess": {

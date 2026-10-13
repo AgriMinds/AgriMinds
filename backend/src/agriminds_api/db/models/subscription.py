@@ -24,7 +24,9 @@ from sqlalchemy import BigInteger, CheckConstraint, Date, Enum, ForeignKey, Inde
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from agriminds_api.db.base import Base, Timestamps, UUIDPrimaryKey
+from agriminds_api.db.models.billing import StakeholderType
 from agriminds_api.db.models.commerce import Organization
+from agriminds_api.db.models.user import User
 
 
 class BillingPeriod(enum.StrEnum):
@@ -65,11 +67,21 @@ class Subscription(UUIDPrimaryKey, Timestamps, Base):
         CheckConstraint("unit_price_cents >= 0", name="ck_subscription_price_non_negative"),
         CheckConstraint("quantity > 0", name="ck_subscription_quantity_positive"),
         CheckConstraint("ends_on IS NULL OR ends_on >= started_on", name="ck_subscription_window_ordered"),
+        # A subscription is bought by an institution or by one farmer, never by both and never by
+        # neither. Without this the "payer" is whichever column the reading code happens to check.
+        CheckConstraint("(organization_id IS NULL) <> (user_id IS NULL)", name="ck_subscription_one_payer"),
         Index("ix_subscriptions_status_ends", "status", "ends_on"),
     )
 
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("organizations.id", ondelete="CASCADE"), index=True
+    #: Set for an institutional customer. Mutually exclusive with ``user_id``.
+    organization_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("organizations.id", ondelete="CASCADE"), index=True, nullable=True
+    )
+    #: Set for a farmer buying premium for themselves. A smallholder is not an institution, and
+    #: giving each one a one-person organisation would bury the institutional accounts list in
+    #: thousands of rows that are not accounts.
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=True
     )
     #: Which version of the rate card this was signed against.
     pricing_tier_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -90,7 +102,18 @@ class Subscription(UUIDPrimaryKey, Timestamps, Base):
     )
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    organization: Mapped[Organization] = relationship()
+    organization: Mapped[Organization | None] = relationship()
+    user: Mapped[User | None] = relationship()
+
+    @property
+    def payer_name(self) -> str:
+        """Who owes this, whichever kind of payer it is."""
+        return self.organization.name if self.organization else self.user.full_name
+
+    @property
+    def payer_stakeholder(self) -> StakeholderType:
+        """The segment the price came from. A farmer's own premium is its own segment."""
+        return self.organization.stakeholder if self.organization else StakeholderType.FARMER_PREMIUM
 
     @property
     def annualised_cents(self) -> int:

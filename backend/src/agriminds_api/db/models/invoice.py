@@ -54,13 +54,20 @@ class Invoice(UUIDPrimaryKey, Timestamps, Base):
     __table_args__ = (
         CheckConstraint("amount_cents >= 0", name="ck_invoice_amount_non_negative"),
         CheckConstraint("due_on >= issued_on", name="ck_invoice_due_after_issue"),
+        # The same rule as the subscription it bills: one payer, an institution or a farmer.
+        CheckConstraint("(organization_id IS NULL) <> (user_id IS NULL)", name="ck_invoice_one_payer"),
         Index("ix_invoices_org_status", "organization_id", "status"),
+        Index("ix_invoices_user_status", "user_id", "status"),
     )
 
     #: What a payer types into a transfer form. Short enough to copy without error.
     reference: Mapped[str] = mapped_column(String(32), unique=True, index=True)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("organizations.id", ondelete="CASCADE"), index=True
+    organization_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("organizations.id", ondelete="CASCADE"), index=True, nullable=True
+    )
+    #: Set when a farmer is buying premium for themselves rather than an institution buying.
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=True
     )
     subscription_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("subscriptions.id", ondelete="SET NULL"), nullable=True, index=True
@@ -82,7 +89,13 @@ class Invoice(UUIDPrimaryKey, Timestamps, Base):
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     organization = relationship("Organization")
+    user = relationship("User")
     subscription = relationship("Subscription")
+
+    @property
+    def payer_name(self) -> str:
+        """Who this bill is addressed to. An administrator confirming a payment needs the name."""
+        return self.organization.name if self.organization else self.user.full_name
 
     def is_overdue(self, on: dt.date) -> bool:
         return self.status is InvoiceStatus.ISSUED and self.due_on < on

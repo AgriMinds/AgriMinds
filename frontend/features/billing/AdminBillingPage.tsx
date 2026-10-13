@@ -2,7 +2,7 @@
 
 import { useFormatter, useTranslations } from 'next-intl'
 import { AlertTriangle, CalendarClock, CreditCard, TrendingUp } from 'lucide-react'
-import type { RevenueByStakeholder } from '@agriminds/api-types'
+import type { RevenueByStakeholder, SubscriptionOut } from '@agriminds/api-types'
 import {
   Card,
   CardContent,
@@ -167,19 +167,17 @@ function Watchlist({
   lapsed,
   currency,
 }: {
-  renewals: { organization_name: string; ends_on: string | null; annualised: string }[]
-  lapsed: { organization_name: string; ends_on: string | null; annualised: string }[]
+  renewals: SubscriptionOut[]
+  lapsed: SubscriptionOut[]
   currency: string
 }) {
   const t = useTranslations('revenue')
   const format = useFormatter()
 
-  const row = (
-    item: { organization_name: string; ends_on: string | null; annualised: string },
-    key: string,
-  ) => (
+  const row = (item: SubscriptionOut, key: string) => (
     <li key={key} className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
-      <span className="min-w-0 truncate">{item.organization_name}</span>
+      {/* The payer may be an institution or one farmer, so the name is read, not joined. */}
+      <span className="min-w-0 truncate">{item.payer_name}</span>
       <span className="flex items-baseline gap-2 text-xs">
         {item.ends_on && (
           <span className="text-fg-subtle">{format.dateTime(new Date(item.ends_on), 'date')}</span>

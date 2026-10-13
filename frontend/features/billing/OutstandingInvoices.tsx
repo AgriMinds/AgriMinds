@@ -67,8 +67,12 @@ export function OutstandingInvoices() {
               <li key={invoice.id} className="flex flex-col gap-2 rounded-lg border border-border p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                   <span className="flex min-w-0 flex-col">
-                    <code className="text-xs font-semibold">{invoice.reference}</code>
-                    <span className="text-xs text-fg-subtle">{invoice.description}</span>
+                    {/* The payer's name first: one farmer's ETB 465 is otherwise indistinguishable
+                        from another's, and the reference alone says nothing about who owes it. */}
+                    <span className="truncate text-sm font-medium">{invoice.payer_name}</span>
+                    <span className="text-xs text-fg-subtle">
+                      <code className="font-semibold">{invoice.reference}</code> · {invoice.description}
+                    </span>
                   </span>
                   <span className="flex items-center gap-3">
                     <span className="font-semibold tabular-nums">

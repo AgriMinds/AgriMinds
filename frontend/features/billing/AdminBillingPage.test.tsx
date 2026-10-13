@@ -93,15 +93,18 @@ describe('AdminBillingPage', () => {
       data: {
         ...summary,
         renewals_due: [
-          { organization_name: 'Amhara Bureau', ends_on: '2026-11-30', annualised: '1800000.00' },
+          { payer_name: 'Amhara Bureau', payer_kind: 'organization', ends_on: '2026-11-30', annualised: '1800000.00' },
         ],
-        lapsed: [{ organization_name: 'DMU', ends_on: '2026-09-30', annualised: '45000.00' }],
+        // A farmer's premium renews too, and it is the same list an officer works from.
+        lapsed: [
+          { payer_name: 'Abebe Kebede', payer_kind: 'farmer', ends_on: '2026-09-30', annualised: '465.00' },
+        ],
       },
     })
     wrap()
     expect(screen.getByText('Amhara Bureau')).toBeInTheDocument()
     // Lapsed is revenue that has already stopped, so it is listed apart from the renewals.
-    expect(screen.getByText('DMU')).toBeInTheDocument()
+    expect(screen.getByText('Abebe Kebede')).toBeInTheDocument()
   })
 
   it('reports a failure instead of showing zero earnings', () => {

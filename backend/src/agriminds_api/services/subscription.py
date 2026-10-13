@@ -50,9 +50,10 @@ PRICE_COLUMN = {
 def _out(sub: Subscription, *, today: dt.date) -> SubscriptionOut:
     return SubscriptionOut(
         id=str(sub.id),
-        organization_id=str(sub.organization_id),
-        organization_name=sub.organization.name,
-        stakeholder=sub.organization.stakeholder.value,
+        organization_id=str(sub.organization_id) if sub.organization_id else None,
+        payer_name=sub.payer_name,
+        payer_kind="organization" if sub.organization_id else "farmer",
+        stakeholder=sub.payer_stakeholder.value,
         billing_period=sub.billing_period.value,
         status=sub.status.value,
         currency=sub.currency,
@@ -112,7 +113,7 @@ class SubscriptionService:
         )
         self._session.add(sub)
         await self._session.flush()
-        await self._session.refresh(sub, ["organization"])
+        await self._session.refresh(sub, ["organization", "user"])
         log.info(
             "subscription for %s: %s %s x%d from %s",
             org.name,
@@ -123,21 +124,33 @@ class SubscriptionService:
         )
         return _out(sub, today=dt.date.today())
 
-    async def list(self, *, organization_id: uuid.UUID | None = None) -> list[SubscriptionOut]:
+    async def list(
+        self, *, organization_id: uuid.UUID | None = None, individuals: bool = False
+    ) -> list[SubscriptionOut]:
+        """Institutional agreements by default.
+
+        Farmer premiums are counted in `revenue` but left out here: there is one per farmer, and a
+        list that mixes an ETB 465 smallholder in with an ETB 600,000 ministry licence is not a
+        list of accounts any more. Pass ``individuals=True`` to see them.
+        """
         stmt = (
             select(Subscription)
-            .options(selectinload(Subscription.organization))
+            .options(selectinload(Subscription.organization), selectinload(Subscription.user))
             .order_by(Subscription.started_on.desc())
         )
         if organization_id is not None:
             stmt = stmt.where(Subscription.organization_id == organization_id)
+        elif not individuals:
+            stmt = stmt.where(Subscription.organization_id.is_not(None))
         rows = (await self._session.scalars(stmt)).all()
         today = dt.date.today()
         return [_out(s, today=today) for s in rows]
 
     async def end(self, subscription_id: uuid.UUID, on: dt.date) -> SubscriptionOut:
         sub = await self._session.get(
-            Subscription, subscription_id, options=[selectinload(Subscription.organization)]
+            Subscription,
+            subscription_id,
+            options=[selectinload(Subscription.organization), selectinload(Subscription.user)],
         )
         if sub is None:
             raise NotFoundError("No such subscription.")
@@ -151,7 +164,11 @@ class SubscriptionService:
     async def revenue(self, *, as_of: dt.date | None = None) -> RevenueSummary:
         today = as_of or dt.date.today()
         rows = (
-            await self._session.scalars(select(Subscription).options(selectinload(Subscription.organization)))
+            await self._session.scalars(
+                select(Subscription).options(
+                    selectinload(Subscription.organization), selectinload(Subscription.user)
+                )
+            )
         ).all()
 
         live = [s for s in rows if s.is_live(today)]
@@ -162,13 +179,13 @@ class SubscriptionService:
 
         grouped: dict[str, list[Subscription]] = defaultdict(list)
         for s in live:
-            grouped[s.organization.stakeholder.value].append(s)
+            grouped[s.payer_stakeholder.value].append(s)
 
         by_stakeholder = sorted(
             (
                 RevenueByStakeholder(
                     stakeholder=key,
-                    label=subs[0].organization.stakeholder.value.replace("_", " ").title(),
+                    label=subs[0].payer_stakeholder.value.replace("_", " ").title(),
                     subscriptions=len(subs),
                     annualised_cents=sum(s.annualised_cents for s in subs),
                     annualised=_as_amount(sum(s.annualised_cents for s in subs)),

@@ -2720,11 +2720,13 @@ export type components = {
             /** Method */
             method: ("bank_transfer" | "telebirr" | "cheque" | "cash" | "other") | null;
             /** Organization Id */
-            organization_id: string;
+            organization_id: string | null;
             /** Overdue */
             overdue: boolean;
             /** Paid On */
             paid_on: string | null;
+            /** Payer Name */
+            payer_name: string;
             /** Payment Reference */
             payment_reference: string | null;
             /**
@@ -3159,6 +3161,9 @@ export type components = {
             label: string;
             /** Options */
             options: components["schemas"]["PlanOption"][];
+            outstanding?: components["schemas"]["InvoiceOut"] | null;
+            /** Pay To */
+            pay_to: string;
             /**
              * Stakeholder
              * @enum {string}
@@ -3461,9 +3466,14 @@ export type components = {
             /** Notes */
             notes?: string | null;
             /** Organization Id */
-            organization_id: string;
-            /** Organization Name */
-            organization_name: string;
+            organization_id: string | null;
+            /**
+             * Payer Kind
+             * @enum {string}
+             */
+            payer_kind: "organization" | "farmer";
+            /** Payer Name */
+            payer_name: string;
             /** Quantity */
             quantity: number;
             /**
