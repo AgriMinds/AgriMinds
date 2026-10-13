@@ -647,7 +647,7 @@
     "eyebrow": "Daldala",
     "title": "Herrega fi dhaqqabummaa API",
     "intro": "Dhaabbilee pilaatfoormii kanaaf kaffalanii fi ragaa isaan API waamaniin. Hayyamni ji'aa herregaa sadarkaa gosa qooda fudhataa isaa irraa dhufa.",
-    "accounts": "Herregoota kaffalan",
+    "accounts": "Herregoota hunda",
     "accountsDesc": "Ragaa API bulchuuf tokko filadhu",
     "addTitle": "Herrega galmeessi",
     "addDesc": "Dhaabbata tokkoof waliigaltee tokko",
@@ -687,6 +687,15 @@
       "research": "Qorannoo / yunivarsiitii",
       "international_partner": "Michuu idil-addunyaa / NGO",
       "private_sector": "Dhaabbata dhuunfaa"
-    }
+    },
+    "stat": {
+      "accounts": "Herregoota kaffalan",
+      "accountsDetail": "Dhaabbilee sadarkaa irra jiran",
+      "keys": "Furtuuwwan API hojii irra",
+      "keysDetail": "Kennamanii hin haqamne",
+      "requests": "Gaaffiiwwan ji'a kanaa",
+      "requestsDetail": "dandeettii gurgurame keessaa {share}"
+    },
+    "cancel": "Haqi"
   }
 }

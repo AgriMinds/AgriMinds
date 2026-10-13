@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "AgriMinds AI-DREWS",
-    "slug": "agriminds",
+    "slug": "agriminds-drews",
     "scheme": "agriminds",
     "version": "1.1.0",
     "orientation": "portrait",
@@ -50,11 +50,11 @@
       "typedRoutes": true
     },
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "b012945e-bd49-4b3b-b066-e4ee59fd648f"
-      },
-      "router": {}
+        "projectId": "7626a5de-9e41-4e14-a2a7-7494f997f3f4"
+      }
     },
-    "owner": "eibrahim1s-team"
+    "owner": "eibrahim_1"
   }
 }

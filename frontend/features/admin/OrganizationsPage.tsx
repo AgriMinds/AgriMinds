@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useFormatter, useTranslations } from 'next-intl'
-import { Building2, Copy, KeyRound, Plug } from 'lucide-react'
+import { Activity, Building2, Copy, KeyRound, Plug, Plus } from 'lucide-react'
 import { STAKEHOLDERS, type ApiKeyIssued, type OrganizationOut } from '@agriminds/api-types'
 import {
   Card,
@@ -17,8 +17,9 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { QueryError } from '@/components/ui/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Stat } from '@/components/ui/stat'
 
-import { formatRequests } from './money'
+import { barWidth, formatRequests, formatShare } from './money'
 import {
   useCreateOrganization,
   useIssueKey,
@@ -41,7 +42,24 @@ import {
 export function OrganizationsPage() {
   const t = useTranslations('organizations')
   const [selected, setSelected] = useState<string | null>(null)
+  const [adding, setAdding] = useState(false)
   const organizations = useOrganizations()
+  const accounts = useMemo(() => organizations.data ?? [], [organizations.data])
+
+  // Land on the first account rather than an empty panel telling the reader to click something.
+  // Derived rather than written into state by an effect: an effect that sets state on mount costs
+  // a second render pass, and this needs no state of its own — an explicit choice wins, and the
+  // first account stands in until one is made.
+  const active = selected ?? accounts[0]?.id ?? null
+
+  const totals = accounts.reduce(
+    (acc, org) => ({
+      keys: acc.keys + org.active_keys,
+      used: acc.used + org.api_requests_this_month,
+      quota: acc.quota + org.api_quota_monthly,
+    }),
+    { keys: 0, used: 0, quota: 0 },
+  )
 
   return (
     <div className="flex flex-col gap-6">
@@ -50,6 +68,34 @@ export function OrganizationsPage() {
         <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">{t('title')}</h1>
         <p className="max-w-3xl text-sm leading-relaxed text-fg-muted">{t('intro')}</p>
       </header>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Stat
+          icon={<Building2 />}
+          label={t('stat.accounts')}
+          value={organizations.data ? String(accounts.length) : '—'}
+          detail={t('stat.accountsDetail')}
+          loading={organizations.isPending}
+        />
+        <Stat
+          icon={<KeyRound />}
+          label={t('stat.keys')}
+          value={organizations.data ? String(totals.keys) : '—'}
+          detail={t('stat.keysDetail')}
+          loading={organizations.isPending}
+        />
+        <Stat
+          icon={<Activity />}
+          label={t('stat.requests')}
+          value={organizations.data ? formatRequests(totals.used) : '—'}
+          detail={
+            organizations.data
+              ? t('stat.requestsDetail', { share: formatShare(totals.used, totals.quota) })
+              : undefined
+          }
+          loading={organizations.isPending}
+        />
+      </div>
 
       <div className="grid items-start gap-5 xl:grid-cols-12">
         <div className="flex flex-col gap-5 xl:col-span-7">
@@ -65,21 +111,21 @@ export function OrganizationsPage() {
                 </div>
               </CardHeading>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col">
               {organizations.isError ? (
                 <QueryError
                   error={organizations.error}
                   onRetry={() => void organizations.refetch()}
                   isRetrying={organizations.isFetching}
                 />
-              ) : organizations.data?.length ? (
+              ) : accounts.length ? (
                 <ul className="flex flex-col gap-2">
-                  {organizations.data.map((org) => (
+                  {accounts.map((org) => (
                     <AccountRow
                       key={org.id}
                       org={org}
-                      selected={selected === org.id}
-                      onSelect={() => setSelected(selected === org.id ? null : org.id)}
+                      selected={active === org.id}
+                      onSelect={() => setSelected(active === org.id ? null : org.id)}
                     />
                   ))}
                 </ul>
@@ -90,17 +136,28 @@ export function OrganizationsPage() {
                   ))}
                 </div>
               ) : (
-                <EmptyState />
+                <EmptyState onAdd={() => setAdding(true)} />
+              )}
+
+              {adding ? (
+                <NewAccount onDone={() => setAdding(false)} />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAdding(true)}
+                  className="mt-3 inline-flex min-h-11 items-center gap-1.5 self-start rounded-lg border border-dashed border-border px-3 text-xs font-medium text-fg-muted transition-colors hover:border-border-strong hover:text-fg focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Plus className="size-3.5" aria-hidden />
+                  {t('addTitle')}
+                </button>
               )}
             </CardContent>
           </Card>
-
-          <NewAccount />
         </div>
 
         <div className="xl:col-span-5">
-          {selected ? (
-            <Credentials organizationId={selected} />
+          {active ? (
+            <Credentials organizationId={active} />
           ) : (
             <Card className="p-3.5 sm:p-5">
               <CardContent>
@@ -126,8 +183,8 @@ function AccountRow({
   const t = useTranslations('organizations')
   const used = org.api_requests_this_month
   const quota = org.api_quota_monthly
-  const pct = quota > 0 ? Math.min(100, Math.round((used / quota) * 100)) : 0
-  const tight = pct >= 80
+  const share = formatShare(used, quota)
+  const tight = quota > 0 && used / quota >= 0.8
 
   return (
     <li>
@@ -156,13 +213,15 @@ function AccountRow({
           <span className="flex flex-col gap-1">
             <span className="flex items-center justify-between text-[11px] text-fg-muted">
               <span>{t('usage', { used: formatRequests(used), quota: formatRequests(quota) })}</span>
-              <span className={tight ? 'font-semibold text-status-bad' : undefined}>{pct}%</span>
+              <span className={tight ? 'font-semibold text-status-bad' : undefined}>{share}</span>
             </span>
-            {/* A plain bar, because the only question is how close to the ceiling they are. */}
+            {/* A plain bar: the only question is how close to the ceiling they are. It keeps a
+                sliver of width once anything has been spent, so a real figure never looks like
+                an empty track. */}
             <span className="block h-1.5 w-full overflow-hidden rounded-full bg-surface-sunken">
               <span
-                className={`block h-full rounded-full ${tight ? 'bg-status-bad' : 'bg-primary'}`}
-                style={{ width: `${Math.max(pct, 1)}%` }}
+                className={`block h-full rounded-full transition-[width] duration-500 ${tight ? 'bg-status-bad' : 'bg-primary'}`}
+                style={{ width: barWidth(used, quota) }}
               />
             </span>
           </span>
@@ -174,45 +233,44 @@ function AccountRow({
   )
 }
 
-function EmptyState() {
+function EmptyState({ onAdd }: { onAdd: () => void }) {
   const t = useTranslations('organizations')
   return (
     <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-4 py-10 text-center">
       <Building2 className="size-6 text-fg-subtle" aria-hidden />
       <p className="text-sm font-medium">{t('empty')}</p>
       <p className="max-w-sm text-xs text-fg-muted">{t('emptyHint')}</p>
+      {/* An empty state that only describes the gap leaves the reader to find the control. */}
+      <Button type="button" size="sm" className="mt-1" onClick={onAdd}>
+        <Plus className="size-3.5" aria-hidden />
+        {t('addTitle')}
+      </Button>
     </div>
   )
 }
 
-function NewAccount() {
+function NewAccount({ onDone }: { onDone: () => void }) {
   const t = useTranslations('organizations')
   const create = useCreateOrganization()
   const [name, setName] = useState('')
   const [stakeholder, setStakeholder] = useState<string>('cooperative')
 
   return (
-    <Card className="p-3.5 sm:p-5">
-      <CardHeader>
-        <CardHeading>
-          <CardIcon>
-            <Building2 />
-          </CardIcon>
-          <div className="min-w-0">
-            <CardTitle>{t('addTitle')}</CardTitle>
-            <CardDescription>{t('addDesc')}</CardDescription>
-          </div>
-        </CardHeading>
-      </CardHeader>
-      <CardContent>
-        <form
+    <div className="mt-3 flex flex-col gap-2 rounded-xl border border-border bg-surface-sunken/40 p-3">
+      <p className="text-xs text-fg-muted">{t('addDesc')}</p>
+      <form
           aria-label={t('addTitle')}
           className="flex flex-wrap items-end gap-3"
           onSubmit={(e) => {
             e.preventDefault()
             create.mutate(
               { name, stakeholder: stakeholder as OrganizationOut['stakeholder'] },
-              { onSuccess: () => setName('') },
+              {
+                onSuccess: () => {
+                  setName('')
+                  onDone()
+                },
+              },
             )
           }}
         >
@@ -243,14 +301,16 @@ function NewAccount() {
           <Button type="submit" size="sm" disabled={create.isPending}>
             {create.isPending ? t('adding') : t('add')}
           </Button>
+          <Button type="button" size="sm" variant="ghost" onClick={onDone}>
+            {t('cancel')}
+          </Button>
         </form>
         {create.isError && (
-          <p role="alert" className="mt-2 text-xs text-status-bad">
+          <p role="alert" className="text-xs text-status-bad">
             {(create.error as Error).message}
           </p>
         )}
-      </CardContent>
-    </Card>
+    </div>
   )
 }
 

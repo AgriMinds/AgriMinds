@@ -647,7 +647,7 @@
     "eyebrow": "Business",
     "title": "Accounts & API access",
     "intro": "The organisations that pay for the platform and the credentials they call the API with. An account's monthly allowance comes from the tier in force for its stakeholder type, so repricing a tier moves every subscriber at once.",
-    "accounts": "Paying accounts",
+    "accounts": "All accounts",
     "accountsDesc": "Select one to manage its API credentials",
     "addTitle": "Register an account",
     "addDesc": "One agreement per organisation, not per member",
@@ -687,6 +687,15 @@
       "research": "Research / university",
       "international_partner": "International partner / NGO",
       "private_sector": "Private sector"
-    }
+    },
+    "stat": {
+      "accounts": "Paying accounts",
+      "accountsDetail": "Organisations on a tier",
+      "keys": "Active API keys",
+      "keysDetail": "Issued and not revoked",
+      "requests": "Requests this month",
+      "requestsDetail": "{share} of the capacity sold"
+    },
+    "cancel": "Cancel"
   }
 }

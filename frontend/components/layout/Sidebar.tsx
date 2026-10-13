@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { BarChart3, Building2, CalendarRange, Coins, Database, Flame, Landmark, ListChecks, Map, PhoneCall, ShieldCheck, Sprout, Waves, Wheat, X, type LucideIcon } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
-import { useTransition } from 'react'
+import { useEffect, useTransition } from 'react'
 import type { Role } from '@agriminds/api-types'
 import { setLocale } from '@/app/actions/locale'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,7 @@ import { useFarmerDashboard } from '@/features/farmer/useFarmer'
 import { useHealth } from '@/features/health/useHealth'
 import { localeName } from '@/features/ministry/useMinistry'
 import { useActiveSection } from '@/hooks/useActiveSection'
+import { DESKTOP_NAV, useMediaQuery } from '@/hooks/useMediaQuery'
 import { LOCALES, type Locale } from '@/i18n/config'
 import { cn } from '@/lib/utils'
 
@@ -335,6 +336,27 @@ export function Sidebar({ open, onClose, user }: Props) {
   const farmer = user.role === 'farmer'
   const isMinister = user.role === 'minister' || user.role === 'admin'
 
+  // Below `lg` the sidebar is a drawer that slides out of view with `-translate-x-full`. A
+  // translated element is still in the document and still focusable, so a keyboard user tabbing
+  // through the page walks into an invisible menu. `inert` is an attribute, not a style, so the
+  // breakpoint has to be read in JS to apply it.
+  const onDesktop = useMediaQuery(DESKTOP_NAV)
+  const offCanvas = !onDesktop && !open
+
+  // Escape closes it, as it does the user menu; and the page behind a modal drawer should not
+  // scroll under it.
+  useEffect(() => {
+    if (offCanvas || onDesktop) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    document.addEventListener('keydown', onKey)
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = previous
+    }
+  }, [offCanvas, onDesktop, onClose])
+
   return (
     <>
       {open && (
@@ -347,6 +369,7 @@ export function Sidebar({ open, onClose, user }: Props) {
       )}
       <aside
         aria-label={tn('section')}
+        inert={offCanvas}
         className={cn(
           'fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col overflow-y-auto bg-surface-inverse text-white shadow-xl transition-transform duration-300 lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full',

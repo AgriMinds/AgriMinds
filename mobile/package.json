@@ -11,7 +11,8 @@
     "export": "expo export",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
-    "test": "jest"
+    "test": "jest",
+    "eas-build-pre-install": "corepack enable"
   },
   "dependencies": {
     "@agriminds/api-types": "workspace:*",

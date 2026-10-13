@@ -9,7 +9,7 @@ import { loadApiBaseUrl, loadApiKey } from '@/storage/preferences';
  */
 export function defaultApiBaseUrl(): string {
   const fromEnv = process.env.EXPO_PUBLIC_API_URL?.trim();
-  if (fromEnv) return fromEnv.replace(/\/+$/, '');
+  if (fromEnv && !fromEnv.includes('YOUR-BACKEND')) return fromEnv.replace(/\/+$/, '');
   return Platform.select({
     android: 'http://10.0.2.2:8000/api/v1',
     default: 'http://localhost:8000/api/v1',

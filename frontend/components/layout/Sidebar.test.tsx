@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Role } from '@agriminds/api-types'
@@ -19,11 +19,11 @@ vi.mock('@/features/health/useHealth', () => ({ useHealth: () => health() }))
 
 const { FARM_SECTIONS, Sidebar, navForRole } = await import('@/components/layout/Sidebar')
 
-const wrap = (role: Role, name = 'Alemu Tadesse') =>
+const wrap = (role: Role, name = 'Alemu Tadesse', props: { open?: boolean; onClose?: () => void } = {}) =>
   render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <NextIntlClientProvider locale="en" messages={messages}>
-        <Sidebar open onClose={() => {}} user={{ name, role }} />
+        <Sidebar open={props.open ?? true} onClose={props.onClose ?? (() => {})} user={{ name, role }} />
       </NextIntlClientProvider>
     </QueryClientProvider>,
   )
@@ -134,4 +134,34 @@ describe('Sidebar', () => {
     wrap('minister')
     expect(screen.getByRole('link', { name: 'Data sources' })).toHaveAttribute('aria-current', 'page')
   })
+
+describe('the drawer below lg', () => {
+  // jsdom has no matchMedia, so `useMediaQuery` reports false — the small-screen layout, which
+  // is the case these assertions are about.
+  it('is taken out of the tab order when closed', () => {
+    // `-translate-x-full` moves it off-screen but leaves it focusable, so without `inert` a
+    // keyboard user tabs from the top bar straight into an invisible menu.
+    const { container } = wrap('minister', 'Alemu Tadesse', { open: false })
+    expect(container.querySelector('aside')).toHaveAttribute('inert')
+  })
+
+  it('is reachable again once opened', () => {
+    const { container } = wrap('minister', 'Alemu Tadesse', { open: true })
+    expect(container.querySelector('aside')).not.toHaveAttribute('inert')
+  })
+
+  it('closes on Escape, like the user menu', () => {
+    const onClose = vi.fn()
+    wrap('minister', 'Alemu Tadesse', { open: true, onClose })
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(onClose).toHaveBeenCalled()
+  })
+
+  it('stops the page behind it scrolling while it is open', () => {
+    const { unmount } = wrap('minister', 'Alemu Tadesse', { open: true })
+    expect(document.body.style.overflow).toBe('hidden')
+    unmount()
+    expect(document.body.style.overflow).not.toBe('hidden')
+  })
+})
 })

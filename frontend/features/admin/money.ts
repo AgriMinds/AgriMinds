@@ -35,3 +35,25 @@ export function formatCompact(amount: string, currency: string, locale = 'en-ET'
 export function formatRequests(n: number, locale = 'en-ET'): string {
   return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 0 }).format(n)
 }
+
+
+/**
+ * A usage share a human can act on.
+ *
+ * `Math.round` turns 3 requests of 250,000 into "0%", which reads as a broken number rather than
+ * a true one: the account has used something, and the page says nothing. Anything above zero and
+ * below one per cent is reported as "<1%", and only genuine zero is "0%".
+ */
+export function formatShare(used: number, quota: number): string {
+  if (quota <= 0) return '—'
+  const pct = (used / quota) * 100
+  if (pct === 0) return '0%'
+  if (pct < 1) return '<1%'
+  return `${Math.round(pct)}%`
+}
+
+/** Bar width: never fully invisible once a single request has been spent. */
+export function barWidth(used: number, quota: number): string {
+  if (quota <= 0 || used <= 0) return '0%'
+  return `${Math.max(2, Math.min(100, (used / quota) * 100))}%`
+}

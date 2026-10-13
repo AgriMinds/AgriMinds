@@ -11,41 +11,14 @@
       "android": { "buildType": "apk" },
       "ios": { "simulator": false }
     },
-    "Development": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "android": { "buildType": "apk" },
-      "ios": { "simulator": false }
-    },
     "preview": {
       "distribution": "internal",
       "android": { "buildType": "apk" },
-      "channel": "preview",
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://YOUR-BACKEND/api/v1"
-      }
-    },
-    "Preview": {
-      "distribution": "internal",
-      "android": { "buildType": "apk" },
-      "channel": "preview",
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://YOUR-BACKEND/api/v1"
-      }
+      "channel": "preview"
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production",
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://YOUR-BACKEND/api/v1"
-      }
-    },
-    "Production": {
-      "autoIncrement": true,
-      "channel": "production",
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://YOUR-BACKEND/api/v1"
-      }
+      "channel": "production"
     }
   },
   "submit": {

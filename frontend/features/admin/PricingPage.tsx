@@ -107,7 +107,13 @@ export function PricingPage() {
             />
           ) : catalogue.data ? (
             <>
-              <div className="overflow-x-auto">
+              {/* The sidebar is a fixed 280px column from `lg` up, so a 1024px laptop leaves this
+                  table under 700px — seven columns of currency do not fit, and a price list that
+                  scrolls sideways is one nobody reads across. The table therefore waits for `xl`,
+                  and below it the same rows are cards: one column on a phone, two once there is
+                  room. No rate is hidden at any width, because a rate card that drops rates is
+                  not a rate card. */}
+              <div className="hidden overflow-x-auto xl:block">
                 <table className="w-full border-separate border-spacing-y-1.5 text-sm">
                   <caption className="sr-only">{t('caption')}</caption>
                   <thead>
@@ -148,26 +154,44 @@ export function PricingPage() {
                           onReprice={() => setRepricing(repricing === key ? null : key)}
                           historyOpen={openHistory === key}
                           repriceOpen={repricing === key}
-                          repriceSlot={
-                            repricing === key ? (
-                              <RepriceForm tier={tier} onDone={() => setRepricing(null)} />
-                            ) : null
-                          }
-                          historySlot={
-                            openHistory === key ? (
-                              <HistoryPanel
-                                rows={history.data}
-                                loading={history.isPending}
-                                currency={currency}
-                              />
-                            ) : null
-                          }
                         />
                       )
                     })}
                   </tbody>
                 </table>
               </div>
+
+              <ul className="grid gap-2 md:grid-cols-2 xl:hidden">
+                {STAKEHOLDERS.map((key) => {
+                  const tier = byStakeholder.get(key)
+                  if (!tier) return null
+                  return (
+                    <MobileTier
+                      key={key}
+                      tier={tier}
+                      currency={currency}
+                      onHistory={() => setOpenHistory(openHistory === key ? null : key)}
+                      onReprice={() => setRepricing(repricing === key ? null : key)}
+                      historyOpen={openHistory === key}
+                      repriceOpen={repricing === key}
+                    />
+                  )
+                })}
+              </ul>
+
+              {/* The table and the card list are the same rows at two widths, so the expansion
+                  renders once underneath both rather than inside each — two copies of a form is
+                  two sets of inputs, and whichever one the user did not fill wins on submit. */}
+              {repricing && byStakeholder.get(repricing) && (
+                <RepriceForm
+                  tier={byStakeholder.get(repricing) as PricingTierOut}
+                  onDone={() => setRepricing(null)}
+                />
+              )}
+              {openHistory && (
+                <HistoryPanel rows={history.data} loading={history.isPending} currency={currency} />
+              )}
+
               <p className="rounded-lg border border-border bg-surface-sunken/50 px-3 py-2 text-xs leading-relaxed text-fg-muted">
                 {t('structure')}
               </p>
@@ -192,8 +216,6 @@ function Row({
   onReprice,
   historyOpen,
   repriceOpen,
-  repriceSlot,
-  historySlot,
 }: {
   tier: PricingTierOut
   currency: string
@@ -201,8 +223,6 @@ function Row({
   onReprice: () => void
   historyOpen: boolean
   repriceOpen: boolean
-  repriceSlot: React.ReactNode
-  historySlot: React.ReactNode
 }) {
   const t = useTranslations('pricing')
   const quiet = (value: string) =>
@@ -257,15 +277,87 @@ function Row({
           </button>
         </td>
       </tr>
-      {(repriceSlot || historySlot) && (
-        <tr>
-          <td colSpan={7} className="px-3 pb-3">
-            {repriceSlot}
-            {historySlot}
-          </td>
-        </tr>
-      )}
     </>
+  )
+}
+
+function MobileTier({
+  tier,
+  currency,
+  onHistory,
+  onReprice,
+  historyOpen,
+  repriceOpen,
+}: {
+  tier: PricingTierOut
+  currency: string
+  onHistory: () => void
+  onReprice: () => void
+  historyOpen: boolean
+  repriceOpen: boolean
+}) {
+  const t = useTranslations('pricing')
+  const cell = (label: string, value: string) => (
+    <div className="flex flex-col">
+      <span className="text-[10px] tracking-wide text-fg-subtle uppercase">{label}</span>
+      <span className="tabular-nums">
+        {value === '0.00' ? <span className="text-fg-subtle">—</span> : formatMoney(value, currency)}
+      </span>
+    </div>
+  )
+
+  return (
+    <li className="flex flex-col gap-2.5 rounded-xl border border-border p-3">
+      <div className="flex items-start justify-between gap-3">
+        <span className="min-w-0">
+          <span className="block text-sm font-semibold">{tier.label}</span>
+          <span className="block text-[11px] text-fg-subtle">{tier.unit}</span>
+        </span>
+        <span className="shrink-0 text-right">
+          <span className="block text-base font-semibold tabular-nums">
+            {formatMoney(tier.rates.annual, currency)}
+          </span>
+          <span className="block text-[10px] tracking-wide text-fg-subtle uppercase">
+            {t('col.annual')}
+          </span>
+        </span>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 text-xs">
+        {cell(t('col.monthly'), tier.rates.monthly)}
+        {cell(t('col.daily'), tier.rates.daily)}
+        {cell(t('col.oneTime'), tier.rates.one_time)}
+      </div>
+
+      <div className="flex items-center justify-between gap-2 border-t border-border pt-2">
+        <span className="text-[11px] text-fg-muted">
+          {tier.api_quota_monthly > 0
+            ? `${t('col.api')}: ${formatRequests(tier.api_quota_monthly)}`
+            : `${t('col.api')}: ${t('noApi')}`}
+        </span>
+        <span className="flex gap-1">
+          <button
+            type="button"
+            onClick={onHistory}
+            aria-expanded={historyOpen}
+            className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-md px-2 text-xs text-fg-muted hover:bg-surface-sunken focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <History className="size-4" aria-hidden />
+            <span className="sr-only">{t('action.history')}</span>
+          </button>
+          <button
+            type="button"
+            onClick={onReprice}
+            aria-expanded={repriceOpen}
+            className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-md px-2 text-xs text-fg-muted hover:bg-surface-sunken focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <PencilLine className="size-4" aria-hidden />
+            <span className="sr-only">{t('action.reprice')}</span>
+          </button>
+        </span>
+      </div>
+
+    </li>
   )
 }
 
