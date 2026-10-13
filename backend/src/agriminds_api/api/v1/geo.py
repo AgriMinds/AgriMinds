@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Request, Response
 
 from agriminds_api.api.deps import SettingsDep
 from agriminds_api.core.exceptions import AppError
@@ -32,8 +32,9 @@ class GeometryMissingError(AppError):
     code = "geometry_not_found"
 
 
-@router.get(
+@router.api_route(
     "/{name}.geojson",
+    methods=["GET", "HEAD"],
     summary="Map geometry (public)",
     description=(
         "`watershed` is the surveyed catchment outline; `grid` is one polygon per forecast cell, "
@@ -46,7 +47,7 @@ class GeometryMissingError(AppError):
         404: {"model": ErrorResponse, "description": "Unknown or ungenerated geometry"},
     },
 )
-def geometry(name: str, settings: SettingsDep) -> Response:
+def geometry(name: str, settings: SettingsDep, request: Request) -> Response:
     entry = _FILES.get(name)
     if entry is None:
         raise GeometryMissingError(f"no geometry called {name!r}; try: {', '.join(sorted(_FILES))}")
@@ -55,9 +56,15 @@ def geometry(name: str, settings: SettingsDep) -> Response:
         raise GeometryMissingError(
             f"{entry[0]} has not been generated on this deployment (run `ai-drews grid-geojson` for the grid)"
         )
+    content = b"" if request.method == "HEAD" else path.read_bytes()
     return Response(
-        content=path.read_bytes(),
+        content=content,
         media_type="application/geo+json",
         # Geometry changes only when the grid or the survey does, which is a deployment event.
-        headers={"Cache-Control": "public, max-age=3600"},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+            "Cache-Control": "public, max-age=3600",
+            "Content-Disposition": f'inline; filename="{entry[0]}"',
+        },
     )

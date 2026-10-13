@@ -41,6 +41,7 @@ export const ALLOWED: ReadonlyArray<{ method: Method; path: RegExp }> = [
   // analytics (staff; the service enforces the role and, where configured, the district scope)
   { method: 'GET', path: /^analytics\/metabase\/(status|embed)$/ },
   { method: 'GET', path: /^analytics\/connection$/ },
+  { method: 'GET', path: /^geo\/(watershed|grid)\.geojson$/ },
   // the front door: a sales enquiry from somebody who has never signed in, a farmer asking to
   // leave the free tier, and the inbox an administrator works through
   { method: 'POST', path: /^access-requests$/ },
