@@ -312,6 +312,12 @@ async def pricing_tiers(db_session):
 
 
 @pytest_asyncio.fixture
+async def db_ready(db_session):
+    """Schema present for a test that only touches unauthenticated endpoints."""
+    return db_session
+
+
+@pytest_asyncio.fixture
 async def admin_headers(make_user, sign_in):
     """Authorization header for a platform administrator."""
     user = await make_user(UserRole.ADMIN, email="admin@example.et")

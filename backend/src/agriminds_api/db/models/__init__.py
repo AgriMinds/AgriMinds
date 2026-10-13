@@ -1,6 +1,13 @@
 """ORM models. Importing this package registers every table on ``Base.metadata``."""
 
 from agriminds_api.db.base import Base
+from agriminds_api.db.models.access_request import (
+    AccessRequest,
+    RequestKind,
+    RequestStatus,
+    request_kind_enum,
+    request_status_enum,
+)
 from agriminds_api.db.models.advisory import AdvisoryRecord, RiskLevel, risk_level_enum
 from agriminds_api.db.models.billing import PricingTier, StakeholderType, stakeholder_type_enum
 from agriminds_api.db.models.commerce import ApiKey, ApiUsageDaily, Organization
@@ -27,6 +34,7 @@ from agriminds_api.db.models.subscription import (
 from agriminds_api.db.models.user import Locale, RefreshToken, User, UserRole, locale_enum, user_role_enum
 
 __all__ = [
+    "AccessRequest",
     "AdvisoryRecord",
     "ApiKey",
     "ApiUsageDaily",
@@ -47,6 +55,8 @@ __all__ = [
     "Region",
     "RiskLevel",
     "PERIODS_PER_YEAR",
+    "RequestKind",
+    "RequestStatus",
     "RiskSnapshot",
     "StakeholderType",
     "Subscription",
@@ -61,6 +71,8 @@ __all__ = [
     "billing_period_enum",
     "delivery_channel_enum",
     "delivery_status_enum",
+    "request_kind_enum",
+    "request_status_enum",
     "risk_level_enum",
     "subscription_status_enum",
     "stakeholder_type_enum",

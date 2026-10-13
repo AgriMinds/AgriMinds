@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 
 from agriminds_api.api.deps import require_metered_principal
 from agriminds_api.api.v1 import (
+    access_requests,
     advisory,
     analytics,
     auth,
@@ -29,6 +30,8 @@ api_router = APIRouter()
 api_router.include_router(health.router)
 api_router.include_router(auth.router)
 api_router.include_router(geo.router)
+# A sales enquiry from somebody who has never signed in. The only unauthenticated write.
+api_router.include_router(access_requests.public_router)
 
 # Forecast data: a signed-in person or a trusted service (X-API-Key).
 _forecast = APIRouter(
@@ -55,6 +58,8 @@ _private = APIRouter(
     },
 )
 _private.include_router(farms.router)
+_private.include_router(access_requests.farmer_router)
+_private.include_router(access_requests.admin_router)
 _private.include_router(dashboard.router)
 _private.include_router(analytics.router)
 _private.include_router(system.router)

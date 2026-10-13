@@ -72,9 +72,7 @@ class PricingTierOut(BaseModel):
         description="Requests per calendar month this tier includes; 0 means no API access"
     )
     strategy: str | None = Field(None, description="How this segment is sold to")
-    value_note: str | None = Field(
-        None, description="The argument that justifies the price to this buyer"
-    )
+    value_note: str | None = Field(None, description="The argument that justifies the price to this buyer")
     effective_from: dt.date
     effective_to: dt.date | None = Field(
         None, description="NULL while the price is in force; set when a later version supersedes it"

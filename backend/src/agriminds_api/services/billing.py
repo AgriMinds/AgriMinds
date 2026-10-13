@@ -60,9 +60,7 @@ class BillingService:
 
         current = [t for t in tiers if t.effective_to is None]
         total = sum(t.annual_cents for t in current)
-        products = list(
-            (await self._session.scalars(select(Product).order_by(Product.code))).all()
-        )
+        products = list((await self._session.scalars(select(Product).order_by(Product.code))).all())
         return PricingCatalogue(
             currency=current[0].currency if current else "USD",
             as_of=dt.date.today(),
@@ -70,9 +68,7 @@ class BillingService:
             annual_total_cents=total,
             annual_total=_as_amount(total),
             products=[
-                ProductOut(
-                    code=p.code, name=p.name, summary=p.summary, stakeholders=list(p.stakeholders)
-                )
+                ProductOut(code=p.code, name=p.name, summary=p.summary, stakeholders=list(p.stakeholders))
                 for p in products
             ],
         )
