@@ -141,8 +141,13 @@ def require_principal(
             raise UnauthorizedError("Your session has expired. Please sign in again.") from exc
     if _valid_api_key(settings, api_key):
         return ServicePrincipal()
-    if not settings.service_auth_enabled:
+    if not settings.service_auth_enabled and not settings.is_production:
         # Local development with no credentials configured at all.
+        #
+        # Guarded on the environment and not only on "no keys configured": a deployment that
+        # simply never set AGRIMINDS_API_KEYS would otherwise serve the whole forecast grid to
+        # anyone with the URL, and serve it outside the metering that customers are billed by.
+        # Forgetting to set a variable must not be the thing that opens a paid product.
         return ServicePrincipal(name="anonymous")
     raise UnauthorizedError("Authentication is required.")
 
