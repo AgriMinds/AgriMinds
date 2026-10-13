@@ -3,6 +3,11 @@ COMPOSE      ?= docker compose
 COMPOSE_DEV  := $(COMPOSE) -f docker-compose.yml -f docker-compose.dev.yml
 PY           ?= .venv/bin/python
 
+# Credentials for host-side tooling that talks to the compose database (see test-py).
+-include .env
+POSTGRES_USER     ?= agriminds
+POSTGRES_DB       ?= agriminds
+
 .PHONY: help up up-dev up-mobile down build restart ps logs logs-backend logs-web health train \
         api-types setup test test-py test-js lint fmt typecheck clean \
         migrate migration seed seed-demo db-shell db-reset snapshot bi-role ingest-wind train-wind \
@@ -132,10 +137,17 @@ api-types: ## Export OpenAPI from the backend and regenerate packages/api-types
 
 test: test-py test-js ## Run every test suite on the host
 
+# The backend tests need a reachable PostgreSQL, and the compose database is published on a host
+# port that is not 5432 with a password from .env -- so without this the whole suite skips itself
+# and still exits 0, which looks exactly like passing. Point it at the running container instead.
+DB_PORT      ?= $(shell $(COMPOSE) port postgres 5432 2>/dev/null | cut -d: -f2)
+TEST_DB_URL   = postgresql+asyncpg://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(DB_PORT)/$(POSTGRES_DB)
+
 test-py: ## Python tests (ml + backend)
 	# Run from each package root so its own pytest configuration (asyncio mode, testpaths) applies.
 	cd ml && ../$(PY) -m pytest
-	cd backend && ../$(PY) -m pytest
+	@test -n "$(DB_PORT)" || { echo "postgres is not running: make up"; exit 1; }
+	cd backend && AGRIMINDS_DATABASE_URL='$(TEST_DB_URL)' ../$(PY) -m pytest
 
 test-js: ## JS/TS tests (web + mobile where present)
 	pnpm -r --if-present test

@@ -200,3 +200,12 @@ export type OrganizationEnquiry = Schemas['OrganizationEnquiry']
 export type FarmerUpgradeRequest = Schemas['FarmerUpgradeRequest']
 export type RequestDecision = Schemas['RequestDecision']
 export type EnquiryAccepted = Schemas['EnquiryAccepted']
+
+// ---- self-serve plans ------------------------------------------------------------------
+export type PlanSet = Schemas['PlanSet']
+export type PlanOption = Schemas['PlanOption']
+export type PlanChoice = Schemas['PlanChoice']
+export type CheckoutResult = Schemas['CheckoutResult']
+export type InvoiceOut = Schemas['InvoiceOut']
+export type PaymentConfirmation = Schemas['PaymentConfirmation']
+export type BillingPeriodName = PlanOption['period']

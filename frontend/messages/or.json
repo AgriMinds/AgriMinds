@@ -22,7 +22,8 @@
       "section": "Baafata",
       "pricing": "Gatii",
       "organizations": "Herregoota",
-      "requests": "Gaaffiiwwan"
+      "requests": "Gaaffiiwwan",
+      "billing": "Kaffaltii"
     },
     "workspaceSub": "Yuunivarsiitii Dabra Maarqoos · Dhaabbata AI Itoophiyaa",
     "greeting": "Tilmaama hongee",
@@ -801,5 +802,68 @@
     "decided": "Yaadannoo: {note}",
     "empty": "Wanti eegaa jiru hin jiru",
     "emptyHint": "Gaaffiiwwan unka uummataa fi qonnaan bultoota premium gaafatan asitti dhufu."
+  },
+  "plans": {
+    "eyebrow": "Kaffaltii",
+    "title": "Karoorotaa fi kaffaltii",
+    "intro": "Dhaabbanni keessan irra jiru, kan biraa dhiyaatuu fi waan kaffaltan. Karoora filachuun nagahee baasa — asitti kaffaltiin hin fudhatamu.",
+    "currentPlan": "Karoora {period} irra jirtu · {status}",
+    "noPlan": "Hanga ammaatti karoorri hin filatamne",
+    "period": {
+      "annual": "Waggaa",
+      "monthly": "Ji'a",
+      "daily": "Guyyaa",
+      "perpetual": "Dhaabbataa"
+    },
+    "per": {
+      "annual": "waggaatti",
+      "monthly": "ji'atti",
+      "daily": "guyyaatti",
+      "perpetual": "al tokko"
+    },
+    "status": {
+      "pending_payment": "kaffaltii eegaa",
+      "active": "hojii irra",
+      "suspended": "addaan citeera",
+      "ended": "xumurame"
+    },
+    "annualised": "waggaatti {amount}",
+    "apiIncluded": "ji'atti gaaffii API {n}",
+    "quantity": "Meeqa ({unit})",
+    "choose": "Karoora kana filadhu",
+    "yourPlan": "Karoora keessan",
+    "saves": "{pct}% qusata",
+    "howToPay": "Akkamitti kaffaluu",
+    "notYetActive": "Hanga ammaatti homaa hin kaffalamne, karoorri keessanis hin jalqabne. Erga dabarsa mirkaneessinee booda jalqaba.",
+    "payTo": "Kaffaltii gara",
+    "amount": "Hamma",
+    "reference": "Wabii",
+    "copy": "Garagalchi",
+    "copied": "Garagalfame",
+    "dismiss": "Xumurame",
+    "invoices": "Nagahee keessan",
+    "invoicesDesc": "Haaraan dura",
+    "invoiceStatus": {
+      "issued": "Hin kaffalamne",
+      "paid": "Kaffalame",
+      "void": "Haqame"
+    },
+    "overdue": "Yeroon darbe",
+    "due": "hanga {date}",
+    "admin": {
+      "title": "Kaffaltiiwwan",
+      "desc": "Nagaheewwan hin kaffalamne, kan dhiyootti geessu dura",
+      "confirm": "Kaffaltii mirkaneessi",
+      "method": "Mala",
+      "ref": "Wabii kaffaltii",
+      "none": "Wanti hin kaffalamne hin jiru",
+      "methodOption": {
+        "bank_transfer": "Dabarsa baankii",
+        "telebirr": "telebirr",
+        "cheque": "Caakii",
+        "cash": "Qarshii",
+        "other": "Kan biraa"
+      }
+    }
   }
 }

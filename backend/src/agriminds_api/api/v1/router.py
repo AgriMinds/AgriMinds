@@ -18,6 +18,7 @@ from agriminds_api.api.v1 import (
     messaging,
     metrics,
     organizations,
+    plans,
     subscriptions,
     system,
 )
@@ -66,5 +67,7 @@ _private.include_router(system.router)
 _private.include_router(billing.router)
 _private.include_router(organizations.router)
 _private.include_router(subscriptions.router)
+_private.include_router(plans.router)
+_private.include_router(plans.admin_router)
 _private.include_router(messaging.router)
 api_router.include_router(_private)

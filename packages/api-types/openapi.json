@@ -3577,6 +3577,297 @@
         }
       }
     },
+    "/api/v1/plans": {
+      "get": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "The plans this account can choose from",
+        "description": "Only the caller's own segment, because the price follows from it and a cooperative cannot buy at a research rate. Periods the tier does not sell are left out rather than shown as free, and each option carries what a year on it costs so the terms can be compared on one scale.",
+        "operationId": "plans_api_v1_plans_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanSet"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "Choose a plan",
+        "description": "Creates the subscription as **pending payment** and issues an invoice against a reference to quote on a bank transfer. No money moves through this platform: the plan starts when an administrator confirms the payment, not when this call returns.\n\nThe price is frozen at the moment of choosing, so a catalogue change between choosing and paying cannot restate the bill.",
+        "operationId": "choose_api_v1_plans_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanChoice"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/plans/invoices": {
+      "get": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "This account's bills",
+        "operationId": "my_invoices_api_v1_plans_invoices_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InvoiceOut"
+                  },
+                  "type": "array",
+                  "title": "Response My Invoices Api V1 Plans Invoices Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/invoices": {
+      "get": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "Everything still unpaid, soonest due first",
+        "operationId": "outstanding_api_v1_admin_invoices_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InvoiceOut"
+                  },
+                  "type": "array",
+                  "title": "Response Outstanding Api V1 Admin Invoices Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/invoices/{invoice_id}/paid": {
+      "post": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "Confirm a payment arrived",
+        "description": "Settles the bill and starts the subscription it paid for.",
+        "operationId": "confirm_api_v1_admin_invoices__invoice_id__paid_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "invoice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Invoice Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentConfirmation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Role not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/messaging/bundles": {
       "post": {
         "tags": [
@@ -4821,6 +5112,33 @@
           "new_password"
         ],
         "title": "ChangePasswordRequest"
+      },
+      "CheckoutResult": {
+        "properties": {
+          "subscription": {
+            "$ref": "#/components/schemas/SubscriptionOut"
+          },
+          "invoice": {
+            "$ref": "#/components/schemas/InvoiceOut"
+          },
+          "pay_to": {
+            "type": "string",
+            "title": "Pay To"
+          },
+          "instructions": {
+            "type": "string",
+            "title": "Instructions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subscription",
+          "invoice",
+          "pay_to",
+          "instructions"
+        ],
+        "title": "CheckoutResult",
+        "description": "What choosing a plan produces. No payment is taken here; a bill is issued."
       },
       "CoverageStats": {
         "properties": {
@@ -7536,6 +7854,133 @@
         "title": "HorizonResponse",
         "description": "The full horizon: what can be forecast, what can only be leaned on, and why.\n\nThe split is the point. A forecast says how likely drought is and is published only where\nthat was measured to beat climatology. An outlook says which way the season leans and never\ncarries a number. Serving the second as the first is the failure this endpoint prevents."
       },
+      "InvoiceOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "reference": {
+            "type": "string",
+            "title": "Reference",
+            "description": "Quote this on the transfer"
+          },
+          "organization_id": {
+            "type": "string",
+            "title": "Organization Id"
+          },
+          "subscription_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subscription Id"
+          },
+          "amount_cents": {
+            "type": "integer",
+            "title": "Amount Cents"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "issued_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Issued On"
+          },
+          "due_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Due On"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "issued",
+              "paid",
+              "void"
+            ],
+            "title": "Status"
+          },
+          "paid_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paid On"
+          },
+          "method": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "bank_transfer",
+                  "telebirr",
+                  "cheque",
+                  "cash",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Method"
+          },
+          "payment_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Reference"
+          },
+          "overdue": {
+            "type": "boolean",
+            "title": "Overdue"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "reference",
+          "organization_id",
+          "subscription_id",
+          "amount_cents",
+          "amount",
+          "currency",
+          "description",
+          "issued_on",
+          "due_on",
+          "status",
+          "paid_on",
+          "method",
+          "payment_reference",
+          "overdue"
+        ],
+        "title": "InvoiceOut"
+      },
       "LeadHorizon": {
         "properties": {
           "lead_month": {
@@ -8422,6 +8867,236 @@
         ],
         "title": "OrganizationUsage"
       },
+      "PaymentConfirmation": {
+        "properties": {
+          "method": {
+            "type": "string",
+            "enum": [
+              "bank_transfer",
+              "telebirr",
+              "cheque",
+              "cash",
+              "other"
+            ],
+            "title": "Method"
+          },
+          "payment_reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Reference",
+            "description": "Bank slip or telebirr id"
+          },
+          "paid_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paid On"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "method"
+        ],
+        "title": "PaymentConfirmation"
+      },
+      "PlanChoice": {
+        "properties": {
+          "period": {
+            "type": "string",
+            "enum": [
+              "annual",
+              "monthly",
+              "daily",
+              "perpetual"
+            ],
+            "title": "Period"
+          },
+          "quantity": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "description": "Woredas, seats or members covered",
+            "default": 1
+          },
+          "starts_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts On",
+            "description": "Defaults to today"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period"
+        ],
+        "title": "PlanChoice"
+      },
+      "PlanOption": {
+        "properties": {
+          "period": {
+            "type": "string",
+            "enum": [
+              "annual",
+              "monthly",
+              "daily",
+              "perpetual"
+            ],
+            "title": "Period"
+          },
+          "unit_price_cents": {
+            "type": "integer",
+            "title": "Unit Price Cents"
+          },
+          "unit_price": {
+            "type": "string",
+            "title": "Unit Price"
+          },
+          "annualised_cents": {
+            "type": "integer",
+            "title": "Annualised Cents"
+          },
+          "annualised": {
+            "type": "string",
+            "title": "Annualised"
+          },
+          "saving_vs_shortest_pct": {
+            "type": "number",
+            "title": "Saving Vs Shortest Pct",
+            "description": "How much cheaper a year on this period is than the shortest one offered"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "unit_price_cents",
+          "unit_price",
+          "annualised_cents",
+          "annualised",
+          "saving_vs_shortest_pct"
+        ],
+        "title": "PlanOption",
+        "description": "One billing period of the caller's own tier, priced."
+      },
+      "PlanSet": {
+        "properties": {
+          "stakeholder": {
+            "type": "string",
+            "enum": [
+              "farmer_premium",
+              "cooperative",
+              "development_agent",
+              "insurer_lender",
+              "federal_ministry",
+              "research",
+              "international_partner",
+              "regional_government",
+              "private_sector"
+            ],
+            "title": "Stakeholder"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "strategy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strategy"
+          },
+          "value_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Note"
+          },
+          "api_quota_monthly": {
+            "type": "integer",
+            "title": "Api Quota Monthly"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/PlanOption"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubscriptionOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What this account is already on"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stakeholder",
+          "label",
+          "unit",
+          "currency",
+          "strategy",
+          "value_note",
+          "api_quota_monthly",
+          "options"
+        ],
+        "title": "PlanSet"
+      },
       "PricingCatalogue": {
         "properties": {
           "currency": {
@@ -9119,6 +9794,7 @@
           "status": {
             "type": "string",
             "enum": [
+              "pending_payment",
               "active",
               "suspended",
               "ended"

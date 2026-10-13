@@ -8,10 +8,15 @@ import type {
   CropYieldScenario,
   CropYieldScenarioRequest,
   DataInventory,
+  CheckoutResult,
   CropYieldTimeline,
   EnquiryAccepted,
   FarmerUpgradeRequest,
+  InvoiceOut,
   OrganizationEnquiry,
+  PaymentConfirmation,
+  PlanChoice,
+  PlanSet,
   RequestDecision,
   AccessRequestOut,
   ApiKeyIssued,
@@ -213,6 +218,20 @@ export const api = {
     request<AccessRequestOut>(`/admin/access-requests/${id}`, {
       method: 'POST',
       body: JSON.stringify(decision),
+    }),
+
+  // ---- self-serve plans ---------------------------------------------------------------
+  /** The plans this account's own segment offers, plus whatever it is already on. */
+  plans: () => request<PlanSet>('/plans'),
+  /** Choose one. Raises an invoice; the plan starts when the payment is confirmed. */
+  choosePlan: (choice: PlanChoice) =>
+    request<CheckoutResult>('/plans', { method: 'POST', body: JSON.stringify(choice) }),
+  myInvoices: () => request<InvoiceOut[]>('/plans/invoices'),
+  outstandingInvoices: () => request<InvoiceOut[]>('/admin/invoices'),
+  confirmPayment: (id: string, confirmation: PaymentConfirmation) =>
+    request<InvoiceOut>(`/admin/invoices/${id}/paid`, {
+      method: 'POST',
+      body: JSON.stringify(confirmation),
     }),
 
   // ---- billing (admin only) -----------------------------------------------------------

@@ -41,6 +41,8 @@ describe('navForRole', () => {
       '/crop-yield',
       '/analytics',
       '/data-sources',
+      // Any staff member can see what their own organisation is on and owes.
+      '/billing',
     ]
     for (const role of ['agent', 'minister'] as const) {
       expect(navForRole(role).map((i) => i.href)).toEqual(operational)

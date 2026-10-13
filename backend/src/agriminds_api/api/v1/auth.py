@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Request, Response, status
 
 from agriminds_api.api.deps import AuthServiceDep, CurrentUser, SessionDep
+from agriminds_api.schemas.access_request import AcceptInvitation
 from agriminds_api.schemas.auth import (
     AccessTokenOut,
     ChangePasswordRequest,
@@ -32,6 +33,32 @@ _LOGIN_ERRORS = {
 async def login(payload: LoginRequest, request: Request, auth: AuthServiceDep) -> TokenPair:
     user, access, refresh, expires_in = await auth.authenticate(
         payload.identifier, payload.password, request.headers.get("user-agent")
+    )
+    return TokenPair(
+        access_token=access,
+        refresh_token=refresh,
+        expires_in=expires_in,
+        user=UserOut.model_validate(user),
+    )
+
+
+@router.post(
+    "/invitations/{token}",
+    response_model=TokenPair,
+    responses={401: {"model": ErrorResponse, "description": "Used, expired or unknown invitation"}},
+    summary="Accept an invitation by setting a password",
+    description=(
+        "Unauthenticated, because the whole point is that the person has no password yet: the "
+        "token is the credential. It works once and expires, and it grants nothing beyond setting "
+        "the password on the one account it was issued for. Accepting signs the person in, so "
+        "there is no second form asking for the password they just chose."
+    ),
+)
+async def accept_invitation(
+    token: str, payload: AcceptInvitation, request: Request, auth: AuthServiceDep
+) -> TokenPair:
+    user, access, refresh, expires_in = await auth.accept_invitation(
+        token, payload.password, request.headers.get("user-agent")
     )
     return TokenPair(
         access_token=access,

@@ -13,6 +13,14 @@ from agriminds_api.db.models.billing import PricingTier, StakeholderType, stakeh
 from agriminds_api.db.models.commerce import ApiKey, ApiUsageDaily, Organization
 from agriminds_api.db.models.farm import Crop, Farm, crop_enum
 from agriminds_api.db.models.geography import Region, Woreda, Zone
+from agriminds_api.db.models.invitation import INVITATION_VALID_FOR, Invitation
+from agriminds_api.db.models.invoice import (
+    Invoice,
+    InvoiceStatus,
+    PaymentMethod,
+    invoice_status_enum,
+    payment_method_enum,
+)
 from agriminds_api.db.models.messaging import (
     DeliveryChannel,
     DeliveryStatus,
@@ -44,10 +52,15 @@ __all__ = [
     "DeliveryChannel",
     "DeliveryStatus",
     "Farm",
+    "INVITATION_VALID_FOR",
+    "Invitation",
+    "Invoice",
+    "InvoiceStatus",
     "Locale",
     "MessageBundle",
     "MessageDelivery",
     "Organization",
+    "PaymentMethod",
     "PdsiCategory",
     "PricingTier",
     "Product",
@@ -70,6 +83,8 @@ __all__ = [
     "pdsi_category_enum",
     "billing_period_enum",
     "delivery_channel_enum",
+    "invoice_status_enum",
+    "payment_method_enum",
     "delivery_status_enum",
     "request_kind_enum",
     "request_status_enum",

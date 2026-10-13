@@ -50,14 +50,23 @@ JWT_SECRET = "test-only-secret-not-used-anywhere-else"
 
 
 def _test_database_url() -> str:
-    """The configured database with a ``_test`` suffix, unless one is given explicitly."""
+    """The configured database with a ``_test`` suffix of its own, unless one is given explicitly.
+
+    The suffix carries this run's id because the schema is built by ``downgrade base`` followed by
+    ``upgrade head``. Two runs sharing one database means the second one tears down the tables the
+    first one is still querying, which surfaces as a scatter of unrelated failures rather than as
+    anything that points at the cause. A database per run cannot collide, so a second run started
+    while the first is going -- two terminals, an editor's test button -- is simply fine.
+    """
     if explicit := os.environ.get("AGRIMINDS_TEST_DATABASE_URL"):
         return explicit
     base = os.environ.get(
         "AGRIMINDS_DATABASE_URL", "postgresql+asyncpg://agriminds:agriminds@localhost:5432/agriminds"
     )
     parts = urlsplit(base)
-    return urlunsplit(parts._replace(path=f"{parts.path.rstrip('/')}_test"))
+    # Under xdist every worker is its own process with its own id; otherwise the pid is enough.
+    run = os.environ.get("PYTEST_XDIST_WORKER") or f"p{os.getpid()}"
+    return urlunsplit(parts._replace(path=f"{parts.path.rstrip('/')}_test_{run}"))
 
 
 TEST_DATABASE_URL = _test_database_url()
@@ -100,6 +109,7 @@ async def db_engine():
     admin = create_async_engine(admin_url, isolation_level="AUTOCOMMIT", poolclass=NullPool)
     try:
         async with admin.connect() as conn:
+            await _drop_abandoned(conn, like=f"{db_name.split('_test_')[0]}_test_%", keep=db_name)
             exists = await conn.scalar(
                 sa_text("SELECT 1 FROM pg_database WHERE datname = :n"), {"n": db_name}
             )
@@ -119,6 +129,35 @@ async def db_engine():
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
     yield engine
     await engine.dispose()
+
+    # This run owns this database, so it takes it with it. Left behind, one accumulates per run.
+    admin = create_async_engine(admin_url, isolation_level="AUTOCOMMIT", poolclass=NullPool)
+    try:
+        async with admin.connect() as conn:
+            await conn.execute(sa_text(f'DROP DATABASE IF EXISTS "{db_name}" WITH (FORCE)'))
+    except Exception:  # noqa: BLE001  -- a leftover database is untidy, not a test failure.
+        pass
+    finally:
+        await admin.dispose()
+
+
+async def _drop_abandoned(conn, *, like: str, keep: str) -> None:
+    """Remove test databases from runs that were killed before they could drop their own.
+
+    A killed run leaves its database behind, and only a later run can clean it up. Anything with a
+    live connection belongs to a run that is still going, so ``WITH (FORCE)`` is deliberately not
+    used here -- a concurrent run must not have its database pulled out from under it.
+    """
+    names = await conn.scalars(
+        sa_text("SELECT datname FROM pg_database WHERE datname LIKE :like AND datname <> :keep"),
+        {"like": like, "keep": keep},
+    )
+    for name in list(names):
+        busy = await conn.scalar(
+            sa_text("SELECT count(*) FROM pg_stat_activity WHERE datname = :n"), {"n": name}
+        )
+        if not busy:
+            await conn.execute(sa_text(f'DROP DATABASE IF EXISTS "{name}"'))
 
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]

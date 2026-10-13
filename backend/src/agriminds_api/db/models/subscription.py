@@ -35,6 +35,9 @@ class BillingPeriod(enum.StrEnum):
 
 
 class SubscriptionStatus(enum.StrEnum):
+    #: Chosen but not yet paid for. Not counted as revenue: an unpaid subscription that showed up
+    #: in ARR would make the figure a forecast rather than a record.
+    PENDING_PAYMENT = "pending_payment"
     ACTIVE = "active"
     SUSPENDED = "suspended"
     ENDED = "ended"

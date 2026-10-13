@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, Building2, CalendarRange, Coins, Database, Flame, Inbox, Landmark, ListChecks, Map, PhoneCall, ShieldCheck, Sprout, Waves, Wheat, X, type LucideIcon } from 'lucide-react'
+import { BarChart3, Building2, CalendarRange, Coins, CreditCard, Database, Flame, Inbox, Landmark, ListChecks, Map, PhoneCall, ShieldCheck, Sprout, Waves, Wheat, X, type LucideIcon } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useEffect, useTransition } from 'react'
 import type { Role } from '@agriminds/api-types'
@@ -29,6 +29,8 @@ export function navForRole(role: Role): NavItem[] {
     { href: '/crop-yield', key: 'cropYield', icon: Wheat },
     { href: '/analytics', key: 'analytics', icon: BarChart3 },
     { href: '/data-sources', key: 'dataSources', icon: Database },
+    // Any staff member may see what their own organisation is on and owes.
+    { href: '/billing', key: 'billing', icon: CreditCard },
   ]
   // The rate card is commercial, not scientific: an agent and a minister have no business in it,
   // and the route refuses them anyway, so it is not offered to them either.

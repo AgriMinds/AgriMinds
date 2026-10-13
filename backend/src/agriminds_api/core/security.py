@@ -188,5 +188,30 @@ def hash_refresh_token(raw: str) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
+# ---------------------------------------------------------------------------- invitations
+def generate_invitation_token() -> tuple[str, str]:
+    """Return (raw_token, sha256_hash), as refresh tokens do. Only the hash is ever persisted.
+
+    The raw token is shown to the inviting administrator once and never stored, so a leaked
+    database yields no usable invitations.
+    """
+    raw = secrets.token_urlsafe(32)
+    return raw, hash_invitation_token(raw)
+
+
+def hash_invitation_token(raw: str) -> str:
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def unusable_password_hash() -> str:
+    """A hash no password can produce, for an account that exists but has no credential yet.
+
+    ``hashed_password`` is not nullable, and a null-ish placeholder such as an empty string would
+    make the column's meaning depend on reading the login path. Hashing a random secret nobody
+    keeps means the account simply cannot be signed into until the invitation is accepted.
+    """
+    return hash_password(secrets.token_urlsafe(32))
+
+
 def constant_time_equals(a: str, b: str) -> bool:
     return hmac.compare_digest(a, b)

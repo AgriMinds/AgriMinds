@@ -19,17 +19,25 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agriminds_api.core.exceptions import ConflictError, NotFoundError, ValidationError
-from agriminds_api.core.security import normalise_phone
+from agriminds_api.core.security import (
+    generate_invitation_token,
+    normalise_phone,
+    unusable_password_hash,
+)
 from agriminds_api.db.models import (
+    INVITATION_VALID_FOR,
     AccessRequest,
+    Invitation,
     Organization,
     RequestKind,
     RequestStatus,
     StakeholderType,
     User,
+    UserRole,
 )
 from agriminds_api.schemas.access_request import (
     AccessRequestOut,
+    DecisionResult,
     FarmerUpgradeRequest,
     OrganizationEnquiry,
     RequestDecision,
@@ -117,7 +125,13 @@ class AccessRequestService:
             stmt = stmt.where(AccessRequest.status.in_([RequestStatus.NEW, RequestStatus.CONTACTED]))
         return [_out(r) for r in (await self._session.scalars(stmt)).all()]
 
-    async def decide(self, request_id: uuid.UUID, decision: RequestDecision) -> AccessRequestOut:
+    async def decide(
+        self,
+        request_id: uuid.UUID,
+        decision: RequestDecision,
+        *,
+        decided_by: uuid.UUID | None = None,
+    ) -> DecisionResult:
         row = await self._session.get(AccessRequest, request_id)
         if row is None:
             raise NotFoundError("No such request.")
@@ -125,6 +139,11 @@ class AccessRequestService:
             raise ConflictError("That request has already been decided.")
 
         status = RequestStatus(decision.status)
+        invitation: dict[str, object | None] = {
+            "invited_email": None,
+            "invitation_token": None,
+            "invitation_expires_at": None,
+        }
         if status is RequestStatus.APPROVED and row.kind is RequestKind.ORGANIZATION:
             segment = decision.stakeholder or (row.stakeholder.value if row.stakeholder else None)
             if segment is None:
@@ -142,10 +161,65 @@ class AccessRequestService:
             await self._session.flush()
             row.organization_id = org.id
             log.info("approved %s -> organization %s", name, org.id)
+            invitation = await self._invite_contact(row, org, invited_by=decided_by)
 
         row.status = status
         row.decision_note = decision.note
         if status in {RequestStatus.APPROVED, RequestStatus.DECLINED}:
             row.decided_at = dt.datetime.now(dt.UTC)
         await self._session.flush()
-        return _out(row)
+        return DecisionResult(request=_out(row), **invitation)
+
+    async def _invite_contact(
+        self, row: AccessRequest, org: Organization, *, invited_by: uuid.UUID | None
+    ) -> dict[str, object | None]:
+        """Create the contact's account, unsigned-into-able until they accept the invitation.
+
+        Without this the approval creates an organisation nobody can reach: there is no other way
+        an account comes into being, so the customer would be approved and still locked out.
+
+        An email address is what staff sign in with, so a request that arrived without one cannot
+        be turned into an account here. That is reported rather than guessed at -- inventing an
+        address would create an account the contact can never use.
+        """
+        if not row.contact_email:
+            log.info("organization %s approved without a contact email: no account created", org.id)
+            return {"invited_email": None, "invitation_token": None, "invitation_expires_at": None}
+
+        email = row.contact_email.strip().lower()
+        existing = await self._session.scalar(select(User).where(User.email == email))
+        if existing is not None:
+            # Someone already signs in with this address: attach them to the new account rather
+            # than refusing the approval over it, and leave their password alone.
+            existing.organization_id = org.id
+            log.info("linked existing user %s to organization %s", existing.id, org.id)
+            return {"invited_email": email, "invitation_token": None, "invitation_expires_at": None}
+
+        user = User(
+            email=email,
+            full_name=row.contact_name,
+            hashed_password=unusable_password_hash(),
+            # Institutional staff, not an administrator: this is a customer, not an operator of
+            # the platform. The commercial pages stay out of their reach.
+            role=UserRole.AGENT,
+            organization_id=org.id,
+            is_active=True,
+        )
+        self._session.add(user)
+        await self._session.flush()
+
+        raw, token_hash = generate_invitation_token()
+        expires_at = dt.datetime.now(dt.UTC) + INVITATION_VALID_FOR
+        self._session.add(
+            Invitation(
+                user_id=user.id,
+                token_hash=token_hash,
+                expires_at=expires_at,
+                invited_by_id=invited_by,
+            )
+        )
+        return {
+            "invited_email": email,
+            "invitation_token": raw,
+            "invitation_expires_at": expires_at,
+        }

@@ -22,7 +22,7 @@ from agriminds_api.core.exceptions import (
     UnauthorizedError,
     ValidationError,
 )
-from agriminds_api.db.models import RefreshToken, User
+from agriminds_api.db.models import Invitation, RefreshToken, User
 
 log = logging.getLogger(__name__)
 
@@ -83,6 +83,43 @@ class AuthService:
             user, user_agent, family_id=uuid.uuid4(), now=now
         )
         log.info("sign-in ok user=%s role=%s", user.id, user.role)
+        return user, access, refresh, expires_in
+
+    async def accept_invitation(
+        self, raw_token: str, password: str, user_agent: str | None
+    ) -> tuple[User, str, str, int]:
+        """Set the password an invitation was issued for and sign the person straight in.
+
+        Signing in immediately is deliberate: asking somebody to type the password they just chose
+        into a second form adds a step and no security, since accepting the invitation already
+        proved they hold the token.
+
+        A used, expired or unknown token gets one message. Distinguishing them would let a holder
+        of a guessed token learn that it was once real.
+        """
+        now = datetime.now(UTC)
+        invitation = await self._session.scalar(
+            select(Invitation).where(
+                Invitation.token_hash == security.hash_invitation_token(raw_token)
+            )
+        )
+        if invitation is None or not invitation.is_usable(now=now):
+            raise UnauthorizedError("That invitation is no longer valid. Ask for a new one.")
+
+        user = invitation.user
+        if not user.is_active:
+            raise UnauthorizedError("That invitation is no longer valid. Ask for a new one.")
+
+        security.validate_password_strength(password, self._settings.password_min_length)
+        user.hashed_password = security.hash_password(password)
+        user.last_login_at = now
+        # Marked before the tokens are issued, so a retry of the same request cannot accept twice.
+        invitation.accepted_at = now
+
+        access, refresh, expires_in = await self._issue_pair(
+            user, user_agent, family_id=uuid.uuid4(), now=now
+        )
+        log.info("invitation accepted user=%s org=%s", user.id, user.organization_id)
         return user, access, refresh, expires_in
 
     async def _register_failure(self, user: User, now: datetime) -> None:

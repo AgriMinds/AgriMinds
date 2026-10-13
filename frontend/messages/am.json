@@ -22,7 +22,8 @@
       "section": "ምናሌ",
       "pricing": "ዋጋ",
       "organizations": "መለያዎች",
-      "requests": "ጥያቄዎች"
+      "requests": "ጥያቄዎች",
+      "billing": "ክፍያ"
     },
     "workspaceSub": "ደብረ ማርቆስ ዩኒቨርሲቲ · የኢትዮጵያ AI ኢንስቲትዩት",
     "greeting": "የድርቅ ትንበያ",
@@ -801,5 +802,68 @@
     "decided": "ማስታወሻ፦ {note}",
     "empty": "የሚጠብቅ የለም",
     "emptyHint": "ከሕዝብ ቅጽና ስለ ፕሪሚየም ከሚጠይቁ ገበሬዎች ጥያቄዎች እዚህ ይደርሳሉ።"
+  },
+  "plans": {
+    "eyebrow": "ክፍያ",
+    "title": "ዕቅዶችና ክፍያ",
+    "intro": "ድርጅትዎ ያለበት፣ ሌላ የሚቀርበውና የሚከፍሉት። ዕቅድ መምረጥ ደረሰኝ ያወጣል — እዚህ ክፍያ አይወሰድም።",
+    "currentPlan": "በ{period} ዕቅድ ላይ ነዎት · {status}",
+    "noPlan": "እስካሁን ዕቅድ አልተመረጠም",
+    "period": {
+      "annual": "ዓመታዊ",
+      "monthly": "ወርሃዊ",
+      "daily": "ዕለታዊ",
+      "perpetual": "ዘላቂ"
+    },
+    "per": {
+      "annual": "በዓመት",
+      "monthly": "በወር",
+      "daily": "በቀን",
+      "perpetual": "አንድ ጊዜ"
+    },
+    "status": {
+      "pending_payment": "ክፍያ በመጠባበቅ ላይ",
+      "active": "ንቁ",
+      "suspended": "ታግዷል",
+      "ended": "ተጠናቋል"
+    },
+    "annualised": "በዓመት {amount}",
+    "apiIncluded": "በወር {n} የኤፒአይ ጥያቄዎች",
+    "quantity": "ስንት ({unit})",
+    "choose": "ይህን ዕቅድ ምረጥ",
+    "yourPlan": "የእርስዎ ዕቅድ",
+    "saves": "{pct}% ይቆጥባል",
+    "howToPay": "እንዴት እንደሚከፍሉ",
+    "notYetActive": "እስካሁን ምንም አልተከፈለም፤ ዕቅድዎም አልጀመረም። ዝውውሩን ካረጋገጥን በኋላ ይጀምራል።",
+    "payTo": "ክፍያ ወደ",
+    "amount": "መጠን",
+    "reference": "ማጣቀሻ",
+    "copy": "ቅዳ",
+    "copied": "ተቀድቷል",
+    "dismiss": "ተጠናቋል",
+    "invoices": "ደረሰኞችዎ",
+    "invoicesDesc": "አዲሱ መጀመሪያ",
+    "invoiceStatus": {
+      "issued": "ያልተከፈለ",
+      "paid": "ተከፍሏል",
+      "void": "ተሰርዟል"
+    },
+    "overdue": "ጊዜው አልፎበታል",
+    "due": "መጨረሻ {date}",
+    "admin": {
+      "title": "ክፍያዎች",
+      "desc": "ያልተከፈሉ ደረሰኞች፣ በቅርብ የሚደርሱ መጀመሪያ",
+      "confirm": "ክፍያ አረጋግጥ",
+      "method": "ዘዴ",
+      "ref": "የክፍያ ማጣቀሻ",
+      "none": "ያልተከፈለ የለም",
+      "methodOption": {
+        "bank_transfer": "የባንክ ዝውውር",
+        "telebirr": "ቴሌብር",
+        "cheque": "ቼክ",
+        "cash": "ጥሬ ገንዘብ",
+        "other": "ሌላ"
+      }
+    }
   }
 }

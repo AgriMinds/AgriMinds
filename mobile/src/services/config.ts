@@ -2,18 +2,19 @@ import { Platform } from 'react-native';
 
 import { loadApiBaseUrl, loadApiKey } from '@/storage/preferences';
 
+export const RAILWAY_API_URL = 'https://backend-production-ced6.up.railway.app/api/v1';
+export const LOCAL_LAN_API_URL = 'http://192.168.220.98:8001/api/v1';
+export const EMULATOR_API_URL = 'http://10.0.2.2:8001/api/v1';
+
 /**
  * Default API base URL:
- *  - EXPO_PUBLIC_API_URL when set (physical devices: http://<HOST_IP>:8000/api/v1)
- *  - Android emulator loopback alias 10.0.2.2, iOS simulator / web localhost otherwise.
+ *  - EXPO_PUBLIC_API_URL when set (e.g. from EAS build or local .env)
+ *  - Defaults to live Railway cloud backend so mobile devices connect seamlessly out-of-the-box.
  */
 export function defaultApiBaseUrl(): string {
   const fromEnv = process.env.EXPO_PUBLIC_API_URL?.trim();
   if (fromEnv && !fromEnv.includes('YOUR-BACKEND')) return fromEnv.replace(/\/+$/, '');
-  return Platform.select({
-    android: 'http://10.0.2.2:8000/api/v1',
-    default: 'http://localhost:8000/api/v1',
-  });
+  return RAILWAY_API_URL;
 }
 
 export interface ApiConfig {

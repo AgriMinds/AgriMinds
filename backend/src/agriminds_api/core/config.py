@@ -51,6 +51,12 @@ class Settings(BaseSettings):
         default_factory=lambda: ["http://localhost:3000", "http://127.0.0.1:3000"]
     )
     # Machine credentials for service-to-service calls (the Next.js proxy, the mobile app).
+    #: Where a customer sends the money. Configuration rather than a constant in a page, because
+    #: it changes with the organisation's banking and must not need a deploy.
+    billing_pay_to: str = "Commercial Bank of Ethiopia · AgriMinds AI-DREWS · 1000XXXXXXXXX"
+    #: Days a customer has to settle an invoice before it is overdue.
+    billing_due_days: int = 30
+
     api_keys: Annotated[list[str], NoDecode] = Field(default_factory=list)
     jwt_secret: SecretStr = SecretStr(DEV_JWT_SECRET)
     jwt_algorithm: Literal["HS256", "HS384", "HS512"] = "HS256"

@@ -55,6 +55,11 @@ class User(UUIDPrimaryKey, Timestamps, Base):
     hashed_password: Mapped[str] = mapped_column(String(255))
     role: Mapped[UserRole] = mapped_column(user_role_enum, default=UserRole.FARMER, index=True)
     locale: Mapped[Locale] = mapped_column(locale_enum, default=Locale.EN)
+    #: The account that pays for this person's access. Null for a smallholder, who pays for
+    #: themselves, and for platform staff, who are not a customer.
+    organization_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     woreda_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("woredas.id", ondelete="SET NULL"), index=True
     )

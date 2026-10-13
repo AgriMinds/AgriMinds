@@ -22,7 +22,8 @@
       "section": "Navigation",
       "pricing": "Pricing",
       "organizations": "Accounts",
-      "requests": "Requests"
+      "requests": "Requests",
+      "billing": "Billing"
     },
     "workspaceSub": "Debre Markos University · AI Institute of Ethiopia",
     "greeting": "Drought outlook",
@@ -801,5 +802,68 @@
     "decided": "Note: {note}",
     "empty": "Nothing waiting",
     "emptyHint": "Requests from the public form and from farmers asking about premium arrive here."
+  },
+  "plans": {
+    "eyebrow": "Billing",
+    "title": "Plans & billing",
+    "intro": "What your organisation is on, what else is offered, and what you owe. Choosing a plan raises an invoice — no payment is taken here.",
+    "currentPlan": "You are on the {period} plan · {status}",
+    "noPlan": "No plan chosen yet",
+    "period": {
+      "annual": "Annual",
+      "monthly": "Monthly",
+      "daily": "Daily",
+      "perpetual": "Perpetual"
+    },
+    "per": {
+      "annual": "per year",
+      "monthly": "per month",
+      "daily": "per day",
+      "perpetual": "one-off"
+    },
+    "status": {
+      "pending_payment": "awaiting payment",
+      "active": "active",
+      "suspended": "suspended",
+      "ended": "ended"
+    },
+    "annualised": "{amount} a year",
+    "apiIncluded": "{n} API requests a month",
+    "quantity": "How many ({unit})",
+    "choose": "Choose this plan",
+    "yourPlan": "Your plan",
+    "saves": "saves {pct}%",
+    "howToPay": "How to pay",
+    "notYetActive": "Nothing has been paid yet and your plan has not started. It begins once we confirm the transfer.",
+    "payTo": "Pay to",
+    "amount": "Amount",
+    "reference": "Reference",
+    "copy": "Copy",
+    "copied": "Copied",
+    "dismiss": "Done",
+    "invoices": "Your invoices",
+    "invoicesDesc": "Newest first",
+    "invoiceStatus": {
+      "issued": "Unpaid",
+      "paid": "Paid",
+      "void": "Cancelled"
+    },
+    "overdue": "Overdue",
+    "due": "due {date}",
+    "admin": {
+      "title": "Payments",
+      "desc": "Bills still unpaid, soonest due first",
+      "confirm": "Confirm payment",
+      "method": "Method",
+      "ref": "Payment reference",
+      "none": "Nothing outstanding",
+      "methodOption": {
+        "bank_transfer": "Bank transfer",
+        "telebirr": "telebirr",
+        "cheque": "Cheque",
+        "cash": "Cash",
+        "other": "Other"
+      }
+    }
   }
 }

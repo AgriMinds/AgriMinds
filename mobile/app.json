@@ -13,6 +13,7 @@
     },
     "android": {
       "package": "et.gov.agriminds.drews",
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#173f36"

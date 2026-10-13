@@ -6,9 +6,10 @@ import uuid
 
 from fastapi import APIRouter, Depends, Query
 
-from agriminds_api.api.deps import FarmerUser, SessionDep, require_admin
+from agriminds_api.api.deps import CurrentUser, FarmerUser, SessionDep, require_admin
 from agriminds_api.schemas.access_request import (
     AccessRequestOut,
+    DecisionResult,
     EnquiryAccepted,
     FarmerUpgradeRequest,
     OrganizationEnquiry,
@@ -85,13 +86,18 @@ async def inbox(
 
 @admin_router.post(
     "/{request_id}",
-    response_model=AccessRequestOut,
+    response_model=DecisionResult,
     summary="Decide a request",
     description=(
-        "Approving an organisation enquiry **creates the account**, in the segment named here "
-        "rather than the one the enquirer guessed. The link back is kept, so an account can "
-        "always be traced to the enquiry it came from."
+        "Approving an organisation enquiry **creates the account and an account for its contact**, "
+        "in the segment named here rather than the one the enquirer guessed. The link back is "
+        "kept, so an account can always be traced to the enquiry it came from.\n\n"
+        "The response carries a single-use invitation token. There is no mail server here, so it "
+        "is shown once and relayed to the contact by whoever approves -- it is not stored in "
+        "readable form and re-reading the request will not return it."
     ),
 )
-async def decide(request_id: uuid.UUID, decision: RequestDecision, session: SessionDep) -> AccessRequestOut:
-    return await AccessRequestService(session).decide(request_id, decision)
+async def decide(
+    request_id: uuid.UUID, decision: RequestDecision, session: SessionDep, user: CurrentUser
+) -> DecisionResult:
+    return await AccessRequestService(session).decide(request_id, decision, decided_by=user.id)

@@ -19,6 +19,8 @@ import { QueryError } from '@/components/ui/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Stat } from '@/components/ui/stat'
 
+import { OutstandingInvoices } from '@/features/billing/OutstandingInvoices'
+
 import { barWidth, formatRequests, formatShare } from './money'
 import {
   useCreateOrganization,
@@ -161,7 +163,8 @@ export function OrganizationsPage() {
             </Card>
           </div>
 
-          <div className="xl:col-span-5">
+          <div className="flex flex-col gap-5 xl:col-span-5">
+          <OutstandingInvoices />
             {active ? (
               <Credentials organizationId={active} />
             ) : (

@@ -17,13 +17,13 @@ COPY ml/pyproject.toml ml/README.md ml/
 COPY backend/pyproject.toml backend/README.md backend/
 # Cache the wheel downloads across builds so a retry after a network failure is cheap. The mount
 # is build-only; nothing of it reaches the runtime image.
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,id=uv,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-install-workspace --package agriminds-api --extra crop-yield
 COPY ml/src ml/src
 COPY backend/src backend/src
 COPY backend/alembic.ini backend/alembic.ini
 COPY backend/alembic backend/alembic
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,id=uv,target=/root/.cache/uv \
     uv sync --frozen --no-dev --package agriminds-api --extra crop-yield
 
 FROM python:3.12-slim AS runtime

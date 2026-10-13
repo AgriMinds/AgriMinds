@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, model_validator
 from agriminds_api.schemas.billing import StakeholderName
 
 BillingPeriodName = Literal["annual", "monthly", "daily", "perpetual"]
-SubscriptionStatusName = Literal["active", "suspended", "ended"]
+SubscriptionStatusName = Literal["pending_payment", "active", "suspended", "ended"]
 
 
 class SubscriptionCreate(BaseModel):

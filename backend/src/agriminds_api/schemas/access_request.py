@@ -56,6 +56,25 @@ class AccessRequestOut(BaseModel):
     organization_id: str | None = Field(None, description="The account this became, once approved")
 
 
+class DecisionResult(BaseModel):
+    """The decided request, plus the credential the administrator has to relay.
+
+    ``invitation_token`` is present only on the response to the approval itself, and only when an
+    account was created. It is never stored in readable form and never returned again -- re-reading
+    the request later will not show it. If the administrator loses it, the fix is a fresh
+    invitation, not a lookup.
+    """
+
+    request: AccessRequestOut
+    invited_email: str | None = Field(
+        None, description="The account created for the contact, if one was"
+    )
+    invitation_token: str | None = Field(
+        None, description="Single-use, expiring. Shown once; relay it to the contact."
+    )
+    invitation_expires_at: dt.datetime | None = None
+
+
 class RequestDecision(BaseModel):
     """Approving an organisation enquiry creates the account; declining records why."""
 
@@ -72,3 +91,11 @@ class EnquiryAccepted(BaseModel):
     id: str
     status: RequestStatusName
     message: str
+
+
+class AcceptInvitation(BaseModel):
+    """Setting the password an invitation was issued for."""
+
+    # The strength rule itself lives in one place -- ``validate_password_strength`` against the
+    # configured minimum -- so this bound only keeps absurd input out of the hashing function.
+    password: str = Field(min_length=1, max_length=256)

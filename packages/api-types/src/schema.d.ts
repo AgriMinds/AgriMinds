@@ -84,6 +84,43 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Everything still unpaid, soonest due first */
+        get: operations["outstanding_api_v1_admin_invoices_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/invoices/{invoice_id}/paid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm a payment arrived
+         * @description Settles the bill and starts the subscription it paid for.
+         */
+        post: operations["confirm_api_v1_admin_invoices__invoice_id__paid_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/advisories/evaluate": {
         parameters: {
             query?: never;
@@ -829,6 +866,49 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The plans this account can choose from
+         * @description Only the caller's own segment, because the price follows from it and a cooperative cannot buy at a research rate. Periods the tier does not sell are left out rather than shown as free, and each option carries what a year on it costs so the terms can be compared on one scale.
+         */
+        get: operations["plans_api_v1_plans_get"];
+        put?: never;
+        /**
+         * Choose a plan
+         * @description Creates the subscription as **pending payment** and issues an invoice against a reference to quote on a bank transfer. No money moves through this platform: the plan starts when an administrator confirms the payment, not when this call returns.
+         *
+         *     The price is frozen at the moment of choosing, so a catalogue change between choosing and paying cannot restate the bill.
+         */
+        post: operations["choose_api_v1_plans_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plans/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** This account's bills */
+        get: operations["my_invoices_api_v1_plans_invoices_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/subscriptions": {
         parameters: {
             query?: never;
@@ -1286,6 +1366,18 @@ export type components = {
             current_password: string;
             /** New Password */
             new_password: string;
+        };
+        /**
+         * CheckoutResult
+         * @description What choosing a plan produces. No payment is taken here; a bill is issued.
+         */
+        CheckoutResult: {
+            /** Instructions */
+            instructions: string;
+            invoice: components["schemas"]["InvoiceOut"];
+            /** Pay To */
+            pay_to: string;
+            subscription: components["schemas"]["SubscriptionOut"];
         };
         /** CoverageStats */
         CoverageStats: {
@@ -2549,6 +2641,51 @@ export type components = {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** InvoiceOut */
+        InvoiceOut: {
+            /** Amount */
+            amount: string;
+            /** Amount Cents */
+            amount_cents: number;
+            /** Currency */
+            currency: string;
+            /** Description */
+            description: string;
+            /**
+             * Due On
+             * Format: date
+             */
+            due_on: string;
+            /** Id */
+            id: string;
+            /**
+             * Issued On
+             * Format: date
+             */
+            issued_on: string;
+            /** Method */
+            method: ("bank_transfer" | "telebirr" | "cheque" | "cash" | "other") | null;
+            /** Organization Id */
+            organization_id: string;
+            /** Overdue */
+            overdue: boolean;
+            /** Paid On */
+            paid_on: string | null;
+            /** Payment Reference */
+            payment_reference: string | null;
+            /**
+             * Reference
+             * @description Quote this on the transfer
+             */
+            reference: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "issued" | "paid" | "void";
+            /** Subscription Id */
+            subscription_id: string | null;
+        };
         /**
          * LeadHorizon
          * @description One month of the horizon.
@@ -2896,6 +3033,90 @@ export type components = {
             /** Used This Month */
             used_this_month: number;
         };
+        /** PaymentConfirmation */
+        PaymentConfirmation: {
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "bank_transfer" | "telebirr" | "cheque" | "cash" | "other";
+            /** Note */
+            note?: string | null;
+            /** Paid On */
+            paid_on?: string | null;
+            /**
+             * Payment Reference
+             * @description Bank slip or telebirr id
+             */
+            payment_reference?: string | null;
+        };
+        /** PlanChoice */
+        PlanChoice: {
+            /**
+             * Period
+             * @enum {string}
+             */
+            period: "annual" | "monthly" | "daily" | "perpetual";
+            /**
+             * Quantity
+             * @description Woredas, seats or members covered
+             * @default 1
+             */
+            quantity: number;
+            /**
+             * Starts On
+             * @description Defaults to today
+             */
+            starts_on?: string | null;
+        };
+        /**
+         * PlanOption
+         * @description One billing period of the caller's own tier, priced.
+         */
+        PlanOption: {
+            /** Annualised */
+            annualised: string;
+            /** Annualised Cents */
+            annualised_cents: number;
+            /**
+             * Period
+             * @enum {string}
+             */
+            period: "annual" | "monthly" | "daily" | "perpetual";
+            /**
+             * Saving Vs Shortest Pct
+             * @description How much cheaper a year on this period is than the shortest one offered
+             */
+            saving_vs_shortest_pct: number;
+            /** Unit Price */
+            unit_price: string;
+            /** Unit Price Cents */
+            unit_price_cents: number;
+        };
+        /** PlanSet */
+        PlanSet: {
+            /** Api Quota Monthly */
+            api_quota_monthly: number;
+            /** Currency */
+            currency: string;
+            /** @description What this account is already on */
+            current?: components["schemas"]["SubscriptionOut"] | null;
+            /** Label */
+            label: string;
+            /** Options */
+            options: components["schemas"]["PlanOption"][];
+            /**
+             * Stakeholder
+             * @enum {string}
+             */
+            stakeholder: "farmer_premium" | "cooperative" | "development_agent" | "insurer_lender" | "federal_ministry" | "research" | "international_partner" | "regional_government" | "private_sector";
+            /** Strategy */
+            strategy: string | null;
+            /** Unit */
+            unit: string;
+            /** Value Note */
+            value_note: string | null;
+        };
         /**
          * PricingCatalogue
          * @description Every stakeholder's price, current unless history was asked for.
@@ -3205,7 +3426,7 @@ export type components = {
              * Status
              * @enum {string}
              */
-            status: "active" | "suspended" | "ended";
+            status: "pending_payment" | "active" | "suspended" | "ended";
             /** Unit Price */
             unit_price: string;
             /** Unit Price Cents */
@@ -3643,6 +3864,97 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccessRequestOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    outstanding_api_v1_admin_invoices_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    confirm_api_v1_admin_invoices__invoice_id__paid_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentConfirmation"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceOut"];
                 };
             };
             /** @description Unauthorized */
@@ -5934,6 +6246,133 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    plans_api_v1_plans_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanSet"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    choose_api_v1_plans_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanChoice"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_invoices_api_v1_plans_invoices_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

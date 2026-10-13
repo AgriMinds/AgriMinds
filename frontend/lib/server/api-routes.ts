@@ -48,6 +48,12 @@ export const ALLOWED: ReadonlyArray<{ method: Method; path: RegExp }> = [
   { method: 'POST', path: /^access-requests\/premium$/ },
   { method: 'GET', path: /^admin\/access-requests$/ },
   { method: 'POST', path: new RegExp(`^admin/access-requests/${UUID}$`) },
+  // self-serve: a customer chooses a plan and is billed for it
+  { method: 'GET', path: /^plans$/ },
+  { method: 'POST', path: /^plans$/ },
+  { method: 'GET', path: /^plans\/invoices$/ },
+  { method: 'GET', path: /^admin\/invoices$/ },
+  { method: 'POST', path: new RegExp(`^admin/invoices/${UUID}/paid$`) },
   // commercial surfaces (admin only; the service enforces the role)
   { method: 'GET', path: /^billing\/pricing$/ },
   { method: 'GET', path: new RegExp(`^billing/pricing/${SLUG}$`) },
