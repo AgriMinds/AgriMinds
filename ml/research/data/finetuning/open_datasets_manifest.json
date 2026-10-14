@@ -1,0 +1,87 @@
+{
+  "huggingface_language_datasets": [
+    {
+      "id": "masakhane/afriqa",
+      "description": "African Question Answering dataset with Amharic QA pairs",
+      "url": "https://huggingface.co/datasets/masakhane/afriqa",
+      "languages": [
+        "amh"
+      ],
+      "use_case": "Fine-tuning conversational advisory agent"
+    },
+    {
+      "id": "castorini/afriberta",
+      "description": "Multilingual language model & corpus for African languages including Amharic and Oromo",
+      "url": "https://huggingface.co/castorini/afriberta",
+      "languages": [
+        "amh",
+        "orm"
+      ],
+      "use_case": "Base model and pretraining corpus"
+    },
+    {
+      "id": "masakhane/lafand-mt",
+      "description": "African translation benchmark covering Amharic and Oromo",
+      "url": "https://huggingface.co/datasets/masakhane/lafand-mt",
+      "languages": [
+        "amh",
+        "orm",
+        "eng"
+      ],
+      "use_case": "Multi-lingual advisory translation alignment"
+    }
+  ],
+  "huggingface_speech_datasets": [
+    {
+      "id": "google/fleurs",
+      "description": "102-language speech benchmark with Amharic (am_et) and Oromo (om_et)",
+      "url": "https://huggingface.co/datasets/google/fleurs",
+      "languages": [
+        "am_et",
+        "om_et"
+      ],
+      "use_case": "Fine-tuning Whisper / MMS ASR & TTS for Hotline 977"
+    },
+    {
+      "id": "mozilla-foundation/common_voice_17_0",
+      "description": "Crowd-sourced open voice recordings with transcripts",
+      "url": "https://huggingface.co/datasets/mozilla-foundation/common_voice_17_0",
+      "languages": [
+        "am",
+        "om"
+      ],
+      "use_case": "Hotline acoustic model adaptation"
+    }
+  ],
+  "crop_and_climate_datasets": [
+    {
+      "id": "aykgeh/Chokye_Water_Shield",
+      "description": "Choke Mountain Watershed 1990-2023 crop yields & ENSO climate observations",
+      "url": "https://huggingface.co/aykgeh/Chokye_Water_Shield",
+      "crops": [
+        "Teff",
+        "Wheat",
+        "Maize"
+      ],
+      "use_case": "Crop yield prediction and drought vulnerability"
+    },
+    {
+      "id": "WorldBank/LSMS-ISA-Ethiopia",
+      "description": "Ethiopia Socioeconomic Survey (ESS Waves 1-5) plot-level agricultural microdata",
+      "url": "https://microdata.worldbank.org/index.php/catalog/3823",
+      "use_case": "Plot-level empirical yield, fertilizer, and seed response modeling"
+    },
+    {
+      "id": "CHIRPS-EastAfrica",
+      "description": "High-resolution (0.05 deg) rainfall for East Africa (1981-present)",
+      "url": "https://data.chc.ucsb.edu/products/CHIRPS-2.0/",
+      "use_case": "Drought severity and precipitation anomaly input"
+    },
+    {
+      "id": "ISRIC-SoilGrids",
+      "description": "Global 250m soil property maps (organic carbon, pH, texture)",
+      "url": "https://www.isric.org/explore/soilgrids",
+      "use_case": "Plot-level soil water retention and nutrient mapping"
+    }
+  ]
+}
