@@ -37,9 +37,12 @@ describe('FarmerHotline', () => {
     ).toBeInTheDocument()
   })
 
-  it('provides a direct toll-free call link to 977', () => {
+  it('provides toll-free hotline dialog and call link to 977', () => {
     wrap()
-    const callLink = screen.getByRole('link', { name: /Call 977 toll-free/i })
+    const callButton = screen.getByRole('button', { name: /Call 977 toll-free/i })
+    fireEvent.click(callButton)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    const callLink = screen.getByRole('link', { name: /tel:977/i })
     expect(callLink).toHaveAttribute('href', 'tel:977')
   })
 

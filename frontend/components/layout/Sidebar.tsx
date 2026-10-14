@@ -5,9 +5,10 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { BarChart3, Building2, CalendarRange, Coins, CreditCard, Database, Flame, Inbox, Landmark, ListChecks, Map, PhoneCall, ShieldCheck, Sprout, Waves, Wheat, X, type LucideIcon } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
-import { useEffect, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import type { Role } from '@agriminds/api-types'
 import { setLocale } from '@/app/actions/locale'
+import { HotlineDialog } from '@/components/HotlineDialog'
 import { Button } from '@/components/ui/button'
 import { useFarmerDashboard } from '@/features/farmer/useFarmer'
 import { useHealth } from '@/features/health/useHealth'
@@ -144,14 +145,17 @@ function MinisterToolkit() {
  */
 function FarmerServices() {
   const ts = useTranslations('sidebar')
+  const [dialogOpen, setDialogOpen] = useState(false)
+
   return (
     <div className="mx-3 my-2 flex flex-col gap-2">
       <p className="px-1 text-[10px] font-semibold tracking-[0.18em] text-white/40 uppercase">
         {ts('farmerSupport')}
       </p>
-      <a
-        href="tel:977"
-        className="group flex items-center gap-2.5 rounded-lg border border-brand-lime/30 bg-brand-lime/[0.08] p-2.5 transition-colors hover:border-brand-lime hover:bg-brand-lime/[0.15]"
+      <button
+        type="button"
+        onClick={() => setDialogOpen(true)}
+        className="group flex w-full items-center gap-2.5 rounded-lg border border-brand-lime/30 bg-brand-lime/[0.08] p-2.5 text-left transition-colors hover:border-brand-lime hover:bg-brand-lime/[0.15] cursor-pointer"
       >
         <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-brand-lime/20 text-brand-lime group-hover:bg-brand-lime group-hover:text-brand-forest-deep transition-colors">
           <PhoneCall className="size-3.5" />
@@ -162,7 +166,7 @@ function FarmerServices() {
           </span>
           <span className="block truncate text-[10px] text-white/60">{ts('hotlineDesc')}</span>
         </div>
-      </a>
+      </button>
       <div className="flex items-center gap-2.5 rounded-lg border border-white/10 bg-white/[0.04] p-2.5">
         <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-white/10 text-brand-sage">
           <ShieldCheck className="size-3.5" />
@@ -172,6 +176,7 @@ function FarmerServices() {
           <span className="block truncate text-[10px] text-white/55">{ts('kebeleDesc')}</span>
         </div>
       </div>
+      <HotlineDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
     </div>
   )
 }

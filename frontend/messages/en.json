@@ -966,7 +966,20 @@
     "callNow": "Call 977 toll-free",
     "listenTurn": "Listen",
     "askQuestion": "Ask this",
-    "dialCode": "Dial 977 or send SMS"
+    "dialCode": "Dial 977 or send SMS",
+    "dialogTitle": "977 Agronomic Hotline",
+    "dialogSubtitle": "Ministry of Agriculture Toll-Free Advisory (IVR / SMS)",
+    "dialNumber": "977",
+    "tollFreeBadge": "Toll-Free in Ethiopia",
+    "copyNumber": "Copy number",
+    "copiedNumber": "Copied 977",
+    "dialFromPhone": "Dial 977 from any phone",
+    "launchDialer": "Open device dialer (tel:977)",
+    "launchDialerHint": "Opens your device's phone app if configured",
+    "listenIvr": "Listen to Voice Hotline",
+    "stopIvr": "Stop voice",
+    "ivrGreeting": "Welcome to 977 Agronomic Drought Advisory Hotline. Free toll-free IVR and SMS for smallholder farmers across Ethiopia, powered by the Ministry of Agriculture and AgriMinds AI-DREWS.",
+    "dialogNote": "No internet connection or smartphone required. Farmers can call or text 977 free from any standard phone across the Choke Mountain Watershed."
   },
   "site": {
     "nav": "Site",

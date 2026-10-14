@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { PhoneCall, Radio, Sparkles, Square, Volume2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -13,6 +14,7 @@ import {
   CardIcon,
   CardTitle,
 } from '@/components/ui/card'
+import { HotlineDialog } from '@/components/HotlineDialog'
 import { cn } from '@/lib/utils'
 import { useSpeech } from './useSpeech'
 
@@ -126,6 +128,7 @@ export function FarmerHotline() {
   const locale = useLocale()
   const speech = useSpeech(locale)
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   const langKey = locale.startsWith('am') ? 'am' : locale.startsWith('om') || locale.startsWith('or') ? 'om' : 'en'
   const items = (INQUIRIES[langKey] ?? INQUIRIES.en) ?? []
@@ -163,13 +166,15 @@ export function FarmerHotline() {
               </CardDescription>
             </div>
           </CardHeading>
-          <a
-            href="tel:977"
-            className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-3.5 text-xs font-semibold text-primary-fg shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          <Button
+            type="button"
+            onClick={() => setDialogOpen(true)}
+            size="sm"
+            className="h-9 gap-2 rounded-xl font-semibold cursor-pointer"
           >
             <PhoneCall className="size-3.5" />
             {t('callNow')}
-          </a>
+          </Button>
         </div>
       </CardHeader>
 
@@ -231,6 +236,7 @@ export function FarmerHotline() {
           <span className="font-mono text-[11px] font-semibold text-primary">tel: 977</span>
         </div>
       </CardContent>
+      <HotlineDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
     </Card>
   )
 }

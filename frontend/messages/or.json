@@ -966,7 +966,20 @@
     "callNow": "Bilisaan 977 irratti bilbilaa",
     "listenTurn": "Dhaggeeffadhu",
     "askQuestion": "Kana gaafadhu",
-    "dialCode": "977 bilbilaa ykn SMS ergaa"
+    "dialCode": "977 bilbilaa ykn SMS ergaa",
+    "dialogTitle": "Sarara Bilbila Bilisaa 977",
+    "dialogSubtitle": "Gorsa Bilisaa Ministeera Qonnaa (IVR / SMS)",
+    "dialNumber": "977",
+    "tollFreeBadge": "Itoophiyaa keessatti bilisa",
+    "copyNumber": "Lakkoofsa garagalchi",
+    "copiedNumber": "977 garagalfameera",
+    "dialFromPhone": "Bilbila kamiyyuu irraa 977 bilbilaa",
+    "launchDialer": "Meeshaa keessaniin bilbilaa (tel:977)",
+    "launchDialerHint": "Meeshaa keessan irraa appii bilbilaa bana",
+    "listenIvr": "Tajaajila sagalee dhaggeeffadhaa",
+    "stopIvr": "Sagalee dhaabi",
+    "ivrGreeting": "Baga gara tajaajila sarara bilbilaa 977 eeggannoo caamaa dhuftan. Tajaajila bilisaa Ministeera Qonnaa fi AgriMinds irraa sagaleefi ergaa gabaabaan dhiyaate.",
+    "dialogNote": "Intarneetii ykn bilbila ammayyaa hin barbaachisu. Qonnaan bultoonni bilbila kamiyyuu irraa bilisaan 977 bilbiluu ykn ergaa erguu danda'u."
   },
   "site": {
     "nav": "Marsariitii",
