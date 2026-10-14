@@ -6,7 +6,7 @@ connected is what stops a price existing for something nobody has defined.
 
 from __future__ import annotations
 
-from sqlalchemy import String, Text
+from sqlalchemy import String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -15,8 +15,9 @@ from agriminds_api.db.base import Base, Timestamps, UUIDPrimaryKey
 
 class Product(UUIDPrimaryKey, Timestamps, Base):
     __tablename__ = "products"
+    __table_args__ = (UniqueConstraint("code", name="uq_product_code"),)
 
-    code: Mapped[str] = mapped_column(String(4), unique=True)
+    code: Mapped[str] = mapped_column(String(4))
     name: Mapped[str] = mapped_column(String(120))
     summary: Mapped[str] = mapped_column(Text)
     #: Stakeholder keys this package serves. An array rather than a join table: three rows, and

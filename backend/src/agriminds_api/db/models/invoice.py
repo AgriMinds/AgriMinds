@@ -20,7 +20,17 @@ import datetime as dt
 import enum
 import uuid
 
-from sqlalchemy import BigInteger, CheckConstraint, Date, Enum, ForeignKey, Index, String, Text
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    Date,
+    Enum,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from agriminds_api.db.base import Base, Timestamps, UUIDPrimaryKey
@@ -52,6 +62,7 @@ payment_method_enum = Enum(
 class Invoice(UUIDPrimaryKey, Timestamps, Base):
     __tablename__ = "invoices"
     __table_args__ = (
+        UniqueConstraint("reference", name="uq_invoice_reference"),
         CheckConstraint("amount_cents >= 0", name="ck_invoice_amount_non_negative"),
         CheckConstraint("due_on >= issued_on", name="ck_invoice_due_after_issue"),
         # The same rule as the subscription it bills: one payer, an institution or a farmer.
@@ -61,7 +72,7 @@ class Invoice(UUIDPrimaryKey, Timestamps, Base):
     )
 
     #: What a payer types into a transfer form. Short enough to copy without error.
-    reference: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    reference: Mapped[str] = mapped_column(String(32), index=True)
     organization_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("organizations.id", ondelete="CASCADE"), index=True, nullable=True
     )
