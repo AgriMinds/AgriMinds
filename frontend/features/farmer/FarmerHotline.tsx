@@ -143,6 +143,13 @@ export function FarmerHotline() {
     speech.speak(`${item.question}. ${item.reply}`)
   }
 
+  const [autoStart, setAutoStart] = useState(true)
+
+  const handleOpenDialog = (startCall = true) => {
+    setAutoStart(startCall)
+    setDialogOpen(true)
+  }
+
   return (
     <Card id="hotline" className="scroll-mt-24 border-primary/20 bg-surface-raised p-4 sm:p-6">
       <CardHeader className="p-0">
@@ -168,11 +175,11 @@ export function FarmerHotline() {
           </CardHeading>
           <Button
             type="button"
-            onClick={() => setDialogOpen(true)}
+            onClick={() => handleOpenDialog(true)}
             size="sm"
-            className="h-9 gap-2 rounded-xl font-semibold cursor-pointer"
+            className="h-9 gap-2 rounded-xl bg-emerald-600 font-semibold text-white shadow-sm hover:bg-emerald-500 cursor-pointer"
           >
-            <PhoneCall className="size-3.5" />
+            <PhoneCall className="size-3.5 animate-pulse" />
             {t('callNow')}
           </Button>
         </div>
@@ -236,7 +243,11 @@ export function FarmerHotline() {
           <span className="font-mono text-[11px] font-semibold text-primary">tel: 977</span>
         </div>
       </CardContent>
-      <HotlineDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
+      <HotlineDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        autoStartCall={autoStart}
+      />
     </Card>
   )
 }

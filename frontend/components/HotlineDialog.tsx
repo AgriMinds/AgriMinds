@@ -6,17 +6,27 @@ import { Check, Copy, ExternalLink, PhoneCall, Radio, Square, Volume2, X } from 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useSpeech } from '@/features/farmer/useSpeech'
+import { HotlineCallSimulator } from '@/components/HotlineCallSimulator'
+import { cn } from '@/lib/utils'
 
 interface HotlineDialogProps {
   open: boolean
   onClose: () => void
+  initialTab?: 'simulate' | 'info'
+  autoStartCall?: boolean
 }
 
-export function HotlineDialog({ open, onClose }: HotlineDialogProps) {
+export function HotlineDialog({
+  open,
+  onClose,
+  initialTab = 'simulate',
+  autoStartCall = false,
+}: HotlineDialogProps) {
   const t = useTranslations('hotline')
   const tc = useTranslations('common')
   const locale = useLocale()
   const speech = useSpeech(locale)
+  const [tab, setTab] = useState<'simulate' | 'info'>(initialTab)
   const [copied, setCopied] = useState(false)
   const dialogRef = useRef<HTMLDivElement>(null)
 
@@ -49,7 +59,6 @@ export function HotlineDialog({ open, onClose }: HotlineDialogProps) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2500)
     } catch {
-      // Fallback
       setCopied(true)
       setTimeout(() => setCopied(false), 2500)
     }
@@ -77,8 +86,9 @@ export function HotlineDialog({ open, onClose }: HotlineDialogProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="hotline-dialog-title"
-        className="max-h-[92svh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-border bg-surface-raised p-5 shadow-2xl sm:rounded-2xl sm:p-6 animate-in fade-in zoom-in-95 duration-150"
+        className="max-h-[95svh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-border bg-surface-raised p-4 shadow-2xl sm:rounded-2xl sm:p-6 animate-in fade-in zoom-in-95 duration-150"
       >
+        {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-lime/20 text-brand-lime">
@@ -107,71 +117,112 @@ export function HotlineDialog({ open, onClose }: HotlineDialogProps) {
           </Button>
         </div>
 
-        {/* Primary Dial Display */}
-        <div className="mt-5 rounded-2xl border border-brand-lime/30 bg-gradient-to-br from-brand-lime/[0.08] via-surface to-brand-forest/[0.05] p-5 text-center">
-          <p className="text-xs font-semibold tracking-wider text-primary uppercase">
-            {t('dialFromPhone')}
-          </p>
-          <div className="my-2 font-display text-5xl font-black tracking-tight text-foreground sm:text-6xl">
-            977
-          </div>
-          <p className="mx-auto max-w-sm text-xs leading-relaxed text-fg-muted">
-            {t('dialogNote')}
-          </p>
-
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
-            <Button
-              type="button"
-              variant={copied ? 'outline' : 'default'}
-              size="sm"
-              onClick={handleCopy}
-              className="h-9 gap-1.5 px-4 font-semibold"
-            >
-              {copied ? (
-                <>
-                  <Check className="size-4 text-brand-lime" />
-                  {t('copiedNumber')}
-                </>
-              ) : (
-                <>
-                  <Copy className="size-4" />
-                  {t('copyNumber')}
-                </>
-              )}
-            </Button>
-
-            {speech.canSpeak && (
-              <Button
-                type="button"
-                variant={speech.speaking ? 'outline' : 'subtle'}
-                size="sm"
-                onClick={handleToggleVoice}
-                className="h-9 gap-1.5 px-4 font-semibold"
-              >
-                {speech.speaking ? (
-                  <>
-                    <Square className="size-3.5 fill-current text-primary" />
-                    {t('stopIvr')}
-                  </>
-                ) : (
-                  <>
-                    <Volume2 className="size-4 text-primary" />
-                    {t('listenIvr')}
-                  </>
-                )}
-              </Button>
+        {/* Tab Switcher */}
+        <div className="mt-4 flex rounded-xl border border-border bg-surface p-1">
+          <button
+            type="button"
+            onClick={() => setTab('simulate')}
+            className={cn(
+              'flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all cursor-pointer',
+              tab === 'simulate'
+                ? 'bg-primary text-primary-fg shadow-xs'
+                : 'text-fg-muted hover:text-foreground',
             )}
-          </div>
+          >
+            {t('simulateTab')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('info')}
+            className={cn(
+              'flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all cursor-pointer',
+              tab === 'info'
+                ? 'bg-primary text-primary-fg shadow-xs'
+                : 'text-fg-muted hover:text-foreground',
+            )}
+          >
+            {t('infoTab')}
+          </button>
         </div>
 
-        {/* IVR Voice Playback Box if playing */}
-        {speech.speaking && (
-          <div className="mt-3 rounded-xl border border-primary/30 bg-primary/[0.05] p-3 text-xs leading-relaxed text-foreground animate-in fade-in duration-150">
-            <div className="flex items-center gap-2 mb-1.5 font-semibold text-primary">
-              <Volume2 className="size-4 animate-bounce" />
-              <span>977 Automated IVR Voice Broadcast</span>
+        {/* Tab 1: Interactive Call Simulation */}
+        {tab === 'simulate' && (
+          <div className="mt-4">
+            <HotlineCallSimulator
+              onClose={handleClose}
+              autoCall={autoStartCall}
+            />
+          </div>
+        )}
+
+        {/* Tab 2: Number info & copy */}
+        {tab === 'info' && (
+          <div className="mt-4 flex flex-col gap-4">
+            <div className="rounded-2xl border border-brand-lime/30 bg-gradient-to-br from-brand-lime/[0.08] via-surface to-brand-forest/[0.05] p-5 text-center">
+              <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+                {t('dialFromPhone')}
+              </p>
+              <div className="my-2 font-display text-5xl font-black tracking-tight text-foreground sm:text-6xl">
+                977
+              </div>
+              <p className="mx-auto max-w-sm text-xs leading-relaxed text-fg-muted">
+                {t('dialogNote')}
+              </p>
+
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+                <Button
+                  type="button"
+                  variant={copied ? 'outline' : 'default'}
+                  size="sm"
+                  onClick={handleCopy}
+                  className="h-9 gap-1.5 px-4 font-semibold"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="size-4 text-brand-lime" />
+                      {t('copiedNumber')}
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-4" />
+                      {t('copyNumber')}
+                    </>
+                  )}
+                </Button>
+
+                {speech.canSpeak && (
+                  <Button
+                    type="button"
+                    variant={speech.speaking ? 'outline' : 'subtle'}
+                    size="sm"
+                    onClick={handleToggleVoice}
+                    className="h-9 gap-1.5 px-4 font-semibold"
+                  >
+                    {speech.speaking ? (
+                      <>
+                        <Square className="size-3.5 fill-current text-primary" />
+                        {t('stopIvr')}
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className="size-4 text-primary" />
+                        {t('listenIvr')}
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
-            <p className="italic text-fg-muted">&ldquo;{t('ivrGreeting')}&rdquo;</p>
+
+            {speech.speaking && (
+              <div className="rounded-xl border border-primary/30 bg-primary/[0.05] p-3 text-xs leading-relaxed text-foreground animate-in fade-in duration-150">
+                <div className="flex items-center gap-2 mb-1.5 font-semibold text-primary">
+                  <Volume2 className="size-4 animate-bounce" />
+                  <span>977 Automated IVR Voice Broadcast</span>
+                </div>
+                <p className="italic text-fg-muted">&ldquo;{t('ivrGreeting')}&rdquo;</p>
+              </div>
+            )}
           </div>
         )}
 
