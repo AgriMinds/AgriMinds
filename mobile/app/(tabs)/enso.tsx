@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { OfflineBanner, ProvenanceBanner } from '@/components/Banners';
-import { Card, Label } from '@/components/Card';
+import { Card } from '@/components/Card';
 import { KeyValue } from '@/components/KeyValue';
 import { Screen } from '@/components/Screen';
 import { SegmentedControl } from '@/components/SegmentedControl';

@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { PhoneCall, Radio, Sparkles, Square, Volume2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,

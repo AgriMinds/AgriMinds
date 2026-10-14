@@ -1,5 +1,3 @@
-import { Platform } from 'react-native';
-
 import { loadApiBaseUrl, loadApiKey } from '@/storage/preferences';
 
 export const RAILWAY_API_URL = 'https://backend-production-ced6.up.railway.app/api/v1';

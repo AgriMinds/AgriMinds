@@ -1,9 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 
 /** The locales the agent speaks, mapped to the BCP-47 tags a browser voice engine expects. */
 const VOICE_TAG: Record<string, string> = { en: 'en-US', am: 'am-ET', om: 'om-ET' }
+
+const emptySubscribe = () => () => {}
 
 type Recognition = {
   lang: string
@@ -33,13 +35,17 @@ function recognitionCtor(): (new () => Recognition) | null {
  */
 export function useSpeech(locale: string) {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
-  const [hasSynth, setHasSynth] = useState(false)
   const [speaking, setSpeaking] = useState(false)
   const [listening, setListening] = useState(false)
 
+  const canSpeak = useSyncExternalStore(
+    emptySubscribe,
+    () => typeof window !== 'undefined' && 'speechSynthesis' in window,
+    () => false,
+  )
+
   useEffect(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
-    setHasSynth(true)
     const read = () => {
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         setVoices(window.speechSynthesis.getVoices())
@@ -112,7 +118,7 @@ export function useSpeech(locale: string) {
   )
 
   return {
-    canSpeak: hasSynth,
+    canSpeak,
     canListen: recognitionCtor() !== null,
     speaking,
     listening,

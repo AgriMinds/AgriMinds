@@ -46,7 +46,7 @@ export function AgentChat() {
         language === 'am'
           ? 'እንኳን ደህና መጡ! ስለ ማሳዎ ድርቅ፣ የመዝሪያ ጊዜ፣ ወይም የውሃ አያያዝ ይጠይቁኝ ወይም ከታች ካሉት ቁጥሮች ይጫኑ።'
           : language === 'or'
-            ? "Baga nagaan dhuftan! Waa'ee balaa caamaa, yeroo facaasaa ykn bishaan qotiisa keessanii na gaafadhaa."
+            ? 'Baga nagaan dhuftan! Waa\u0027ee balaa caamaa, yeroo facaasaa ykn bishaan qotiisa keessanii na gaafadhaa.'
             : 'Welcome! Ask about drought risk, planting windows, or water conservation for your plots, or tap a topic below.',
       timestamp: 'Now',
     },

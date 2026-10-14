@@ -69,7 +69,7 @@ def upgrade() -> None:
             UPDATE users
             SET organization_id = :ministry_id
             WHERE email IN ('minister@moa.gov.et', 'agent.sinan@moa.gov.et')
-               OR (organization_id IS NULL AND (email LIKE '%@moa.gov.et' OR role IN ('minister', 'agent')))
+               OR (organization_id IS NULL AND (email LIKE '%@moa.gov.et' OR role::text IN ('minister', 'agent')))
             """
         ),
         {"ministry_id": ministry_id},

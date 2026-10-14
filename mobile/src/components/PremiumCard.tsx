@@ -79,7 +79,7 @@ export function PremiumCard() {
                 {language === 'am'
                   ? 'ፕሪሚየም አገልግሎትዎ ጸድቋል'
                   : language === 'or'
-                    ? "Tajaajilli filatamaa mirkanaa'eera"
+                    ? 'Tajaajilli filatamaa mirkanaa\u0027eera'
                     : 'Premium Subscription Approved'}
               </Text>
               <Text style={[styles.statusBody, { color: colors.textMuted }]}>
