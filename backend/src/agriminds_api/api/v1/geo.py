@@ -32,9 +32,8 @@ class GeometryMissingError(AppError):
     code = "geometry_not_found"
 
 
-@router.api_route(
+@router.get(
     "/{name}.geojson",
-    methods=["GET", "HEAD"],
     summary="Map geometry (public)",
     description=(
         "`watershed` is the surveyed catchment outline; `grid` is one polygon per forecast cell, "
@@ -46,6 +45,10 @@ class GeometryMissingError(AppError):
         200: {"content": {"application/geo+json": {}}, "description": "A GeoJSON document"},
         404: {"model": ErrorResponse, "description": "Unknown or ungenerated geometry"},
     },
+)
+@router.head(
+    "/{name}.geojson",
+    include_in_schema=False,
 )
 def geometry(name: str, settings: SettingsDep, request: Request) -> Response:
     entry = _FILES.get(name)
