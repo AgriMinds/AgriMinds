@@ -103,6 +103,16 @@ export function HotlineDialog({
                   <Radio className="mr-1 size-3 animate-pulse" />
                   {t('tollFreeBadge')}
                 </Badge>
+                {locale.startsWith('am') && (
+                  <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-500 text-[10px]">
+                    🤗 Hugging Face MMS
+                  </Badge>
+                )}
+                {(locale.startsWith('om') || locale.startsWith('or')) && (
+                  <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-500 text-[10px]">
+                    🤗 Hugging Face MMS
+                  </Badge>
+                )}
               </div>
               <p className="text-xs text-fg-muted">{t('dialogSubtitle')}</p>
             </div>

@@ -1,9 +1,16 @@
 'use client'
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
 /** The locales the agent speaks, mapped to the BCP-47 tags a browser voice engine expects. */
 const VOICE_TAG: Record<string, string> = { en: 'en-US', am: 'am-ET', om: 'om-ET' }
+
+/** Hugging Face TTS models used for Ethiopian languages */
+export const HF_SPEECH_MODELS: Record<string, string> = {
+  am: 'facebook/mms-tts-amh',
+  om: 'facebook/mms-tts-orm',
+  or: 'facebook/mms-tts-orm',
+}
 
 const emptySubscribe = () => () => {}
 
@@ -20,29 +27,42 @@ type Recognition = {
 
 function recognitionCtor(): (new () => Recognition) | null {
   if (typeof window === 'undefined') return null
-  const w = window as unknown as { SpeechRecognition?: new () => Recognition; webkitSpeechRecognition?: new () => Recognition }
+  const w = window as unknown as {
+    SpeechRecognition?: new () => Recognition
+    webkitSpeechRecognition?: new () => Recognition
+  }
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null
 }
 
 /**
- * Speaking and listening with whatever the browser actually has.
+ * Voice and speech interface for AgriMinds.
  *
- * Both halves are checked against the *farmer's* language rather than assumed, because the thing
- * that matters here is Amharic and Afaan Oromoo support, and most engines have neither. Reading an
- * Amharic sentence aloud with an English voice produces noise, so when no matching voice exists
- * this reports `canSpeak: false` and the UI hides the button instead of offering something that
- * would be worse than silence.
+ * For Amharic (am) and Afaan Oromoo (om / or):
+ * Utilizes Meta's Massively Multilingual Speech (MMS) models from Hugging Face Hub:
+ * - Amharic: facebook/mms-tts-amh
+ * - Afaan Oromoo: facebook/mms-tts-orm
+ *
+ * For English:
+ * Uses standard browser speech synthesis with agronomic pacing (rate 0.92).
  */
 export function useSpeech(locale: string) {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
   const [speaking, setSpeaking] = useState(false)
   const [listening, setListening] = useState(false)
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
+  const currentAudioUrlRef = useRef<string | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
-  const canSpeak = useSyncExternalStore(
+  const isEthioLang = locale.startsWith('am') || locale.startsWith('om') || locale.startsWith('or')
+
+  const browserCanSpeak = useSyncExternalStore(
     emptySubscribe,
     () => typeof window !== 'undefined' && 'speechSynthesis' in window,
     () => false,
   )
+
+  // Amharic and Oromo can always speak via Hugging Face MMS model endpoint; English via browser synthesis
+  const canSpeak = isEthioLang || browserCanSpeak
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
@@ -64,10 +84,30 @@ export function useSpeech(locale: string) {
     voices.find((v) => v.lang.toLowerCase().startsWith(`${locale.toLowerCase()}-`)) ??
     voices.find((v) => v.lang.toLowerCase().startsWith(locale.toLowerCase()))
 
+  const stopCurrentAudio = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current.currentTime = 0
+      currentAudioRef.current = null
+    }
+    if (currentAudioUrlRef.current) {
+      URL.revokeObjectURL(currentAudioUrlRef.current)
+      currentAudioUrlRef.current = null
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
+    setSpeaking(false)
+  }, [])
+
   const speak = useCallback(
     (text: string) => {
-      if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
-      // Clean markdown formatting and irregular spacing for natural voice output
+      if (typeof window === 'undefined') return
+
       const clean = text
         .replace(/[*#_`~>]/g, '')
         .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
@@ -75,30 +115,86 @@ export function useSpeech(locale: string) {
         .trim()
       if (!clean) return
 
-      window.speechSynthesis.cancel()
-      const utterance = new SpeechSynthesisUtterance(clean)
-      if (voice) {
-        utterance.voice = voice
-        utterance.lang = voice.lang
-      } else {
-        utterance.lang = tag
+      stopCurrentAudio()
+
+      // For Amharic and Afaan Oromoo: Use Hugging Face MMS models (facebook/mms-tts-amh, facebook/mms-tts-orm)
+      if (isEthioLang) {
+        setSpeaking(true)
+        const controller = new AbortController()
+        abortControllerRef.current = controller
+
+        fetch('/api/speech/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: clean, locale }),
+          signal: controller.signal,
+        })
+          .then(async (res) => {
+            if (!res.ok) {
+              throw new Error(`TTS service returned ${res.status}`)
+            }
+            const blob = await res.blob()
+            const audioUrl = URL.createObjectURL(blob)
+            currentAudioUrlRef.current = audioUrl
+
+            const audio = new Audio(audioUrl)
+            currentAudioRef.current = audio
+
+            audio.onended = () => {
+              setSpeaking(false)
+              if (currentAudioUrlRef.current) {
+                URL.revokeObjectURL(currentAudioUrlRef.current)
+                currentAudioUrlRef.current = null
+              }
+              currentAudioRef.current = null
+            }
+
+            audio.onerror = () => {
+              setSpeaking(false)
+              currentAudioRef.current = null
+            }
+
+            return audio.play()
+          })
+          .catch(() => {
+            // Fallback to browser synthesis if network unavailable or canceled
+            if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+              const utterance = new SpeechSynthesisUtterance(clean)
+              utterance.lang = tag
+              utterance.rate = 0.92
+              utterance.onend = () => setSpeaking(false)
+              utterance.onerror = () => setSpeaking(false)
+              window.speechSynthesis.speak(utterance)
+            } else {
+              setSpeaking(false)
+            }
+          })
+
+        return
       }
-      // Slower, deliberate pace (0.92): this is agronomic advice someone is writing down
-      utterance.rate = 0.92
-      utterance.onend = () => setSpeaking(false)
-      utterance.onerror = () => setSpeaking(false)
-      window.speechSynthesis.speak(utterance)
-      setSpeaking(true)
+
+      // For English: standard browser speech synthesis
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(clean)
+        if (voice) {
+          utterance.voice = voice
+          utterance.lang = voice.lang
+        } else {
+          utterance.lang = tag
+        }
+        utterance.rate = 0.92
+        utterance.onend = () => setSpeaking(false)
+        utterance.onerror = () => setSpeaking(false)
+        window.speechSynthesis.speak(utterance)
+        setSpeaking(true)
+      }
     },
-    [voice, tag],
+    [isEthioLang, locale, stopCurrentAudio, tag, voice],
   )
 
   const stop = useCallback(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel()
-    }
-    setSpeaking(false)
-  }, [])
+    stopCurrentAudio()
+  }, [stopCurrentAudio])
 
   const listen = useCallback(
     (onHeard: (text: string) => void) => {
@@ -117,6 +213,12 @@ export function useSpeech(locale: string) {
     [tag],
   )
 
+  useEffect(() => {
+    return () => {
+      stopCurrentAudio()
+    }
+  }, [stopCurrentAudio])
+
   return {
     canSpeak,
     canListen: recognitionCtor() !== null,
@@ -125,5 +227,7 @@ export function useSpeech(locale: string) {
     speak,
     stop,
     listen,
+    modelName: isEthioLang ? (locale.startsWith('am') ? 'facebook/mms-tts-amh' : 'facebook/mms-tts-orm') : 'Browser Speech',
+    isHuggingFace: isEthioLang,
   }
 }

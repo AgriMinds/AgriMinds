@@ -69,6 +69,13 @@ class Settings(BaseSettings):
     #: Days a customer has to settle an invoice before it is overdue.
     billing_due_days: int = 30
 
+    # ---- Hugging Face Ethiopian Language Models (Amharic & Afaan Oromoo) ----
+    huggingface_api_token: SecretStr | None = None
+    hf_tts_model_am: str = "facebook/mms-tts-amh"
+    hf_tts_model_om: str = "facebook/mms-tts-orm"
+    hf_asr_model: str = "facebook/mms-1b-all"
+    hf_llm_model: str = "castorini/afriberta_large"
+
     api_keys: Annotated[list[str], NoDecode] = Field(default_factory=list)
     jwt_secret: SecretStr = SecretStr(DEV_JWT_SECRET)
     jwt_algorithm: Literal["HS256", "HS384", "HS512"] = "HS256"

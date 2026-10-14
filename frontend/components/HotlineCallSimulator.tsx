@@ -489,11 +489,23 @@ export function HotlineCallSimulator({
             <h3 className="font-display text-base font-bold text-foreground">
               {t('aiHotline')}
             </h3>
-            <p className="text-[11px] text-fg-muted">
-              {callState === 'connected'
-                ? '977 Interactive Agronomic Voice Assistant'
-                : 'FDRE Ministry of Agriculture · Toll-Free 977'}
-            </p>
+            <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+              <span className="text-[11px] text-fg-muted">
+                {callState === 'connected'
+                  ? '977 Interactive Agronomic Voice Assistant'
+                  : 'FDRE Ministry of Agriculture · Toll-Free 977'}
+              </span>
+              {langKey === 'am' && (
+                <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-500 text-[10px] py-0 px-1.5 h-4 font-normal">
+                  🤗 Hugging Face MMS (amh)
+                </Badge>
+              )}
+              {langKey === 'om' && (
+                <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-500 text-[10px] py-0 px-1.5 h-4 font-normal">
+                  🤗 Hugging Face MMS (orm)
+                </Badge>
+              )}
+            </div>
           </div>
 
           {/* Sound equalizer bars */}
